@@ -585,7 +585,7 @@ export namespace JsTypeCommander {
      * @param {AnyFunction} classConstructor Constructor function to look for.
      * @returns {boolean} True if the value is determined to inherit from the specified class; otherwise false.
      */
-    export function derivesFrom<T>(obj?: defined, classConstructor?: Function) : obj is T {
+    export function derivesFrom<T>(obj?: defined, classConstructor?: { new(...args: anyAtAll[]): T; }) : obj is T {
         if (!JsTypeCommander.isDefined(obj))
             return !JsTypeCommander.isDefined(classConstructor);
         if (!JsTypeCommander.isDefined(classConstructor))

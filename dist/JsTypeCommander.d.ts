@@ -69,7 +69,9 @@ export declare namespace JsTypeCommander {
     function isEmptyArrayOrNull(obj?: defined): obj is anyAtAll[] | null;
     function isEmptyArrayOrNil(obj?: defined): obj is anyAtAll[] | null;
     function asArray(obj?: defined): anyAtAll[];
-    function derivesFrom<T>(obj?: defined, classConstructor?: Function): obj is T;
+    function derivesFrom<T>(obj?: defined, classConstructor?: {
+        new (...args: anyAtAll[]): T;
+    }): obj is T;
     function derivesFromIfDef<T>(obj?: defined, classConstructor?: {
         new (...args: anyAtAll[]): T;
     }): obj is T | undefined;
