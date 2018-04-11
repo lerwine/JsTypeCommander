@@ -132,21 +132,21 @@ export namespace JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string; otherwise false.
      */
-    export function isEmptyString(obj?: defined): obj is string|null|undefined { return typeof(obj) == "string" && obj.length == 0; }
+    export function isEmptyString(obj?: defined): obj is string { return typeof(obj) == "string" && obj.length == 0; }
     
     /**
      * Determines whether a value is an empty string or undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string undefined; otherwise false.
      */
-    export function isEmptyStringIfDef(obj?: defined): obj is string|null|undefined { return typeof(obj) == "undefined" || JsTypeCommander.isEmptyString(obj); }
+    export function isEmptyStringIfDef(obj?: defined): obj is string|undefined { return typeof(obj) == "undefined" || JsTypeCommander.isEmptyString(obj); }
     
     /**
      * Determines whether a value is a empty string or null.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string or null; otherwise false.
      */
-    export function isEmptyStringOrNull(obj?: defined): obj is string|null|undefined { return JsTypeCommander.isEmptyString(obj) || JsTypeCommander.isNull(obj); }
+    export function isEmptyStringOrNull(obj?: defined): obj is string|null { return JsTypeCommander.isEmptyString(obj) || JsTypeCommander.isNull(obj); }
     
     /**
      * Determines whether a value is an empty string, null or undefined.
@@ -160,21 +160,21 @@ export namespace JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string or contains only whitespace characters; otherwise false.
      */
-    export function isEmptyOrWhitespace(obj?: defined): obj is string|null|undefined { return typeof(obj) == "string" && obj.trim().length == 0; }
+    export function isEmptyOrWhitespace(obj?: defined): obj is string { return typeof(obj) == "string" && obj.trim().length == 0; }
     
     /**
      * Determines whether a value is an empty string, contains only whitespace characters, or is undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string, contains only whitespace characters, or is undefined; otherwise false.
      */
-    export function isEmptyOrWhitespaceIfDef(obj?: defined): obj is string|null|undefined { return JsTypeCommander.isEmptyOrWhitespace(obj) || JsTypeCommander.notDefined(obj); }
+    export function isEmptyOrWhitespaceIfDef(obj?: defined): obj is string|undefined { return JsTypeCommander.isEmptyOrWhitespace(obj) || JsTypeCommander.notDefined(obj); }
     
     /**
      * Determines whether a value is an empty string, contains only whitespace characters, or is null.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string, contains only whitespace characters, or is null; otherwise false.
      */
-    export function isNullOrWhitespace(obj?: defined): obj is string|null|undefined { return JsTypeCommander.isEmptyOrWhitespace(obj) || JsTypeCommander.isNull(obj); }
+    export function isNullOrWhitespace(obj?: defined): obj is string|null { return JsTypeCommander.isEmptyOrWhitespace(obj) || JsTypeCommander.isNull(obj); }
     
     /**
      * Determines whether a value is an empty string, contains only whitespace characters, or is null or undefined.
