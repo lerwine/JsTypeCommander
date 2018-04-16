@@ -1,18 +1,23 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-//interface AnyFunction { (...args: anyAtAll[]): anyAtAll; }
-//interface AnyConstructor<T> { new(...args: anyAtAll[]): T; };
-//export namespace JsTypeCommander {
 var newLineString = "\n";
-var whitespaceRegex = /^\s*$/;
-var trimStartRegex = /^\s+(\S.*)?$/;
-var trimEndRegex = /^(\s*\S+(\s+\S+)*)/;
+var whitespaceRegex = /^\s*$/m;
+var trimStartRegex = /^\s+(\S.*)?$/m;
+var trimEndRegex = /^(\s*\S+(\s+\S+)*)/m;
 var lineSplitRegex = /\r\n?|\n/g;
 var boolRegex = /^(?:(t(?:rue)?|y(?:es)?|[+-]?(?:0*[1-9]\d*(?:\.\d+)?|0+\.0*[1-9]\d*)|\+)|(f(?:alse)?|no?|[+-]?0+(?:\.0+)?|-))$/i;
 var ucFirstRegex = /^([^a-zA-Z\d]+)?([a-z])(.+)?$/g;
 var abnormalWhitespaceRegex = /( |(?=[^ ]))\s+/g;
 ;
 ;
+/**
+ * Maps a source value to a new value based upon the source value's type.
+ * @param target Source value to be mapped.
+ * @param callbacks Conditional callbacks which get invoked based upon the source object's type.
+ * @param simpleCheck When checking whether an object is {@link ArrayLike} and this is set true, then the existance of each element index is not checked,
+ * which makes this function faster, but can result in false positives for non-array objects which have a numeric "length" property.
+ * @returns {*} Value returned from the matching callback.
+ */
 function mapByTypeValue(target, callbacks, simpleCheck) {
     switch (typeof (target)) {
         case "boolean":
@@ -20,6 +25,7 @@ function mapByTypeValue(target, callbacks, simpleCheck) {
                 return callbacks.whenBoolean(target);
             if (typeof (callbacks.whenBoolean) !== "undefined")
                 return callbacks.whenBoolean;
+            break;
         case "function":
             if (typeof (callbacks.whenFunction) == "function")
                 return callbacks.whenFunction(target);
@@ -34,7 +40,7 @@ function mapByTypeValue(target, callbacks, simpleCheck) {
                 if (typeof (callbacks.whenNaN) !== "undefined")
                     return callbacks.whenNaN;
             }
-            if ((n == Number.NEGATIVE_INFINITY || n == Number.POSITIVE_INFINITY) && typeof (callbacks.whenInfinity) != "undefined") {
+            else if ((n == Infinity || n == -Infinity) && typeof (callbacks.whenInfinity) != "undefined") {
                 if (typeof (callbacks.whenInfinity) == "function")
                     return callbacks.whenInfinity(n);
                 if (typeof (callbacks.whenInfinity) !== "undefined")
@@ -111,8 +117,8 @@ exports.mapByTypeValue = mapByTypeValue;
 /**
  * Gets a mapped value according to whether the object is defined and optionally by target object type.
  * @param target Value to test.
- * @param whenTrue Function to call to get return value according to target object type, or value to return, when target is not undefined.
- * @param otherwise Function to call to get return value, or value to return, when target is undefined.
+ * @param whenTrue When target type is not "undefined": Callback to invoke to get the return value according to target object type, or value to return.
+ * @param otherwise When target is "undefined": Function to call to get return value, or value to return.
  * @returns {*} Mapped value according to whether the object is defined and optionally by target object type.
  */
 function mapByDefined(target, whenTrue, otherwise) {
@@ -130,8 +136,8 @@ exports.mapByDefined = mapByDefined;
 /**
  * Gets a mapped value according to whether the object is not defined or not null and optionally by defined target object type.
  * @param target Value to test.
- * @param whenTrue Function to call to get return value according to target object type, or value to return, when target is not undefined or is not null.
- * @param otherwise Function to call to get return value, or value to return, when target is null.
+ * @param whenTrue When target value is not null: Function to call to get return value according to target object type, or value to return.
+ * @param otherwise When target value is null: Function to call to get return value, or value to return, when target is null.
  * @returns {*} Mapped value according to whether the object is not defined or not null and optionally by defined target object type.
  */
 function mapByNotNull(target, whenTrue, otherwise) {
@@ -149,8 +155,8 @@ exports.mapByNotNull = mapByNotNull;
 /**
  * Gets a mapped value according to whether the object is defined and not null and optionally by defined target object type.
  * @param target Value to test.
- * @param whenTrue Function to call to get return value according to target object type, or value to return, when target is defined and is not null.
- * @param otherwise Function to call to get return value, or value to return, when target is undefined or null.
+ * @param whenTrue When target type is not "undefined" and target value is not null: Function to call to get return value according to target object type, or value to return.
+ * @param otherwise When target type is "undefined" or target value is null: Function to call to get return value, or value to return.
  * @returns {*} Mapped value according to whether the object is defined and not null and optionally by defined target object type.
  */
 function mapByNotNil(obj, whenTrue, otherwise) {
@@ -286,7 +292,7 @@ exports.isEmptyStringOrNil = isEmptyStringOrNil;
  */
 function isEmptyOrWhitespace(obj) {
     return mapByTypeValue(obj, {
-        whenString: function (s) { return s.trim().length == 0; },
+        whenString: function (s) { return whitespaceRegex.test(s); },
         otherwise: false
     });
 }
@@ -299,7 +305,7 @@ exports.isEmptyOrWhitespace = isEmptyOrWhitespace;
 function isEmptyOrWhitespaceIfDef(obj) {
     return mapByTypeValue(obj, {
         whenUndefined: true,
-        whenString: function (s) { return s.trim().length == 0; },
+        whenString: function (s) { return whitespaceRegex.test(s); },
         otherwise: false
     });
 }
@@ -312,7 +318,7 @@ exports.isEmptyOrWhitespaceIfDef = isEmptyOrWhitespaceIfDef;
 function isNullOrWhitespace(obj) {
     return mapByTypeValue(obj, {
         whenNull: true,
-        whenString: function (s) { return s.trim().length == 0; },
+        whenString: function (s) { return whitespaceRegex.test(s); },
         otherwise: false
     });
 }
@@ -326,7 +332,7 @@ function isNilOrWhitespace(obj) {
     return mapByTypeValue(obj, {
         whenUndefined: true,
         whenNull: true,
-        whenString: function (s) { return s.trim().length == 0; },
+        whenString: function (s) { return whitespaceRegex.test(s); },
         otherwise: false
     });
 }
@@ -338,7 +344,7 @@ exports.isNilOrWhitespace = isNilOrWhitespace;
  * @param {boolean} [ifWhitespace] Return default value if converted value is empty or only whitespace.
  * @returns {string|null|undefined} Value converted to a string or the default value.
  */
-function toString(obj, defaultValue, ifWhitespace) {
+function asString(obj, defaultValue, ifWhitespace) {
     var str = mapByTypeValue(obj, {
         whenUndefined: function (s) { return s; },
         whenNull: function (s) { return s; },
@@ -356,7 +362,7 @@ function toString(obj, defaultValue, ifWhitespace) {
         return str;
     return mapByTypeValue(defaultValue, {
         whenUndefined: function (s) { return str; },
-        whenNull: function (s) { return s; },
+        whenNull: function (s) { return (typeof (str) == "string") ? str : s; },
         whenString: function (s) { return s; },
         whenArray: function (a) { return (a.length == 0) ? "" : a.join(","); },
         otherwise: function (s) {
@@ -368,7 +374,7 @@ function toString(obj, defaultValue, ifWhitespace) {
         }
     });
 }
-exports.toString = toString;
+exports.asString = asString;
 /**
  * Forces a value to a string.
  * @param {*} obj Object to convert.
@@ -376,20 +382,20 @@ exports.toString = toString;
  * @param {boolean} [ifWhitespace] Return default value if converted value is empty or only whitespace.
  * @returns {string} Value converted to a string or the default value. If the default value is nil, then an empty string will be returned.
  */
-function asString(obj, defaultValue, ifWhitespace) {
-    var s = toString(obj, defaultValue, ifWhitespace);
+function toString(obj, defaultValue, ifWhitespace) {
+    var s = asString(obj, defaultValue, ifWhitespace);
     if (isString(s))
         return s;
     return "";
 }
-exports.asString = asString;
+exports.toString = toString;
 /**
  * Trims leading whitespace from text.
  * @param text Text to trim.
  * @returns {string} Text with leading whitespace removed.
  */
 function trimStart(text) {
-    var s = asString(text, "");
+    var s = toString(text, "");
     var m = trimStartRegex.exec(s);
     if (isNil(m))
         return s;
@@ -402,7 +408,7 @@ exports.trimStart = trimStart;
  * @returns {string} Text with trailing whitespace removed.
  */
 function trimEnd(text) {
-    var s = asString(text, "");
+    var s = toString(text, "");
     var m = trimEndRegex.exec(s);
     if (isNil(m))
         return s;
@@ -415,7 +421,7 @@ exports.trimEnd = trimEnd;
  * @returns {string} Text with outer whitespace removed and inner whitespace normalized.
  */
 function asNormalizedWs(text) {
-    var s = asString(text, "").trim();
+    var s = toString(text, "").trim();
     if (s.length == 0)
         return s;
     return s.replace(abnormalWhitespaceRegex, " ");
@@ -427,7 +433,7 @@ exports.asNormalizedWs = asNormalizedWs;
  * @returns {string} Capitalizes the first letter in text, skipping over any leading characters that are not letters or digits.
  */
 function ucFirst(text) {
-    var s = asString(text, "");
+    var s = toString(text, "");
     if (s.length < 2)
         return s.toUpperCase();
     var m = ucFirstRegex.exec(s);
@@ -449,7 +455,7 @@ exports.ucFirst = ucFirst;
  * @returns {string[]} Array containing individual lines of text.
  */
 function splitLines(text) {
-    var s = asString(text, "");
+    var s = toString(text, "");
     if (s.length == 0)
         return [s];
     return s.split(lineSplitRegex);
@@ -462,8 +468,10 @@ exports.splitLines = splitLines;
  * @returns {string} Text with lines indented.
  */
 function indentText(text, indent) {
-    var i = asString(indent, "\t");
-    var t = (Array.isArray(text)) ? text.join(newLineString) : asString(text, "");
+    var i = toString(indent, "\t");
+    if (i.length == 0)
+        i = "\t";
+    var t = (Array.isArray(text)) ? text.join(newLineString) : toString(text, "");
     if (i.length == 0 || t.length == 0)
         return t;
     return splitLines(t).map(function (s) { return trimEnd(s); }).map(function (s) {
@@ -480,8 +488,8 @@ exports.indentText = indentText;
  * @returns {string} Array containing indented lines.
  */
 function indentLines(text, indent) {
-    var i = asString(indent, "\t");
-    var t = (Array.isArray(text)) ? text.join(newLineString) : asString(text, "");
+    var i = toString(indent, "\t");
+    var t = (Array.isArray(text)) ? text.join(newLineString) : toString(text, "");
     if (t.length == 0)
         return [t];
     var a = splitLines(t).map(function (s) { return trimEnd(s); });
@@ -541,7 +549,7 @@ exports.isBooleanOrNil = isBooleanOrNil;
  * @param {boolean|null} [defaultValue] Default value if object could not be converted to a boolean.
  * @returns {boolean|null|undefined} Value converted to a boolean or the default value.
  */
-function toBoolean(obj, defaultValue) {
+function asBoolean(obj, defaultValue) {
     var bs = mapByTypeValue(obj, {
         whenUndefined: function (b) { return b; },
         whenNull: function (b) { return b; },
@@ -587,107 +595,143 @@ function toBoolean(obj, defaultValue) {
                 whenUndefined: function (o) { return o; },
                 whenNull: function (o) { return o; },
                 whenBoolean: function (b) { return b; },
-                otherwise: function (o) { return toBoolean(o); }
+                otherwise: function (o) { return asBoolean(o); }
             });
         },
         whenNull: function (o) { return mapByTypeValue(defaultValue, {
             whenUndefined: function (d) { return o; },
             whenNull: function (d) { return d; },
             whenBoolean: function (b) { return b; },
-            otherwise: function (d) { return toBoolean(d); }
+            otherwise: function (d) { return asBoolean(d); }
         }); },
         otherwise: function (o) { return mapByTypeValue(defaultValue, {
             whenUndefined: function (d) { return d; },
             whenNull: function (d) { return d; },
             whenBoolean: function (b) { return b; },
-            otherwise: function (d) { return toBoolean(d); }
+            otherwise: function (d) { return asBoolean(d); }
         }); }
     });
 }
-exports.toBoolean = toBoolean;
+exports.asBoolean = asBoolean;
 /**
  * Forces a value to a boolean.
  * @param {*} obj Object to convert.
  * @param {boolean|null} [defaultValue] Default value if object could not be converted to a boolean.
  * @returns {boolean} Value converted to a boolean or the default value. If the default value is nil, then a false value will be returned.
  */
-function asBoolean(obj, defaultValue) {
-    var b = toBoolean(obj, defaultValue);
+function toBoolean(obj, defaultValue) {
+    var b = asBoolean(obj, defaultValue);
     return isBoolean(b) && b;
 }
-exports.asBoolean = asBoolean;
-//#endregion
-//#region
+exports.toBoolean = toBoolean;
 /**
- * Determines whether a value is a number (not including NaN).
+ * Determines whether a value is a finite number (not including NaN).
  * @param {*} obj Object to test.
- * @returns {boolean} True if object is number; otherwise false.
+ * @returns {boolean} True if object is a finite number; otherwise false.
  */
-function isNumber(obj) { return typeof (obj) == "number" && !isNaN(obj); }
+function isNumber(obj) {
+    return mapByTypeValue(obj, {
+        whenNull: false,
+        whenUndefined: false,
+        whenNumber: true,
+        whenInfinity: false,
+        whenNaN: false,
+        otherwise: false
+    });
+}
 exports.isNumber = isNumber;
 /**
- * Determines whether a value is number or undefined (not including NaN).
+ * Determines whether a value is a finite number or undefined (not including NaN).
  * @param {*} obj Object to test.
- * @returns {boolean} True if object is number or undefined; otherwise false.
+ * @returns {boolean} True if object is finite number or undefined; otherwise false.
  */
-function isNumberIfDef(obj) { return typeof (obj) == "undefined" || (typeof (obj) == "number" && !isNaN(obj)); }
+function isNumberIfDef(obj) {
+    return mapByTypeValue(obj, {
+        whenNull: false,
+        whenUndefined: true,
+        whenNumber: true,
+        whenInfinity: false,
+        whenNaN: false,
+        otherwise: false
+    });
+}
 exports.isNumberIfDef = isNumberIfDef;
 /**
- * Determines whether a value is number or null (not including NaN).
+ * Determines whether a value is a finite number or null (not including NaN).
  * @param {*} obj Object to test.
- * @returns {boolean} True if object is number or null; otherwise false.
+ * @returns {boolean} True if object is a finite number or null; otherwise false.
  */
 function isNumberOrNull(obj) {
     return mapByTypeValue(obj, {
         whenNull: true,
         whenNumber: true,
+        whenInfinity: false,
         whenNaN: false,
         otherwise: false
     });
 }
 exports.isNumberOrNull = isNumberOrNull;
 /**
- * Determines whether a value is number or null (including NaN).
+ * Determines whether a value is a number or null (including NaN and Infinity).
  * @param {*} obj Object to test.
- * @returns {boolean} True if object is number or null; otherwise false.
+ * @returns {boolean} True if object is a number or null; otherwise false.
  */
 function isNumberNaNorNull(obj) {
     return mapByTypeValue(obj, {
         whenNull: true,
         whenNumber: true,
+        whenInfinity: true,
         whenNaN: true,
         otherwise: false
     });
 }
 exports.isNumberNaNorNull = isNumberNaNorNull;
 /**
- * Determines whether a value is number, null or undefined (including NaN).
+ * Determines whether a value is a finite number, null or undefined (including NaN).
  * @param {*} obj Object to test.
- * @returns {boolean} True if object is number, null or undefined; otherwise false.
+ * @returns {boolean} True if object is a finite number, null or undefined; otherwise false.
  */
 function isNumberOrNil(obj) {
     return mapByTypeValue(obj, {
         whenUndefined: true,
         whenNull: true,
         whenNumber: true,
+        whenInfinity: false,
         whenNaN: false,
         otherwise: false
     });
 }
 exports.isNumberOrNil = isNumberOrNil;
 /**
+ * Determines whether a value is an infinite number.
+ * @param {*} obj Object to test.
+ * @returns {boolean} True if object is an infinite number; otherwise false.
+ */
+function isInfinite(obj) {
+    return mapByTypeValue(obj, {
+        whenUndefined: false,
+        whenNull: false,
+        whenNumber: false,
+        whenInfinity: true,
+        whenNaN: false,
+        otherwise: false
+    });
+}
+exports.isInfinite = isInfinite;
+/**
  * Converts a value to a number.
  * @param {*} obj Object to convert.
  * @param {number|null} [defaultValue] Default value if object could not be converted to a number.
  * @returns {number|null|undefined} Value converted to a number or the default value.
  */
-function toNumber(obj, defaultValue) {
+function asNumber(obj, defaultValue) {
     var ns = mapByTypeValue(obj, {
         whenUndefined: function (b) { return b; },
         whenNull: function (b) { return b; },
         whenBoolean: function (b) { return (b) ? 1 : 0; },
-        whenString: function (s) { return s; },
+        whenString: function (s) { return parseFloat(s); },
         whenNaN: null,
+        whenInfinity: null,
         whenNumber: function (n) { return n; },
         otherwise: function (o) {
             try {
@@ -695,81 +739,50 @@ function toNumber(obj, defaultValue) {
                     whenUndefined: function (b) { return o.toString(); },
                     whenNull: function (b) { return o.toString(); },
                     whenBoolean: function (b) { return (b) ? 1 : 0; },
-                    whenString: function (s) { return s; },
+                    whenString: function (s) { return parseFloat(s); },
                     whenNaN: null,
+                    whenInfinity: null,
                     whenNumber: function (n) { return n; },
                     otherwise: function (v) {
                         try {
-                            return v.toString();
+                            return parseFloat(v.toString());
                         }
                         catch (e) { }
-                        return v + "";
+                        return parseFloat(v + "");
                     }
                 });
             }
             catch (e) { }
             try {
-                return o.toString();
+                return parseFloat(o.toString());
             }
             catch (e) { }
-            return o + "";
+            return parseFloat(o + "");
         }
     });
-    return mapByTypeValue(ns, {
-        whenBoolean: function (b) { return (b) ? 1 : 0; },
-        whenNumber: function (n) { return n; },
-        whenNaN: function (o) { return mapByTypeValue(defaultValue, {
-            whenUndefined: function (d) { return o; },
-            whenNull: function (d) { return o; },
-            whenBoolean: function (b) { return (b) ? 1 : 0; },
-            whenNumber: function (n) { return n; },
-            otherwise: function (d) { return toNumber(d, o); }
-        }); },
-        whenString: function (s) {
-            var f = Number.NaN;
-            if ((s = s.trim()).length > 0) {
-                f = parseFloat(s);
-                if (!isNaN(f))
-                    return f;
-            }
-            return mapByTypeValue(defaultValue, {
-                whenUndefined: function (o) { return f; },
-                whenNull: function (o) { return f; },
-                whenBoolean: function (b) { return (b) ? 1 : 0; },
-                whenNumber: function (n) { return n; },
-                otherwise: function (o) { return toNumber(o, f); }
-            });
-        },
-        whenNull: function (o) { return mapByTypeValue(defaultValue, {
-            whenUndefined: function (d) { return o; },
-            whenNull: function (d) { return d; },
-            whenBoolean: function (b) { return (b) ? 1 : 0; },
-            whenNumber: function (n) { return n; },
-            otherwise: function (d) { return toNumber(d); }
-        }); },
-        otherwise: function (o) { return mapByTypeValue(defaultValue, {
-            whenUndefined: function (d) { return d; },
-            whenNull: function (d) { return d; },
-            whenBoolean: function (b) { return (b) ? 1 : 0; },
-            whenNumber: function (n) { return n; },
-            otherwise: function (d) { return toNumber(d); }
-        }); }
+    if (typeof (defaultValue) == "undefined" || typeof (ns) == "number" && !isNaN(ns) && !isInfinite(ns))
+        return ns;
+    return mapByTypeValue(asNumber(defaultValue), {
+        whenUndefined: function (d) { return ns; },
+        whenInfinity: function (d) { return (typeof (ns) != "number" || isNaN(ns)) ? d : ns; },
+        whenNumber: function (d) { return d; },
+        otherwise: function (d) { return (typeof (ns) == "number") ? ns : d; }
     });
 }
-exports.toNumber = toNumber;
+exports.asNumber = asNumber;
 /**
  * Forces a value to a number.
  * @param {*} obj Object to convert.
  * @param {number|null} [defaultValue] Default value if object could not be converted to a number.
  * @returns {number} Value converted to a number or the default value. If the default value is nil, then a zer0 value will be returned.
  */
-function asNumber(obj, defaultValue) {
-    var i = toNumber(obj, defaultValue);
+function toNumber(obj, defaultValue) {
+    var i = asNumber(obj, defaultValue);
     if (isNumber(i))
         return i;
     return 0;
 }
-exports.asNumber = asNumber;
+exports.toNumber = toNumber;
 /**
  * Determines whether a value is a function.
  * @param {*} obj Object to test.
@@ -945,7 +958,7 @@ function isPlainObject(obj) {
     if (typeof (obj) != "object" || obj === null)
         return false;
     var proto = Object.getPrototypeOf(obj);
-    return isNil(proto) || proto === Object;
+    return isNil(proto) || proto.constructor === Object;
 }
 exports.isPlainObject = isPlainObject;
 /**
@@ -962,7 +975,7 @@ function isPlainObjectIfDef(obj) {
     if (t != "object" || obj === null)
         return false;
     var proto = Object.getPrototypeOf(obj);
-    return isNil(proto) || proto === Object;
+    return isNil(proto) || proto.constructor === Object;
 }
 exports.isPlainObjectIfDef = isPlainObjectIfDef;
 /**
@@ -978,7 +991,7 @@ function isPlainObjectOrNull(obj) {
     if (obj === null)
         return true;
     var proto = Object.getPrototypeOf(obj);
-    return isNil(proto) || proto === Object;
+    return isNil(proto) || proto.constructor === Object;
 }
 exports.isPlainObjectOrNull = isPlainObjectOrNull;
 /**
@@ -997,7 +1010,7 @@ function isPlainObjectOrNil(obj) {
     if (obj === null)
         return true;
     var proto = Object.getPrototypeOf(obj);
-    return isNil(proto) || proto === Object;
+    return isNil(proto) || proto.constructor === Object;
 }
 exports.isPlainObjectOrNil = isPlainObjectOrNil;
 /**
@@ -1086,6 +1099,7 @@ exports.isEmptyArrayOrNil = isEmptyArrayOrNil;
  * @param {boolan} simpleCheck If true, then the existance of each element index is not checked, which makes this function faster,
  * but can result in false positives for non-array objects which have a numeric "length" property.
  * @returns {boolean} True if the object has properties which indiciates it behaves like an array; otherwise false.
+ * @see {@link https://github.com/Microsoft/TypeScript/blob/530d7e9358ee95d2101a619e73356867b617cd95/lib/lib.es5.d.ts}
  */
 function isArrayLike(obj, simpleCheck) {
     if (!isObject(obj))
@@ -1114,7 +1128,7 @@ exports.isArrayLike = isArrayLike;
  * but can result in false positives for non-array objects which have a numeric "length" property.
  * @returns {boolean} True if the object has properties which indiciates it behaves like an array; otherwise false.
  */
-function isArrayLikeifDef(obj, simpleCheck) {
+function isArrayLikeIfDef(obj, simpleCheck) {
     return mapByTypeValue(obj, {
         whenUndefined: true,
         whenArrayLike: true,
@@ -1122,7 +1136,7 @@ function isArrayLikeifDef(obj, simpleCheck) {
         otherwise: false
     });
 }
-exports.isArrayLikeifDef = isArrayLikeifDef;
+exports.isArrayLikeIfDef = isArrayLikeIfDef;
 /**
  * Determines whether an object has properties which indiciates it behaves like an array.
  * @param {*} obj Object to test.
@@ -1167,7 +1181,7 @@ exports.isArrayLikeOrNil = isArrayLikeOrNil;
  * If the object is Array-like, an array is returned with values taken from each of its indexed values.
  * Otherwise, an array with a single element containing the value is returned.
  */
-function asArray(obj, simpleCheck) {
+function toArray(obj, simpleCheck) {
     if (isArray(obj))
         return obj;
     if (isArrayLike(obj)) {
@@ -1180,7 +1194,7 @@ function asArray(obj, simpleCheck) {
         return [];
     return [obj];
 }
-exports.asArray = asArray;
+exports.toArray = toArray;
 /**
  * Searches the value's inherited prototype chain for a matching constructor function.
  * @param value Value to test.
@@ -1300,8 +1314,12 @@ function isErrorLike(obj) {
     if (derivesFrom(obj, Error))
         return true;
     if (isString(obj.message))
-        return isStringIfDef(obj.name) && isStringIfDef(obj.stack);
-    if (!notDefined(obj.message))
+        return isStringIfDef(obj.name) && isStringIfDef(obj.description) && isStringIfDef(obj.fileName) && isStringIfDef(obj.stack) && isNumberIfDef(obj.number) &&
+            isNumberIfDef(obj.lineNumber);
+    if (isString(obj.description))
+        return isStringIfDef(obj.name) && isStringIfDef(obj.fileName) && isStringIfDef(obj.stack) && isNumberIfDef(obj.number) &&
+            isNumberIfDef(obj.lineNumber);
+    if (!(notDefined(obj.message) && notDefined(obj.description)))
         return false;
     return isString(obj.stack) && isStringIfDef(obj.name);
 }
@@ -1309,20 +1327,38 @@ exports.isErrorLike = isErrorLike;
 /**
  * Creates an object with properties similar to an Error object.
  * @param {*} obj Object to convert.
- * @returns {{ message: string, name?: string, stack?: string}|null|undefined} Object with properties similar to an error objecst. If the object is null or emtpy, then the object is returned.
+ * @returns {ErrorLike|null|undefined} Object with properties similar to an error objecst. If the object is null or emtpy, then the object is returned.
  * @description This can be useful for serializing error objects when logging.
  */
-function toErrorLike(obj) {
+function asErrorLike(obj) {
     if (isNil(obj))
         return obj;
-    if (isErrorLike(obj))
-        return { message: obj.message, name: obj.name, stack: obj.stack };
-    var s = asString(obj);
+    if (isErrorLike(obj)) {
+        var result = { message: obj.message, name: (typeof (obj.name) == "string") ? obj.name : "ErrorLike" };
+        if (typeof (obj.description) == "string") {
+            if (typeof (obj.message) != "string" || obj.message.trim().length == 0)
+                result.message = obj.description;
+            else
+                result.description = obj.description;
+        }
+        if (typeof (obj.number) == "number")
+            result.number = obj.number;
+        if (typeof (obj.fileName) == "string")
+            result.fileName = obj.fileName;
+        if (typeof (obj.lineNumber) == "number")
+            result.lineNumber = obj.lineNumber;
+        if (typeof (obj.stack) == "string")
+            result.stack = obj.stack;
+        return result;
+    }
+    if (isNumber(obj))
+        return { message: obj.toString(), number: obj, name: "ErrorLike" };
+    var s = toString(obj);
     if (isString(s))
-        return { message: s };
+        return { message: s, name: "ErrorLike" };
     return s;
 }
-exports.toErrorLike = toErrorLike;
+exports.asErrorLike = asErrorLike;
 var limitingIterator = /** @class */ (function () {
     function limitingIterator(callbackfn, options) {
         this.totalMaxItems = 8192;
@@ -1331,9 +1367,9 @@ var limitingIterator = /** @class */ (function () {
         this.maxDepth = 32;
         this.callbackfn = callbackfn;
         if (typeof (options) == "object") {
-            this.totalMaxItems = asNumber(options.totalMaxItems, this.totalMaxItems);
-            this.maxItemsInObject = asNumber(options.maxItemsInObject, this.maxItemsInObject);
-            this.maxDepth = asNumber(options.maxDepth, this.maxDepth);
+            this.totalMaxItems = toNumber(options.totalMaxItems, this.totalMaxItems);
+            this.maxItemsInObject = toNumber(options.maxItemsInObject, this.maxItemsInObject);
+            this.maxDepth = toNumber(options.maxDepth, this.maxDepth);
             this.thisObj = options.thisObj;
         }
     }
@@ -1383,15 +1419,4 @@ function mapInto(obj, callbackfn, options) {
     return i.iterateInto(i.maxDepth, obj, undefined, undefined, undefined);
 }
 exports.mapInto = mapInto;
-var ExampleArrayLike = /** @class */ (function () {
-    function ExampleArrayLike() {
-        this.length = 3;
-        this[0] = "1";
-        this[1] = "3";
-        this[2] = "4";
-    }
-    return ExampleArrayLike;
-}());
-exports.ExampleArrayLike = ExampleArrayLike;
-//}
 //# sourceMappingURL=JsTypeCommander.js.map
