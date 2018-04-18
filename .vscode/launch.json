@@ -13,9 +13,9 @@
                 "-u",
                 "tdd",
                 "--timeout",
-                "--inspect-brk",
                 "--colors",
-                "${workspaceFolder}/test"
+                "--reporter",
+                "spec"
             ],
             "preLaunchTask": "buildTarget",
             "internalConsoleOptions": "openOnSessionStart"

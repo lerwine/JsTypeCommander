@@ -16,6 +16,6 @@
         ]
     },
     "files": [
-        "JsTypeCommander.ts"
+        "src/JsTypeCommander.ts"
     ]
 }
