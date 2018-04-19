@@ -5,51 +5,6 @@ import { describe } from 'mocha';
 import { JsTypeCommander } from '../dist/JsTypeCommander';
 import { log, error, debug } from 'util';
 
-enum TypeMappingCondition {
-    whenBoolean, whenFunction, whenInfinity, whenNaN, whenNumber, whenArray, whenArrayLike, whenNotArrayLike, whenString, whenSymbol, whenNull, whenUndefined, whenObject, otherwise
-}
-function typeMappingConditionToString(value: TypeMappingCondition): string {
-    switch (value) {
-        case TypeMappingCondition.whenBoolean:
-            return "whenBoolean";
-        case TypeMappingCondition.whenFunction:
-            return "whenFunction";
-        case TypeMappingCondition.whenInfinity:
-            return "whenInfinity";
-        case TypeMappingCondition.whenNaN:
-            return "whenNaN";
-        case TypeMappingCondition.whenNumber:
-            return "whenNumber";
-        case TypeMappingCondition.whenArray:
-            return "whenArray";
-        case TypeMappingCondition.whenArrayLike:
-            return "whenArrayLike";
-        case TypeMappingCondition.whenNotArrayLike:
-            return "whenNotArrayLike";
-        case TypeMappingCondition.whenString:
-            return "whenString";
-        case TypeMappingCondition.whenSymbol:
-            return "whenSymbol";
-        case TypeMappingCondition.whenNull:
-            return "whenNull";
-        case TypeMappingCondition.whenUndefined:
-            return "whenUndefined";
-        case TypeMappingCondition.whenObject:
-            return "whenObject";
-    }
-    return "otherwise";
-}
-enum TypeGateNilHandling { notNil, allowUndefined, allowNull, allowNil }
-enum JsType { Undefined, Boolean, Number, String, Symbol, Function, Object }
-enum JsVariant { None, Null, NotEmpty, Empty, }
-type IPatternExpectation = { captures: (string|null)[], groupZero?: string }|(string|null)[]|boolean|null;
-type IPatternTest = { input: string, expected: IPatternExpectation };
-interface IPatternDefinition {
-    name: string;
-    getRegex: { (obj: JsTypeCommander.IJsTypeCommanderRegex): RegExp|undefined; };
-    tests: IPatternTest[];
-}
-
 function expectForNull(expected: any|null, result: any|null, message?: string): result is null {
     if (expected == null) {
         expect(result).to.a('null', message);
@@ -59,7 +14,7 @@ function expectForNull(expected: any|null, result: any|null, message?: string): 
     return false;
 }
 
-describe.skip("Testing options", function() {
+describe.skip("Testing module options settings", function() {
     describe("Testing JsTypeCommander.getDefaultLineSeparatorSequence()", function() {
         it('JsTypeCommander.getDefaultLineSeparatorSequence() should return "\\n"', function() {
             let result: string|null|undefined = JsTypeCommander.getDefaultLineSeparatorSequence();
@@ -233,8 +188,716 @@ describe.skip("Testing options", function() {
     });
 });
 
+enum TypeMappingCondition {
+    whenBoolean, whenFunction, whenInfinity, whenNaN, whenNumber, whenArray, whenArrayLike, whenNotArrayLike, whenString, whenSymbol, whenNull, whenUndefined, whenObject, otherwise
+}
+function typeMappingConditionToString(value: TypeMappingCondition): string {
+    switch (value) {
+        case TypeMappingCondition.whenBoolean:
+            return "whenBoolean";
+        case TypeMappingCondition.whenFunction:
+            return "whenFunction";
+        case TypeMappingCondition.whenInfinity:
+            return "whenInfinity";
+        case TypeMappingCondition.whenNaN:
+            return "whenNaN";
+        case TypeMappingCondition.whenNumber:
+            return "whenNumber";
+        case TypeMappingCondition.whenArray:
+            return "whenArray";
+        case TypeMappingCondition.whenArrayLike:
+            return "whenArrayLike";
+        case TypeMappingCondition.whenNotArrayLike:
+            return "whenNotArrayLike";
+        case TypeMappingCondition.whenString:
+            return "whenString";
+        case TypeMappingCondition.whenSymbol:
+            return "whenSymbol";
+        case TypeMappingCondition.whenNull:
+            return "whenNull";
+        case TypeMappingCondition.whenUndefined:
+            return "whenUndefined";
+        case TypeMappingCondition.whenObject:
+            return "whenObject";
+    }
+    return "otherwise";
+}
+enum TypeGateNilHandling { notNil, allowUndefined, allowNull, allowNil }
+enum JsTypeExt {
+    Undefined = 0x0001,
+    Boolean = 0x0002,
+    FiniteNumber = 0x0004,
+    String = 0x0008,
+    Symbol = 0x0010,
+    Function = 0x0020,
+    NonArrayObject = 0x0040,
+    Null = 0x0080,
+    Array = 0x0100,
+    NaN = 0x0200,
+    Infinity = 0x0400
+}
+enum JsTypeExtMask {
+    None = 0,
+    Nil = JsTypeExt.Undefined | JsTypeExt.Null,
+    NonNil = JsTypeExt.Boolean | JsTypeExt.FiniteNumber | JsTypeExt.Infinity | JsTypeExt.NaN | JsTypeExt.String | JsTypeExt.Symbol | JsTypeExt.Function | JsTypeExt.NonArrayObject |
+        JsTypeExt.Array,
+    NonNilObject = JsTypeExt.NonArrayObject | JsTypeExt.Array,
+    JSONSerializable = JsTypeExt.Null | JsTypeExt.Boolean | JsTypeExt.FiniteNumber | JsTypeExt.String | JsTypeExt.NonArrayObject | JsTypeExt.Array,
+    All = JsTypeExt.Undefined | JsTypeExt.Null | JsTypeExt.Boolean | JsTypeExt.FiniteNumber | JsTypeExt.Infinity | JsTypeExt.NaN | JsTypeExt.String | JsTypeExt.Symbol |
+        JsTypeExt.Function | JsTypeExt.NonArrayObject | JsTypeExt.Array
+}
+enum JsType {
+    Undefined = JsTypeExt.Undefined,
+    Boolean = JsTypeExt.Boolean,
+    Number = JsTypeExt.FiniteNumber,
+    String = JsTypeExt.String,
+    Symbol = JsTypeExt.Symbol,
+    Function = JsTypeExt.Function,
+    Object = JsTypeExt.NonArrayObject
+}
+enum JsTypeMask {
+    None = 0,
+    JSONSerializable = JsType.Boolean | JsType.Number | JsType.String | JsType.Object,
+    All = JsType.Undefined | JsType.Boolean | JsType.Number | JsType.String | JsType.Symbol | JsType.Function | JsType.Object
+}
+
+const getClassNameSymbol: symbol = Symbol();
+
+abstract class BaseJsTypeInfo {
+    private _jsType: JsType;
+    private _type: JsTypeExt;
+    get jsType(): JsType { return this._jsType; }
+    get type(): JsTypeExt { return this._type; }
+    get isNonNilObject(): boolean { return this._jsType == JsType.Object && this._type != JsTypeExt.Null; }
+    get isNil(): boolean { return this._type == JsTypeExt.Null || this._type == JsTypeExt.Undefined; }
+    constructor(type?: JsTypeExt) {
+        if (typeof(type) == "undefined")
+            type = JsTypeExt.Undefined;
+        switch (type) {
+            case JsTypeExt.Undefined:
+                this._jsType = JsType.Undefined;
+                break;
+            case JsTypeExt.Boolean:
+                this._jsType = JsType.Boolean;
+                break;
+            case JsTypeExt.FiniteNumber:
+            case JsTypeExt.NaN:
+            case JsTypeExt.Infinity:
+                this._jsType = JsType.Number;
+                break;
+            case JsTypeExt.String:
+                this._jsType = JsType.String;
+                break;
+            case JsTypeExt.Symbol:
+                this._jsType = JsType.Symbol;
+                break;
+            case JsTypeExt.Function:
+                this._jsType = JsType.Function;
+                break;
+            case JsTypeExt.NonArrayObject:
+            case JsTypeExt.Null:
+            case JsTypeExt.Array:
+                this._jsType = JsType.Object;
+                break;
+            default:
+                throw new RangeError("Invalid extended type value");
+        }
+        this._type = type;
+    }
+    protected _equals(type: BaseJsTypeInfo|JsTypeExt): boolean {
+        if (typeof(type) == "object")
+            return type._type == this._type;
+        return type == this._type;
+    }
+    abstract equals(obj: BaseJsTypeInfo)
+    objectMatchesJsType(obj?: any): boolean {
+        switch (typeof(obj)) {
+            case "undefined":
+                return this._jsType == JsType.Undefined;
+            case "boolean":
+                return this._jsType == JsType.Boolean;
+            case "number":
+                return this._jsType == JsType.Number;
+            case "string":
+                return this._jsType == JsType.String;
+            case "symbol":
+                return this._jsType == JsType.Symbol;
+            case "function":
+                return this._jsType == JsType.Function;
+            default:
+                return this._jsType == JsType.Object;
+        }
+    }
+    objectMatchesExtType(obj?: any): boolean {
+        switch (typeof(obj)) {
+            case "undefined":
+                return this._type == JsTypeExt.Undefined;
+            case "boolean":
+                return this._type == JsTypeExt.Boolean;
+            case "number":
+                return this._type == ((isNaN(obj)) ? JsTypeExt.NaN : ((obj === Infinity || obj === !Infinity) ? JsTypeExt.Infinity : JsTypeExt.FiniteNumber));
+            case "string":
+                return this._type == JsTypeExt.String;
+            case "symbol":
+                return this._type == JsTypeExt.Symbol;
+            case "function":
+                return this._type == JsTypeExt.Function;
+            default:
+                return this._type == ((obj === null) ? JsTypeExt.Null : ((Array.isArray(obj)) ? JsTypeExt.Array : JsTypeExt.NonArrayObject));
+        }
+    }
+    objectExtendsExtType(obj?: any): boolean {
+        switch (typeof(obj)) {
+            case "undefined":
+                return this._type == JsTypeExt.Undefined;
+            case "boolean":
+                return this._type == JsTypeExt.Boolean;
+            case "number":
+                if (this._type == JsTypeExt.FiniteNumber)
+                    return true;
+                return (this._type == JsTypeExt.NaN) ? isNaN(obj) : (obj === Infinity || obj === !Infinity);
+            case "string":
+                return this._type == JsTypeExt.String;
+            case "symbol":
+                return this._type == JsTypeExt.Symbol;
+            case "function":
+                return this._type == JsTypeExt.Function;
+            default:
+                return (obj == null) ? this._type == JsTypeExt.Null : (this._type == JsTypeExt.NonArrayObject || Array.isArray(obj));
+        }
+    }
+    jsTypeIsAnyOf(flags: number|number[], ...otherFlags: (number|number[])[]) {
+        let i: number;
+        if (typeof(flags) == "number") {
+            if ((flags | this._jsType) != 0)
+                return true;
+        } else {
+            for (i = 0; i < flags.length; i++) {
+                if ((flags[i] | this._jsType) != 0)
+                    return true;
+            }
+        }
+        if (typeof(otherFlags) != "undefined" && otherFlags.length > 0) {
+            for (var n: number = 0; n < otherFlags.length; n++) {
+                let f: number|number[] = otherFlags[n];
+                if (typeof(f) == "number") {
+                    if ((f | this._jsType) != 0)
+                        return true;
+                } else {
+                    for (i = 0; i < f.length; i++) {
+                        if ((f[i] | this._jsType) != 0)
+                            return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+    jsTypeExtIsAnyOf(flags: number|number[], ...otherFlags: (number|number[])[]) {
+        let i: number;
+        if (typeof(flags) == "number") {
+            if ((flags | this._type) != 0)
+                return true;
+        } else {
+            for (i = 0; i < flags.length; i++) {
+                if ((flags[i] | this._type) != 0)
+                    return true;
+            }
+        }
+        if (typeof(otherFlags) != "undefined" && otherFlags.length > 0) {
+            for (var n: number = 0; n < otherFlags.length; n++) {
+                let f: number|number[] = otherFlags[n];
+                if (typeof(f) == "number") {
+                    if ((f | this._type) != 0)
+                        return true;
+                } else {
+                    for (i = 0; i < f.length; i++) {
+                        if ((f[i] | this._type) != 0)
+                            return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+    static jsTypeToString(value: JsType): string|undefined {
+        switch (value) {
+            case JsType.Boolean:
+                return "boolean";
+            case JsType.Number:
+                return "number";
+            case JsType.String:
+                return "string";
+            case JsType.Function:
+                return "function";
+            case JsType.Object:
+                return "object";
+            case JsType.Symbol:
+                return "symbol";
+            case JsType.Undefined:
+                return "undefined";
+        }
+    }
+    static toJsType(value?: any): JsType|undefined {
+        if (typeof(value) == "string") {
+            switch (value) {
+                case "boolean":
+                    return JsType.Boolean;
+                case "number":
+                    return JsType.Number;
+                case "string":
+                    return JsType.String;
+                case "function":
+                    return JsType.Function;
+                case "object":
+                    return JsType.Object;
+                case "symbol":
+                    return JsType.Symbol;
+                case "undefined":
+                    return JsType.Undefined;
+            }
+        } else if (typeof(value) == "number") {
+            switch (value) {
+                case JsType.Boolean:
+                case JsType.Number:
+                case JsType.String:
+                case JsType.Function:
+                case JsType.Object:
+                case JsType.Symbol:
+                case JsType.Undefined:
+                    return value;
+            }
+        } else if (typeof(value) == "object" && value !== null) {
+            let obj: { [key: string]: JsTypeCommander.TAnythingAtAll } = <{ [key: string]: JsTypeCommander.TAnythingAtAll }>value;
+            if (typeof(obj.jsType) == "number" || typeof(obj.jsType) == "string")
+                return this.toJsType(obj.jsType);
+        }
+    }
+    toString(): string {
+        switch (this._type) {
+            case JsTypeExt.Boolean:
+                return "boolean";
+            case JsTypeExt.FiniteNumber:
+                return "number";
+            case JsTypeExt.String:
+                return "string";
+            case JsTypeExt.Symbol:
+                return "symbol";
+            case JsTypeExt.Function:
+                return "function";
+            case JsTypeExt.Null:
+                return "null";
+            case JsTypeExt.Array:
+                return "Array";
+            case JsTypeExt.NaN:
+                return "NaN";
+            case JsTypeExt.Infinity:
+                return "Infinity";
+            default:
+                return "undefined";
+        }
+    }
+    static toJsTypeExt(value?: any): JsTypeExt|undefined {
+        if (typeof(value) == "string") {
+            switch (value) {
+                case "boolean":
+                    return JsTypeExt.Boolean;
+                case "number":
+                    return JsTypeExt.FiniteNumber;
+                case "NaN":
+                    return JsTypeExt.NaN;
+                case "Infinity":
+                    return JsTypeExt.Infinity;
+                case "string":
+                    return JsTypeExt.String;
+                case "function":
+                    return JsTypeExt.Function;
+                case "Array":
+                    return JsTypeExt.Array;
+                case "null":
+                    return JsTypeExt.Null;
+                case "object":
+                    return JsTypeExt.NonArrayObject;
+                case "symbol":
+                    return JsTypeExt.Symbol;
+                case "undefined":
+                    return JsTypeExt.Undefined;
+            }
+        } else if (typeof(value) == "number") {
+            switch (value) {
+                case JsTypeExt.Boolean:
+                case JsTypeExt.FiniteNumber:
+                case JsTypeExt.NaN:
+                case JsTypeExt.Infinity:
+                case JsTypeExt.String:
+                case JsTypeExt.Function:
+                case JsTypeExt.NonArrayObject:
+                case JsTypeExt.Symbol:
+                case JsTypeExt.Array:
+                case JsTypeExt.Null:
+                case JsTypeExt.Undefined:
+                    return value;
+            }
+        } else if (typeof(value) == "object" && value !== null) {
+            let obj: { [key: string]: JsTypeCommander.TAnythingAtAll } = <{ [key: string]: JsTypeCommander.TAnythingAtAll }>value;
+            if (typeof(obj.typeExt) == "number" || typeof(obj.typeExt) == "string")
+                return this.toJsTypeExt(obj.typeExt);
+        }
+    }
+    toJSON(): { [key: string]: string } { return { jsType: BaseJsTypeInfo.jsTypeToString(this._jsType), typeExt: this.toString() }; }
+}
+abstract class BaseJsTypeFlags {
+    private _jsFlags: number = 0;
+    private _extFlags: number = 0;
+    get jsFlags(): number { return this._jsFlags; }
+    get extFlags(): number { return this._extFlags; }
+    constructor(values: number|(number|BaseJsTypeInfo)[]) {
+        if (typeof(values) != "object" || values == null || values.length == 0)
+            return;
+
+        values.forEach((i: number|BaseJsTypeInfo) => {
+            let obj: BaseJsTypeInfo;
+            if (typeof(i) == "number") {
+                if (i == 0)
+                    return;
+                obj = new JsTypeInfo(i);
+            } else
+                obj = i;
+            this._jsFlags |= obj.jsType;
+            this._extFlags |= obj.type;
+        });
+    }
+    hasJsType(type: JsType|JsType[], ...otherTypes: (JsType|JsType[])[]): boolean {
+        if (this._jsFlags == JsTypeMask.None)
+            return false;
+        if (this._jsFlags == JsTypeMask.All)
+            return true;
+        let i: number;
+        if (typeof(type) == "number") {
+            if ((type & this._jsFlags) != JsTypeMask.None)
+                return true;
+        } else {
+            for (i = 0; i < type.length; i++) {
+                if ((type[i] & this._jsFlags) != JsTypeMask.None)
+                    return true;
+            }
+        }
+        if (typeof(otherTypes) == "object" && otherTypes !== null && otherTypes.length > 0) {
+            for (let n: number = 0; n < otherTypes.length; n++) {
+                let t: JsType|JsType[] = otherTypes[n];
+                if (typeof(t) == "number"){
+                    if ((t & this._jsFlags) != JsTypeMask.None)
+                        return true;
+                } else {
+                    for (i = 0; i < t.length; i++) {
+                        if ((t[i] & this._jsFlags) != JsTypeMask.None)
+                            return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    atLeastJsType(type: JsType|JsType[], ...otherTypes: (JsType|JsType[])[]): boolean {
+        if (this._jsFlags == JsTypeMask.None)
+            return false;
+        if (this._jsFlags == JsTypeMask.All)
+            return true;
+        let i: number;
+        if (typeof(type) == "number") {
+            if ((type & this._jsFlags) != type)
+                return false;
+        } else {
+            for (i = 0; i < type.length; i++) {
+                if ((type[i] & this._jsFlags) != type[i])
+                    return false;
+            }
+        }
+        if (typeof(otherTypes) == "object" && otherTypes !== null && otherTypes.length > 0) {
+            for (let n: number = 0; n < otherTypes.length; n++) {
+                let t: JsType|JsType[] = otherTypes[n];
+                if (typeof(t) == "number") {
+                    if ((t & this._jsFlags) != t)
+                        return true;
+                } else {
+                    for (i = 0; i < t.length; i++) {
+                        if ((t[i] & this._jsFlags) != t[i])
+                            return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+    atMostJsType(type: JsType|JsType[], ...otherTypes: (JsType|JsType[])[]): boolean {
+        if (this._jsFlags == JsTypeMask.None)
+            return true;
+        if (this._jsFlags == JsTypeMask.All)
+            return true;
+        let flags: number;
+        if (typeof(type) == "number")
+            flags = type;
+        else
+            flags = type.reduce((p: number, c: number) => p | c, JsTypeMask.None);
+        if (typeof(otherTypes) == "object" && otherTypes !== null && otherTypes.length > 0)
+            flags = otherTypes.reduce((v: number, i: JsType|JsType[]) => {
+                if (typeof(i) == "number")
+                    return v | i;
+                return i.reduce((p: number, c: number) => p | c, v);
+            }, flags);
+        return (flags & this._jsFlags) == JsTypeMask.None;
+    }
+    hasJsTypeExt(type: JsTypeExt|JsTypeExt[], ...otherTypes: (JsTypeExt|JsTypeExt[])[]): boolean {
+        if (this._extFlags == JsTypeExtMask.None)
+            return false;
+        if (this._extFlags == JsTypeExtMask.All)
+            return true;
+        let i: number;
+        if (typeof(type) == "number") {
+            if ((type & this._extFlags) != JsTypeExtMask.None)
+                return true;
+        } else {
+            for (i = 0; i < type.length; i++) {
+                if ((type[i] & this._extFlags) != JsTypeExtMask.None)
+                    return true;
+            }
+        }
+        if (typeof(otherTypes) == "object" && otherTypes !== null && otherTypes.length > 0) {
+            for (let n: number = 0; n < otherTypes.length; n++) {
+                let t: JsTypeExt|JsTypeExt[] = otherTypes[n];
+                if (typeof(t) == "number"){
+                    if ((t & this._extFlags) != JsTypeExtMask.None)
+                        return true;
+                } else {
+                    for (i = 0; i < t.length; i++) {
+                        if ((t[i] & this._extFlags) != JsTypeExtMask.None)
+                            return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    atLeastJsTypeExt(type: JsTypeExt|JsTypeExt[], ...otherTypes: (JsTypeExt|JsTypeExt[])[]): boolean {
+        if (this._jsFlags == JsTypeMask.None)
+            return false;
+        if (this._jsFlags == JsTypeMask.All)
+            return true;
+        let i: number;
+        if (typeof(type) == "number") {
+            if ((type & this._jsFlags) != type)
+                return false;
+        } else {
+            for (i = 0; i < type.length; i++) {
+                if ((type[i] & this._jsFlags) != type[i])
+                    return false;
+            }
+        }
+        if (typeof(otherTypes) == "object" && otherTypes !== null && otherTypes.length > 0) {
+            for (let n: number = 0; n < otherTypes.length; n++) {
+                let t: JsTypeExt|JsTypeExt[] = otherTypes[n];
+                if (typeof(t) == "number") {
+                    if ((t & this._jsFlags) != t)
+                        return true;
+                } else {
+                    for (i = 0; i < t.length; i++) {
+                        if ((t[i] & this._jsFlags) != t[i])
+                            return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+    atMostJsTypeExt(type: JsTypeExt|JsTypeExt[], ...otherTypes: (JsTypeExt|JsTypeExt[])[]): boolean {
+        if (this._jsFlags == JsTypeExtMask.None)
+            return true;
+        if (this._jsFlags == JsTypeExtMask.All)
+            return true;
+        let flags: number;
+        if (typeof(type) == "number")
+            flags = type;
+        else
+            flags = type.reduce((p: number, c: number) => p | c, JsTypeExtMask.None);
+        if (typeof(otherTypes) == "object" && otherTypes !== null && otherTypes.length > 0)
+            flags = otherTypes.reduce((v: number, i: JsTypeExt|JsTypeExt[]) => {
+                if (typeof(i) == "number")
+                    return v | i;
+                return i.reduce((p: number, c: number) => p | c, v);
+            }, flags);
+        return (flags & this._jsFlags) == JsTypeExtMask.None;
+    }
+}
+class JsTypeFlags extends BaseJsTypeFlags {
+    static isJsTypeFlags(obj: object): obj is JsTypeFlags { return obj[getClassNameSymbol] == "JsTypeFlags"; }
+    [getClassNameSymbol]() { return "JsTypeFlags"; }
+    constructor(values: number|(number|BaseJsTypeInfo)[]) { super(values); }
+}
+class JsTypeInfo extends BaseJsTypeInfo {
+    static isJsTypeInfo(obj: BaseJsTypeInfo): obj is JsTypeInfo { return obj[getClassNameSymbol] == "JsTypeInfo"; }
+    [getClassNameSymbol]() { return "JsTypeInfo"; }
+    constructor(type?: JsTypeExt) { super(type); }
+    equals(type: BaseJsTypeInfo|JsTypeExt): boolean { return this._equals(type); }
+}
+enum JsVariant {
+    None = 0x0001,
+    Empty = 0x0002,
+    Whitespace = 0x0004,
+    Zero = 0x0008,
+    Float = 0x0010,
+    AlmostArrayLike = 0x0020,
+    ArrayLike = 0x0040,
+    Error = 0x0080,
+    InheritsError = 0x0100,
+    ErrorLike = 0x0200,
+    BaseObject = 0x0400,
+    InheritedObject = 0x0800,
+    MultiInheritanceObject = 0x1000
+}
+enum JsVariantFlags {
+    Unspecified = 0x0000,
+    EmptyOrNone = JsVariant.None | JsVariant.Empty,
+    WhitespaceEmptyOrNone = JsVariant.None | JsVariant.Empty | JsVariant.Whitespace,
+    AnyErrorLike = JsVariant.Error | JsVariant.InheritsError | JsVariant.ErrorLike,
+    InheritsBaseObject = JsVariant.BaseObject | JsVariant.InheritedObject | JsVariant.MultiInheritanceObject,
+    AnyInherited = JsVariant.InheritsError | JsVariant.InheritedObject | JsVariant.MultiInheritanceObject,
+    InheritsInheritedObject = JsVariant.InheritedObject | JsVariant.MultiInheritanceObject,
+    AnyArrayLike = JsVariant.None | JsVariant.Empty | JsVariant.ArrayLike,
+    NonZeroFiniteNumber = JsVariant.None | JsVariant.Float,
+    ArrayLikeOrAlmost = JsVariant.None | JsVariant.Empty | JsVariant.ArrayLike | JsVariant.AlmostArrayLike,
+    All = JsVariant.None | JsVariant.Empty | JsVariant.Whitespace | JsVariant.Zero | JsVariant.Float | JsVariant.AlmostArrayLike | JsVariant.ArrayLike | JsVariant.Error |
+        JsVariant.InheritsError | JsVariant.ErrorLike | JsVariant.BaseObject | JsVariant.InheritedObject | JsVariant.MultiInheritanceObject
+}
+class JsTypeVariant extends BaseJsTypeInfo {
+    static IsJsTypeVariant(obj: BaseJsTypeInfo): obj is JsTypeVariant { return obj[getClassNameSymbol] == "JsTypeVariant"; }
+    [getClassNameSymbol]() { return "JsTypeVariant"; }
+    private _variant: JsVariant;
+    get variant(): JsVariant { return this._variant; }
+    constructor(type?: JsTypeExt|JsTypeInfo, variant?: JsVariant) {
+        super((typeof(type) == "number") ? type : type.type);
+        if (typeof(variant) == "undefined") {
+            this._variant = JsVariant.None;
+            return;
+        }
+        switch (this.type) {
+            case JsTypeExt.Undefined:
+            case JsTypeExt.Boolean:
+            case JsTypeExt.Symbol:
+            case JsTypeExt.Function:
+            case JsTypeExt.Null:
+            case JsTypeExt.NaN:
+            case JsTypeExt.Infinity:
+                if (variant !== JsVariant.None)
+                    throw new RangeError("Invalid variant value for undefined extended type");
+                break;
+            case JsTypeExt.FiniteNumber:
+                if (variant != JsVariant.None && variant != JsVariant.Zero && variant != JsVariant.Float)
+                    throw new RangeError("Invalid variant value for number extended type");
+                break;
+            case JsTypeExt.String:
+                if (variant != JsVariant.None && variant != JsVariant.Empty && variant != JsVariant.Whitespace)
+                    throw new RangeError("Invalid variant value for string extended type");
+                break;
+            case JsTypeExt.Array:
+                if (variant != JsVariant.None && variant != JsVariant.Empty)
+                    throw new RangeError("Invalid variant value for array extended type");
+                break;
+            default:
+                if (variant != JsVariant.None && variant != JsVariant.AlmostArrayLike && variant != JsVariant.ArrayLike && variant != JsVariant.Error &&
+                        variant != JsVariant.InheritsError && variant != JsVariant.BaseObject && variant != JsVariant.InheritedObject && variant != JsVariant.MultiInheritanceObject)
+                    throw new RangeError("Invalid variant value for object extended type");
+                break;
+        }
+        this._variant = variant;
+    }
+
+    equals(type: JsTypeVariant|BaseJsTypeInfo|JsVariant): boolean {
+        if (typeof(type) == "object")
+            return (JsTypeVariant.IsJsTypeVariant(type)) ? type._variant == this._variant : type.equals(this);
+        return type == this._variant;
+    }
+
+    static jsVariantToString(value: JsVariant) {
+        switch (value) {
+            case JsVariant.Empty:
+                return "empty";
+            case JsVariant.Whitespace:
+                return "whitespace";
+            case JsVariant.Zero:
+                return "zero";
+            case JsVariant.Float:
+                return "float";
+            case JsVariant.AlmostArrayLike:
+                return "~ArrayLike";
+            case JsVariant.ArrayLike:
+                return "ArrayLike";
+            case JsVariant.Error:
+                return "Error";
+            case JsVariant.InheritsError:
+                return "extends Error";
+            case JsVariant.BaseObject:
+                return "custom class";
+            case JsVariant.InheritedObject:
+                return "inherited custom";
+            case JsVariant.MultiInheritanceObject:
+                return "multi-inherited custom";
+            default:
+                return "none";
+        }
+    }
+
+    toString(): string {
+        if (this._variant == JsVariant.None)
+            return super.toString();
+        return super.toString() + " [" + JsTypeVariant.jsVariantToString(this._variant) + "]";
+    }
+
+    toJSON(): { [key: string]: string } {
+        let result: { [key: string]: string } = super.toJSON();
+        result.variant = JsTypeVariant.jsVariantToString(this._variant);
+        return result;
+    }
+}
+class JsTypeVariantFlags extends BaseJsTypeFlags {
+    private _variantFlags: number = 0;
+    get variantFlags(): number { return this._variantFlags; }
+    static isJsTypeVariantFlags(obj: object): obj is JsTypeVariantFlags { return obj[getClassNameSymbol] == "JsTypeVariantFlags"; }
+    [getClassNameSymbol]() { return "JsTypeVariantFlags"; }
+    readonly name: string = "JsTypeVariantFlags";
+    constructor(types: number|JsTypeFlags|(number|BaseJsTypeInfo)[], variant?: JsVariant|JsVariant[], ...otherVariants: (JsVariant|JsVariant[])[]) {
+        super((typeof(types) == "number") ? [types] : (Array.isArray(types)) ? types : [types.extFlags]);
+        if (typeof(variant) == "number")
+            this._variantFlags = variant;
+        else if (typeof(variant) == "object" && variant !== null)
+            this._variantFlags = variant.reduce((p: number, a: JsVariant) => p | a, JsVariantFlags.Unspecified);
+        if (typeof(variant) == "object" && variant !== null && otherVariants.length > 0)
+            this._variantFlags = otherVariants.reduce((n: number, v: JsVariant|JsVariant[]) => (typeof(v) == "number") ? v | n : v.reduce((p: number, a: JsVariant) => p | a, n),
+                this._variantFlags);
+    }
+    hasJsTypeExtAndVariant(type: JsType|JsTypeInfo|(JsType|JsTypeInfo)[], variant: JsTypeVariant|JsTypeVariant[], ...otherVariants: (JsTypeVariant|JsTypeVariant[])[]): boolean {
+        throw new Error("Not Implemented");
+    }
+    atLeastJsTypeExtAndVariant(type: JsType|JsTypeInfo|(JsType|JsTypeInfo)[], variant: JsTypeVariant|JsTypeVariant[], ...otherVariants: (JsTypeVariant|JsTypeVariant[])[]): boolean {
+        throw new Error("Not Implemented");
+    }
+    atMostJsTypeExtAndVariant(type: JsType|JsTypeInfo|(JsType|JsTypeInfo)[], variant: JsTypeVariant|JsTypeVariant[], ...otherVariants: (JsTypeVariant|JsTypeVariant[])[]): boolean {
+        throw new Error("Not Implemented");
+    }
+}
+//type typeSpec = "undefined"|"null"|"emptyString"|"whitespace"|"nonWhitespace"|"boolean"|"zero"|"nonZero"|"float"|"NaN"|"Infinity"|"function"|"plainObject"|"almostArrayLike"|
+//    "ArrayLike"|"Array"|"emptyArray"|"errorLike"|"Error"|"RangeError"|"ParentClass"|"InheritedClass"|"DeepInheritedClass";
+type ExpectedRegexTestResult = { captures: (string|null)[], groupZero?: string }|(string|null)[]|boolean|null;
+type RegexPatternTest = { input: string, expected: ExpectedRegexTestResult };
+interface ModuleRegexPattern {
+    name: string;
+    getRegex: { (obj: JsTypeCommander.IJsTypeCommanderRegex): RegExp|undefined; };
+    tests: RegexPatternTest[];
+}
+
 describe("Testing regular expressions", function() {
-    let patternDefinitions: IPatternDefinition[] = [
+    let patternDefinitions: ModuleRegexPattern[] = [
         {
             name: 'onlyWhitespace', getRegex: regexOptions => regexOptions.onlyWhitespace, tests: [
                 { input: " ", expected: true }, { input: " \t\r\n ", expected: true }, { input: " \t\r\n ", expected: true }, { input: "", expected: false },
@@ -267,7 +930,7 @@ describe("Testing regular expressions", function() {
             ]
         }, {
             name: 'booleanText', getRegex: regexOptions => regexOptions.booleanText, tests: (function() {
-                let results: IPatternTest[] = [
+                let results: RegexPatternTest[] = [
                     { input: "true", expected: ["true", null] }, { input: "True", expected: ["True", null] }, { input: "tRuE", expected: ["tRuE", null] }, 
                     { input: "false", expected: [null, "false"] }, { input: "False", expected: [null, "False"] }, { input: "fAlSe", expected: [null, "fAlSe"] },
                     { input: "t", expected: ["t", null] }, { input: "f", expected: [null, "f"] }, { input: "T", expected: ["T", null] }, { input: "F", expected: [null, "F"] },
@@ -282,22 +945,22 @@ describe("Testing regular expressions", function() {
                 ];
                 let l: number = results.length;
                 for (let i: number = 0; i < l; i++) {
-                    let p: IPatternTest = results[i];
+                    let p: RegexPatternTest = results[i];
                     if (p.input.trim().length == 0)
                         continue;
                     let input: string = "\t\r\n" + p.input + "\t\r\n";
                     if (typeof(p.expected) == "boolean")
                         results.push({ input: input, expected: false });
                     else if (Array.isArray(p.expected))
-                        results.push({ input: input, expected: <IPatternExpectation>{ captures: p.expected, groupZero: input }});
+                        results.push({ input: input, expected: <ExpectedRegexTestResult>{ captures: p.expected, groupZero: input }});
                     else if (p.expected !== null)
-                        results.push({ input: input, expected: <IPatternExpectation>{ captures: p.expected.captures, groupZero: input }});
+                        results.push({ input: input, expected: <ExpectedRegexTestResult>{ captures: p.expected.captures, groupZero: input }});
                 }
                 l = results.length;
                 let leadNumRe = /^\d/;
                 let trainNumRe = /\d$/;
                 for (let i: number = 0; i < l; i++) {
-                    let p: IPatternTest = results[i];
+                    let p: RegexPatternTest = results[i];
                     if (p.input.trim().length == 0)
                         continue;
                     ["true", "t", "false", "f", "yes", "y", "."].forEach(si => {
@@ -378,6 +1041,7 @@ describe("Testing regular expressions", function() {
         });
     }, this);
 });
+
 enum MapCallbackId {
     whenBoolean = 0x0001,
     whenFunction = 0x0002,
@@ -395,7 +1059,8 @@ enum MapCallbackId {
     otherwise = 0x2000
 }
 
-type MapCallbackName = "whenBoolean"|"whenFunction"|"whenInfinity"|"whenNaN"|"whenNumber"|"whenArray"|"whenArrayLike"|"whenNotArrayLike"|"whenString"|"whenSymbol"|"whenNull"|"whenUndefined"|"whenObject"|"otherwise";
+type MapCallbackName = "whenBoolean"|"whenFunction"|"whenInfinity"|"whenNaN"|"whenNumber"|"whenArray"|"whenArrayLike"|"whenNotArrayLike"|"whenString"|"whenSymbol"|"whenNull"|
+    "whenUndefined"|"whenObject"|"otherwise";
 
 function mapCallbackIdToName(id: MapCallbackId): MapCallbackName {
     switch (id) {
@@ -435,12 +1100,18 @@ interface MapByTypeTest {
     arg: ArgumentDescriptor[]|ArgumentDescriptor;
     opt: MapByTypeOptions[]|MapByTypeOptions;
 }
-interface MapByTypeDefinition {
+interface MapByTypeInputType {
     type: string;
     test: MapByTypeTest[]|MapByTypeTest
 }
 interface MapByNilArguments extends ArgumentDescriptor {
     type: "notNil"|"null"|"undefined";
+}
+interface MapByNilFunction {
+    name: string,
+    callback: Function,
+    allowUndefined: boolean,
+    allowNull: boolean
 }
 class MapByTypeHelper implements JsTypeCommander.TypeGuardResultSpecs<JsTypeCommander.TAnythingAtAll, MapCallbackId> {
     private _isOmmitted: { [key: string]: boolean } = { };
@@ -560,9 +1231,10 @@ class MapByNilHelper {
             this._otherwiseNum = Math.floor(Math.random() * 100);
     }
 }
+
 describe("Testing type map functions", function() {
     describe("Testing mapByTypeValue function", function() {
-        let mapByTypeValueTestDefintions: MapByTypeDefinition[] = [
+        let inputTypeArr: MapByTypeInputType[] = [
             {
                 type: 'nil',
                 test: [
@@ -715,23 +1387,24 @@ describe("Testing type map functions", function() {
             }
         ];
         let dataIterationIndex: number = 0;
-        mapByTypeValueTestDefintions.forEach(testData => {
-            describe('Testing ' + testData.type + " values", function() {
-                let tests: MapByTypeTest[] = (Array.isArray(testData.test)) ? testData.test : [testData.test];
-                tests.forEach(grp => {
-                    let args: ArgumentDescriptor[] = (Array.isArray(grp.arg)) ? grp.arg : [grp.arg];
-                    let opts: MapByTypeOptions[] = (Array.isArray(grp.opt)) ? grp.opt : [grp.opt];
-                    opts.forEach(o => {
-                        let omit: MapCallbackName[] = (typeof(o.omit) == "undefined") ? [] : ((typeof(o.omit) == "string") ? [o.omit] : o.omit);
-                        args.forEach(a => {
+        inputTypeArr.forEach(inputType => {
+            describe('Testing ' + inputType.type + " values", function() {
+                let tests: MapByTypeTest[] = (Array.isArray(inputType.test)) ? inputType.test : [inputType.test];
+                tests.forEach(mapByTypeTest => {
+                    let args: ArgumentDescriptor[] = (Array.isArray(mapByTypeTest.arg)) ? mapByTypeTest.arg : [mapByTypeTest.arg];
+                    let optArr: MapByTypeOptions[] = (Array.isArray(mapByTypeTest.opt)) ? mapByTypeTest.opt : [mapByTypeTest.opt];
+                    optArr.forEach(opt => {
+                        let omit: MapCallbackName[] = (typeof(opt.omit) == "undefined") ? [] : ((typeof(opt.omit) == "string") ? [opt.omit] : opt.omit);
+                        args.forEach(argInfo => {
                             let tgh: MapByTypeHelper = new MapByTypeHelper(omit);
-                            it('JsTypeCommander.mapByTypeValue(' + a.display + ', ' + JSON.stringify(tgh.toJSON()) + ((typeof(o.checkElements) == "boolean") ? ", " + o.checkElements : "") + ') should return ' + o.expected +
-                                    " (calling " + mapCallbackIdToName(o.expected) + ")", function() {
-                                let result: JsTypeCommander.TAnythingAtAll = (typeof(o.checkElements) == "boolean") ? JsTypeCommander.mapByTypeValue.call(this, a.getValue(), tgh, o.checkElements) :
-                                    JsTypeCommander.mapByTypeValue.call(this, a.getValue(), tgh);
+                            it('JsTypeCommander.mapByTypeValue(' + argInfo.display + ', ' + JSON.stringify(tgh.toJSON()) + ((typeof(opt.checkElements) == "boolean") ? ", " +
+                                    opt.checkElements : "") + ') should return ' + opt.expected + " (calling " + mapCallbackIdToName(opt.expected) + ")", function() {
+                                let result: JsTypeCommander.TAnythingAtAll = (typeof(opt.checkElements) == "boolean") ?
+                                    JsTypeCommander.mapByTypeValue.call(this, argInfo.getValue(), tgh, opt.checkElements) :
+                                    JsTypeCommander.mapByTypeValue.call(this, argInfo.getValue(), tgh);
                                 dataIterationIndex++;
                                 expect(result).to.a("number", "at dataIterationIndex " + dataIterationIndex);
-                                expect(result).to.equal(o.expected, mapCallbackIdToName(result) + " called, insteaat dataIterationIndex " + dataIterationIndex);
+                                expect(result).to.equal(opt.expected, mapCallbackIdToName(result) + " called, insteaat dataIterationIndex " + dataIterationIndex);
                             });
                         }, this);
                     }, this);
@@ -740,12 +1413,7 @@ describe("Testing type map functions", function() {
         }, this);
     });
 
-    let functionDefinitions: {
-        name: string,
-        callback: Function,
-        allowUndefined: boolean,
-        allowNull: boolean
-    }[] = [
+    let mapByNilFunctionArr: MapByNilFunction[] = [
         { name: 'mapByDefined', callback: JsTypeCommander.mapByDefined, allowUndefined: false, allowNull: true },
         { name: 'mapByNotNull', callback: JsTypeCommander.mapByNotNull, allowUndefined: true, allowNull: false },
         { name: 'mapByNotNil', callback: JsTypeCommander.mapByNotNil, allowUndefined: false, allowNull: false }
@@ -762,15 +1430,15 @@ describe("Testing type map functions", function() {
         { display: '{}', type: 'notNil', getValue: () => { return {}; } },
         { display: 'Symbol.iterator', type: 'notNil', getValue: () => Symbol.iterator }
     ];
-    functionDefinitions.forEach(fd => {
-        describe("Testing " + fd.name + " function", function() {
-            mapByNilArguments.forEach(a => {
-                let whenTrue: boolean = (a.type == "notNil" || ((a.type == "null") ? fd.allowNull : fd.allowUndefined));
+    mapByNilFunctionArr.forEach(mapByNilFunction => {
+        describe("Testing " + mapByNilFunction.name + " function", function() {
+            mapByNilArguments.forEach(argInfo => {
+                let whenTrue: boolean = (argInfo.type == "notNil" || ((argInfo.type == "null") ? mapByNilFunction.allowNull : mapByNilFunction.allowUndefined));
                 let mapByNilHelper: MapByNilHelper = new MapByNilHelper();
                 let expected: number = (whenTrue) ? mapByNilHelper.trueNum : mapByNilHelper.otherwiseNum;
-                it(fd.name + "(" + a.display + ", fn(v) => " + mapByNilHelper.trueNum + ', fn' + ((fd.name == "mapByNotNil") ? '(v)' : '()') + ' => ' + mapByNilHelper.otherwiseNum +
-                        ') should return ' + expected + ' (' + ((whenTrue) ? 'whenTrue' : 'otherwise') + ')', function() {
-                    let result: JsTypeCommander.TAnythingAtAll = fd.callback(a.getValue(), mapByNilHelper.whenTrue, mapByNilHelper.otherwise, mapByNilHelper);
+                it(mapByNilFunction.name + "(" + argInfo.display + ", fn(v) => " + mapByNilHelper.trueNum + ', fn' + ((mapByNilFunction.name == "mapByNotNil") ? '(v)' : '()') +
+                        ' => ' + mapByNilHelper.otherwiseNum + ') should return ' + expected + ' (' + ((whenTrue) ? 'whenTrue' : 'otherwise') + ')', function() {
+                    let result: JsTypeCommander.TAnythingAtAll = mapByNilFunction.callback(argInfo.getValue(), mapByNilHelper.whenTrue, mapByNilHelper.otherwise, mapByNilHelper);
                     expect(result).to.a('number').and.to.equal(expected);
                     expect(mapByNilHelper.callCount).to.not.equal(0, 'Callback not invoked');
                     expect(mapByNilHelper.callCount).to.equal(1, 'Callback invoked more than once');
@@ -784,24 +1452,25 @@ describe("Testing type map functions", function() {
     }, this);
 });
 
-type typeSpec = "undefined"|"null"|"emptyString"|"whitespace"|"nonWhitespace"|"boolean"|"zero"|"nonZero"|"float"|"NaN"|"Infinity"|"function"|"plainObject"|"almostArrayLike"|"ArrayLike"|"Array"|"emptyArray"|
-    "errorLike"|"Error"|"RangeError"|"ParentClass"|"InheritedClass"|"DeepInheritedClass"
+type TypeVariantSpec = JsTypeVariant|JsTypeExt|JsTypeInfo|{ type: JsTypeExt|JsTypeInfo, variant?: JsVariant; };
+type TypeVariantFlagSpec = JsTypeVariantFlags|JsVariant|JsVariant[];
+
 interface TypeGuardTestArgument {
     value?: ArgumentDescriptor;
-    type: typeSpec;
+    type: TypeVariantSpec;
 }
-interface TypeGuardMethodGroup {
+interface TypeGuardTargetType {
     description: string;
-    methods: TypeGuardMethodDefinition[];
+    functions: TypeGuardFunction[];
 }
-interface TypeGuardMethodDefinition {
+interface TypeGuardFunction {
     name: string;
     callback: Function;
-    allowed: (typeSpec|{
+    allowed: (TypeVariantFlagSpec|{
         isGeneric?: boolean;
-        types: typeSpec[]|typeSpec;
+        types: TypeVariantFlagSpec;
         arg?: ArgumentDescriptor;
-    })[]|typeSpec;
+    })[]|TypeVariantFlagSpec;
 }
 
 class ExampleBaseClass {
@@ -816,55 +1485,55 @@ class ExampleNestedClass extends ExampleChildClass {
 
 describe("Testing type guard functions", function() {
     let typeGuardTestArgumentArr: TypeGuardTestArgument[] = [
-        { type: 'undefined' },
-        { type: 'undefined', value: { display: 'undefined', getValue: () => undefined } },
-        { type: 'null', value: { display: 'null', getValue: () => null } },
-        { type: 'emptyString', value: { display: '""', getValue: () => "" } },
-        { type: 'whitespace', value: { display: '" "', getValue: () => " " } },
-        { type: 'whitespace', value: { display: '"\\n\\r\\t"', getValue: () => "\n\r\t" } },
-        { type: 'nonWhitespace', value: { display: '"."', getValue: () => "" } },
-        { type: 'nonWhitespace', value: { display: '" . "', getValue: () => " . " } },
-        { type: 'nonWhitespace', value: { display: '"\\n\\r . \\t"', getValue: () => "\n\r . \t" } },
-        { type: 'boolean', value: { display: 'true', getValue: () => true } },
-        { type: 'boolean', value: { display: 'false', getValue: () => false } },
-        { type: 'nonZero', value: { display: '1', getValue: () => 1 } },
-        { type: 'nonZero', value: { display: '123', getValue: () => 123 } },
-        { type: 'nonZero', value: { display: '-1', getValue: () => -1 } },
-        { type: 'zero', value: { display: '0', getValue: () => 0 } },
-        { type: 'float', value: { display: '0.0001', getValue: () => 0.0001 } },
-        { type: 'NaN', value: { display: 'NaN', getValue: () => NaN } },
-        { type: 'Infinity', value: { display: 'Infinity', getValue: () => Infinity } },
-        { type: 'function', value: { display: 'function() { return false };', getValue: () => { return function() { return false }; } } },
-        { type: 'plainObject', value: { display: '{ }', getValue: () => { return { }; } } },
-        { type: 'almostArrayLike', value: { display: '{ length: 1 }', getValue: () => { return { length: 1 }; } } },
-        { type: 'almostArrayLike', value: { display: '{ length: 2, [0]: "1", [2]: "2" }', getValue: () => { let aa: { length: number, [key: number]: string } = { length: 2 }; aa[0] = "1"; aa[2] = "2" } } },
-        { type: 'ArrayLike', value: { display: '{ length: 0 }', getValue: () => { return { length: 1 }; } } },
-        { type: 'ArrayLike', value: { display: '{ length: 2, [0]: "1", [1]: "2" }', getValue: () => { let aa: { length: number, [key: number]: string } = { length: 2 }; aa[0] = "1"; aa[1] = "2" } } },
-        { type: 'emptyArray', value: { display: '[]', getValue: () => [] } },
-        { type: 'Array', value: { display: '[undefined]', getValue: () => [undefined] } },
-        { type: 'Error', value: { display: '[undefined]', getValue: () => {
+        { type: JsTypeExt.Undefined },
+        { type: JsTypeExt.Undefined, value: { display: 'undefined', getValue: () => undefined } },
+        { type: JsTypeExt.Null, value: { display: 'null', getValue: () => null } },
+        { type: { type: JsTypeExt.String, variant: JsVariant.Empty }, value: { display: '""', getValue: () => "" } },
+        { type: { type: JsTypeExt.String, variant: JsVariant.Whitespace }, value: { display: '" "', getValue: () => " " } },
+        { type: { type: JsTypeExt.String, variant: JsVariant.Whitespace }, value: { display: '"\\n\\r\\t"', getValue: () => "\n\r\t" } },
+        { type: JsTypeExt.String, value: { display: '"."', getValue: () => "" } },
+        { type: JsTypeExt.String, value: { display: '" . "', getValue: () => " . " } },
+        { type: JsTypeExt.String, value: { display: '"\\n\\r . \\t"', getValue: () => "\n\r . \t" } },
+        { type: JsTypeExt.Boolean, value: { display: 'true', getValue: () => true } },
+        { type: JsTypeExt.Boolean, value: { display: 'false', getValue: () => false } },
+        { type: JsTypeExt.FiniteNumber, value: { display: '1', getValue: () => 1 } },
+        { type: JsTypeExt.FiniteNumber, value: { display: '123', getValue: () => 123 } },
+        { type: JsTypeExt.FiniteNumber, value: { display: '-1', getValue: () => -1 } },
+        { type: { type: JsTypeExt.FiniteNumber, variant: JsVariant.Zero }, value: { display: '0', getValue: () => 0 } },
+        { type: { type: JsTypeExt.FiniteNumber, variant: JsVariant.Float }, value: { display: '0.0001', getValue: () => 0.0001 } },
+        { type: JsTypeExt.NaN, value: { display: 'NaN', getValue: () => NaN } },
+        { type: JsTypeExt.Infinity, value: { display: 'Infinity', getValue: () => Infinity } },
+        { type: JsTypeExt.Function, value: { display: 'function() { return false };', getValue: () => { return function() { return false }; } } },
+        { type: JsTypeExt.NonArrayObject, value: { display: '{ }', getValue: () => { return { }; } } },
+        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.AlmostArrayLike }, value: { display: '{ length: 1 }', getValue: () => { return { length: 1 }; } } },
+        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.AlmostArrayLike }, value: { display: '{ length: 2, [0]: "1", [2]: "2" }', getValue: () => { let aa: { length: number, [key: number]: string } = { length: 2 }; aa[0] = "1"; aa[2] = "2" } } },
+        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.ArrayLike }, value: { display: '{ length: 0 }', getValue: () => { return { length: 1 }; } } },
+        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.ArrayLike }, value: { display: '{ length: 2, [0]: "1", [1]: "2" }', getValue: () => { let aa: { length: number, [key: number]: string } = { length: 2 }; aa[0] = "1"; aa[1] = "2" } } },
+        { type: { type: JsTypeExt.Array, variant: JsVariant.Empty }, value: { display: '[]', getValue: () => [] } },
+        { type: JsTypeExt.Array, value: { display: '[undefined]', getValue: () => [undefined] } },
+        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.Error }, value: { display: '[undefined]', getValue: () => {
             try { throw new Error("Thrown for test"); }
             catch (e) { return e; }
         } } },
-        { type: 'RangeError', value: { display: '[undefined]', getValue: () => {
+        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.InheritsError }, value: { display: '[undefined]', getValue: () => {
             try { throw new RangeError("Out of range for a test"); }
             catch (e) { return e; }
         } } },
-        { type: 'ParentClass', value: { display: 'new ExampleBaseClass()', getValue: () => new ExampleBaseClass() } },
-        { type: 'InheritedClass', value: { display: 'new ExampleChildClass()', getValue: () => new ExampleChildClass() } },
-        { type: 'DeepInheritedClass', value: { display: 'new ExampleNestedClass()', getValue: () => new ExampleNestedClass() } }
+        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.BaseObject }, value: { display: 'new ExampleBaseClass()', getValue: () => new ExampleBaseClass() } },
+        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.InheritedObject }, value: { display: 'new ExampleChildClass()', getValue: () => new ExampleChildClass() } },
+        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.MultiInheritanceObject }, value: { display: 'new ExampleNestedClass()', getValue: () => new ExampleNestedClass() } }
     ];
-    let typeGuardMethodGroupArr: TypeGuardMethodGroup[] = [
+    let typeGuardTargetTypeArr: TypeGuardTargetType[] = [
         {
             description: 'Testing nil type guard functions',
-            methods: [
+            functions: [
                 { name: 'notDefined', callback: JsTypeCommander.notDefined, allowed: "undefined" },
                 { name: 'isNull', callback: JsTypeCommander.isNull, allowed: "null" },
                 { name: 'isNil', callback: JsTypeCommander.isNil, allowed: ["undefined", "null"] }
             ]
         }, {
             description: 'Testing string type guard functions',
-            methods: [
+            functions: [
                 { name: 'isString', callback: JsTypeCommander.isString, allowed: ["emptyString", "whitespace", "nonWhitespace"] },
                 { name: 'isStringIfDef', callback: JsTypeCommander.isStringIfDef, allowed: ["undefined", "emptyString", "whitespace", "nonWhitespace"] },
                 { name: 'isStringOrNull', callback: JsTypeCommander.isStringOrNull, allowed: ["null", "emptyString", "whitespace", "nonWhitespace"] },
@@ -872,7 +1541,7 @@ describe("Testing type guard functions", function() {
             ]
         }, {
             description: 'Testing empty string type guard functions',
-            methods: [
+            functions: [
                 { name: 'isEmptyString', callback: JsTypeCommander.isEmptyString, allowed: ["emptyString", "whitespace"] },
                 { name: 'isEmptyStringIfDef', callback: JsTypeCommander.isEmptyStringIfDef, allowed: ["undefined", "emptyString", "whitespace"] },
                 { name: 'isEmptyStringOrNull', callback: JsTypeCommander.isEmptyStringOrNull, allowed: ["null", "emptyString", "whitespace"] },
@@ -884,7 +1553,7 @@ describe("Testing type guard functions", function() {
             ]
         }, {
             description: 'Testing boolean type guard functions',
-            methods: [
+            functions: [
                 { name: 'isBoolean', callback: JsTypeCommander.isBoolean, allowed: "boolean" },
                 { name: 'isBooleanIfDef', callback: JsTypeCommander.isBooleanIfDef, allowed: ["undefined", "boolean"] },
                 { name: 'isBooleanOrNull', callback: JsTypeCommander.isBooleanOrNull, allowed: ["null", "boolean"] },
@@ -892,7 +1561,7 @@ describe("Testing type guard functions", function() {
             ]
         }, {
             description: 'Testing number type guard functions',
-            methods: [
+            functions: [
                 { name: 'isNumber', callback: JsTypeCommander.isNumber, allowed: ["zero", "nonZero", "float"] },
                 { name: 'isNumberIfDef', callback: JsTypeCommander.isNumberIfDef, allowed: ["undefined", "zero", "nonZero", "float"] },
                 { name: 'isNumberOrNull', callback: JsTypeCommander.isNumberOrNull, allowed: ["null", "zero", "nonZero", "float"] },
@@ -902,7 +1571,7 @@ describe("Testing type guard functions", function() {
             ]
         }, {
             description: 'Testing function type guard functions',
-            methods: [
+            functions: [
                 { name: 'isFunction', callback: JsTypeCommander.isBoolean, allowed: "function" },
                 { name: 'isFunctionIfDef', callback: JsTypeCommander.isBooleanIfDef, allowed: ["undefined", "function"] },
                 { name: 'isFunctionOrNull', callback: JsTypeCommander.isBooleanOrNull, allowed: ["null", "function"] },
@@ -910,7 +1579,7 @@ describe("Testing type guard functions", function() {
             ]
         }, {
             description: 'Testing object type guard functions',
-            methods: [
+            functions: [
                 { name: 'isObject', callback: JsTypeCommander.isObject, allowed: ["plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
                 { name: 'isPlainObject', callback: JsTypeCommander.isPlainObject, allowed: ["plainObject", "errorLike", "almostArrayLike", "ArrayLike"] },
                 { name: 'isObjectType', callback: JsTypeCommander.isObjectType, allowed: ["plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
@@ -1022,7 +1691,7 @@ describe("Testing type guard functions", function() {
             ]
         }, {
             description: 'Testing derrivation type guard functions',
-            methods: [
+            functions: [
                 {
                     name: 'derivesFrom', callback: JsTypeCommander.derivesFrom, allowed: [
                         { isGeneric: true, arg: { display: 'Error', getValue: () => Error }, types: ["Error", "RangeError"] },
@@ -1061,19 +1730,19 @@ describe("Testing type guard functions", function() {
             ]
         }
     ];
-    typeGuardMethodGroupArr.forEach(grp => {
-        describe(grp.description, function() {
-            grp.methods.forEach(tgm => {
-                describe('Testing ' + tgm.name + ' function', function() {
+    typeGuardTargetTypeArr.forEach(targetType => {
+        describe(targetType.description, function() {
+            targetType.functions.forEach(typeGuardFunction => {
+                describe('Testing ' + typeGuardFunction.name + ' function', function() {
                     let allowSetArr: { isGeneric?: boolean; types: typeSpec[]; arg?: ArgumentDescriptor; }[];
-                    if (typeof(tgm.allowed) == "string")
-                        allowSetArr = [{ types: [tgm.allowed] }];
+                    if (typeof(typeGuardFunction.allowed) == "string")
+                        allowSetArr = [{ types: [typeGuardFunction.allowed] }];
                     else
-                        allowSetArr = <{ isGeneric?: boolean; types: typeSpec[]; arg?: ArgumentDescriptor; }[]>tgm.allowed.map(a => (typeof(a) == "string") ? { types: [a] } : ((Array.isArray(a)) ? { types: a } : a));
+                        allowSetArr = <{ isGeneric?: boolean; types: typeSpec[]; arg?: ArgumentDescriptor; }[]>typeGuardFunction.allowed.map(a => (typeof(a) == "string") ? { types: [a] } : ((Array.isArray(a)) ? { types: a } : a));
                     allowSetArr.forEach(allowSet => {
                         typeGuardTestArgumentArr.forEach(tga => {
                             let args = [];
-                            let description: string = tgm.name;
+                            let description: string = typeGuardFunction.name;
                             if (typeof(tga.value) == "undefined") {
                                 if (typeof(allowSet.arg) != "undefined")
                                     return;
@@ -1092,7 +1761,7 @@ describe("Testing type guard functions", function() {
                             }
                             let expected: boolean = allowSet.types.filter(t => t == tga.type).length > 0;
                             it(description + ") should return " + expected, function() {
-                                let result: JsTypeCommander.TAnythingAtAll = tgm.callback.apply(this, args);
+                                let result: JsTypeCommander.TAnythingAtAll = typeGuardFunction.callback.apply(this, args);
                                 expect(result).to.a('boolean');
                                 expect(result).to.equal(expected);
                                 });
@@ -1104,6 +1773,9 @@ describe("Testing type guard functions", function() {
     }, this);
 });
 
+interface TypeConversionTargetType {
+
+}
 describe("Testing type conversion functions", function() {
     describe("Testing string conversion functions", function() {
         describe("Testing asString", function() {

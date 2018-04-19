@@ -1,6 +1,6 @@
 # JsTypeCommander #
 
-Validate, detect and convert JavaScript types and classes 
+Validate, detect and convert JavaScript types and classes.
 
 ## Summary ##
 
