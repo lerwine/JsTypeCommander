@@ -462,8 +462,8 @@ function mapCallbackIdToName(id) {
     }
     return 'otherwise';
 }
-var TypeGateCallbackHelper = /** @class */ (function () {
-    function TypeGateCallbackHelper(omit) {
+var MapByTypeHelper = /** @class */ (function () {
+    function MapByTypeHelper(omit) {
         var omitOther = [];
         for (var _i = 1; _i < arguments.length; _i++) {
             omitOther[_i - 1] = arguments[_i];
@@ -499,39 +499,26 @@ var TypeGateCallbackHelper = /** @class */ (function () {
                 _this._isOmmitted[n] = true;
         }, this);
     }
-    TypeGateCallbackHelper.prototype._onInvoked = function (key, value) {
+    MapByTypeHelper.prototype._onInvoked = function (key, value) {
         this._invokeFlags |= key;
         this._callCount++;
         this._lastArg = value;
         return key;
     };
-    TypeGateCallbackHelper.prototype._whenBoolean = function (value) { return this._onInvoked(MapCallbackId.whenBoolean, value); };
-    ;
-    TypeGateCallbackHelper.prototype._whenFunction = function (value) { return this._onInvoked(MapCallbackId.whenFunction, value); };
-    ;
-    TypeGateCallbackHelper.prototype._whenInfinity = function (value) { return this._onInvoked(MapCallbackId.whenInfinity, value); };
-    ;
-    TypeGateCallbackHelper.prototype._whenNaN = function (value) { return this._onInvoked(MapCallbackId.whenNaN, value); };
-    ;
-    TypeGateCallbackHelper.prototype._whenNumber = function (value) { return this._onInvoked(MapCallbackId.whenNumber, value); };
-    ;
-    TypeGateCallbackHelper.prototype._whenArray = function (value) { return this._onInvoked(MapCallbackId.whenArray, value); };
-    ;
-    TypeGateCallbackHelper.prototype._whenArrayLike = function (value) { return this._onInvoked(MapCallbackId.whenArrayLike, value); };
-    ;
-    TypeGateCallbackHelper.prototype._whenNotArrayLike = function (value) { return this._onInvoked(MapCallbackId.whenNotArrayLike, value); };
-    ;
-    TypeGateCallbackHelper.prototype._whenString = function (value) { return this._onInvoked(MapCallbackId.whenString, value); };
-    ;
-    TypeGateCallbackHelper.prototype._whenSymbol = function (value) { return this._onInvoked(MapCallbackId.whenSymbol, value); };
-    ;
-    TypeGateCallbackHelper.prototype._whenNull = function (value) { return this._onInvoked(MapCallbackId.whenNull, value); };
-    ;
-    TypeGateCallbackHelper.prototype._whenUndefined = function (value) { return this._onInvoked(MapCallbackId.whenUndefined, value); };
-    ;
-    TypeGateCallbackHelper.prototype._whenObject = function (value) { return this._onInvoked(MapCallbackId.whenObject, value); };
-    ;
-    TypeGateCallbackHelper.prototype._invokeThis = function (name, func) {
+    MapByTypeHelper.prototype._whenBoolean = function (value) { return this._onInvoked(MapCallbackId.whenBoolean, value); };
+    MapByTypeHelper.prototype._whenFunction = function (value) { return this._onInvoked(MapCallbackId.whenFunction, value); };
+    MapByTypeHelper.prototype._whenInfinity = function (value) { return this._onInvoked(MapCallbackId.whenInfinity, value); };
+    MapByTypeHelper.prototype._whenNaN = function (value) { return this._onInvoked(MapCallbackId.whenNaN, value); };
+    MapByTypeHelper.prototype._whenNumber = function (value) { return this._onInvoked(MapCallbackId.whenNumber, value); };
+    MapByTypeHelper.prototype._whenArray = function (value) { return this._onInvoked(MapCallbackId.whenArray, value); };
+    MapByTypeHelper.prototype._whenArrayLike = function (value) { return this._onInvoked(MapCallbackId.whenArrayLike, value); };
+    MapByTypeHelper.prototype._whenNotArrayLike = function (value) { return this._onInvoked(MapCallbackId.whenNotArrayLike, value); };
+    MapByTypeHelper.prototype._whenString = function (value) { return this._onInvoked(MapCallbackId.whenString, value); };
+    MapByTypeHelper.prototype._whenSymbol = function (value) { return this._onInvoked(MapCallbackId.whenSymbol, value); };
+    MapByTypeHelper.prototype._whenNull = function (value) { return this._onInvoked(MapCallbackId.whenNull, value); };
+    MapByTypeHelper.prototype._whenUndefined = function (value) { return this._onInvoked(MapCallbackId.whenUndefined, value); };
+    MapByTypeHelper.prototype._whenObject = function (value) { return this._onInvoked(MapCallbackId.whenObject, value); };
+    MapByTypeHelper.prototype._invokeThis = function (name, func) {
         if (this._isOmmitted[name])
             return;
         var thisObj = this;
@@ -540,105 +527,159 @@ var TypeGateCallbackHelper = /** @class */ (function () {
         this._lastArg = undefined;
         return function (arg) { return func.call(thisObj, arg); };
     };
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "invokeFlags", {
+    Object.defineProperty(MapByTypeHelper.prototype, "invokeFlags", {
         get: function () { return this._invokeFlags; },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "callCount", {
+    Object.defineProperty(MapByTypeHelper.prototype, "callCount", {
         get: function () { return this._callCount; },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "lastArg", {
+    Object.defineProperty(MapByTypeHelper.prototype, "lastArg", {
         get: function () { return this._lastArg; },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenBoolean", {
+    Object.defineProperty(MapByTypeHelper.prototype, "thisObj", {
+        get: function () { return this; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MapByTypeHelper.prototype, "whenBoolean", {
         get: function () { return this._invokeThis("whenBoolean", this._whenBoolean); },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenFunction", {
+    Object.defineProperty(MapByTypeHelper.prototype, "whenFunction", {
         get: function () { return this._invokeThis("whenFunction", this._whenFunction); },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenInfinity", {
+    Object.defineProperty(MapByTypeHelper.prototype, "whenInfinity", {
         get: function () { return this._invokeThis("whenInfinity", this._whenInfinity); },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenNaN", {
+    Object.defineProperty(MapByTypeHelper.prototype, "whenNaN", {
         get: function () { return this._invokeThis("whenNaN", this._whenNaN); },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenNumber", {
+    Object.defineProperty(MapByTypeHelper.prototype, "whenNumber", {
         get: function () { return this._invokeThis("whenNumber", this._whenNumber); },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenArray", {
+    Object.defineProperty(MapByTypeHelper.prototype, "whenArray", {
         get: function () { return this._invokeThis("whenArray", this._whenArray); },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenArrayLike", {
+    Object.defineProperty(MapByTypeHelper.prototype, "whenArrayLike", {
         get: function () { return this._invokeThis("whenArrayLike", this._whenArrayLike); },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenNotArrayLike", {
+    Object.defineProperty(MapByTypeHelper.prototype, "whenNotArrayLike", {
         get: function () { return this._invokeThis("whenNotArrayLike", this._whenNotArrayLike); },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenString", {
+    Object.defineProperty(MapByTypeHelper.prototype, "whenString", {
         get: function () { return this._invokeThis("whenString", this._whenString); },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenSymbol", {
+    Object.defineProperty(MapByTypeHelper.prototype, "whenSymbol", {
         get: function () { return this._invokeThis("whenSymbol", this._whenSymbol); },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenNull", {
+    Object.defineProperty(MapByTypeHelper.prototype, "whenNull", {
         get: function () { return this._invokeThis("whenNull", this._whenNull); },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenUndefined", {
+    Object.defineProperty(MapByTypeHelper.prototype, "whenUndefined", {
         get: function () { return this._invokeThis("whenUndefined", this._whenUndefined); },
         enumerable: true,
         configurable: true
     });
-    Object.defineProperty(TypeGateCallbackHelper.prototype, "whenObject", {
+    Object.defineProperty(MapByTypeHelper.prototype, "whenObject", {
         get: function () { return this._invokeThis("whenObject", this._whenObject); },
         enumerable: true,
         configurable: true
     });
-    TypeGateCallbackHelper.prototype.otherwise = function (value) { return this._onInvoked(MapCallbackId.otherwise, value); };
-    ;
-    TypeGateCallbackHelper.prototype.asJSON = function () {
+    MapByTypeHelper.prototype.otherwise = function (value) { return this._onInvoked(MapCallbackId.otherwise, value); };
+    MapByTypeHelper.prototype.toJSON = function () {
         var _this = this;
         var allIds = [MapCallbackId.whenBoolean, MapCallbackId.whenFunction, MapCallbackId.whenInfinity, MapCallbackId.whenNaN, MapCallbackId.whenNumber, MapCallbackId.whenArray, MapCallbackId.whenArrayLike, MapCallbackId.whenNotArrayLike, MapCallbackId.whenString,
             MapCallbackId.whenSymbol, MapCallbackId.whenNull, MapCallbackId.whenUndefined, MapCallbackId.whenObject];
         var result = {};
         allIds.forEach(function (i) {
             var n = mapCallbackIdToName(i);
-            if (!_this._isOmmitted[n])
-                result[n] = function () { return i; };
+            if (_this._isOmmitted[n])
+                result[n] = false;
         });
         return result;
     };
-    return TypeGateCallbackHelper;
+    return MapByTypeHelper;
+}());
+var MapByNilHelper = /** @class */ (function () {
+    function MapByNilHelper() {
+        this._whenTrueInvoked = false;
+        this._otherwiseInvoked = false;
+        this._callCount = 0;
+        this._lastArg = undefined;
+        this._trueNum = Math.floor(Math.random() * 100);
+        this._otherwiseNum = Math.floor(Math.random() * 100);
+        while (this._trueNum == this._otherwiseNum)
+            this._otherwiseNum = Math.floor(Math.random() * 100);
+    }
+    Object.defineProperty(MapByNilHelper.prototype, "whenTrueInvoked", {
+        get: function () { return this._whenTrueInvoked; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MapByNilHelper.prototype, "otherwiseInvoked", {
+        get: function () { return this._otherwiseInvoked; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MapByNilHelper.prototype, "callCount", {
+        get: function () { return this._callCount; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MapByNilHelper.prototype, "trueNum", {
+        get: function () { return this._trueNum; },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MapByNilHelper.prototype, "otherwiseNum", {
+        get: function () { return this._otherwiseNum; },
+        enumerable: true,
+        configurable: true
+    });
+    MapByNilHelper.prototype.whenTrue = function (arg) {
+        this._callCount++;
+        this._whenTrueInvoked = true;
+        this._lastArg = arg;
+        return this._trueNum;
+    };
+    MapByNilHelper.prototype.otherwise = function (arg) {
+        this._callCount++;
+        this._otherwiseInvoked = true;
+        this._lastArg = arg;
+        return this._otherwiseNum;
+    };
+    return MapByNilHelper;
 }());
 mocha_1.describe("Testing type map functions", function () {
     mocha_1.describe("Testing mapByTypeValue function", function () {
-        var testDataArr = [
+        var mapByTypeValueTestDefintions = [
             {
                 type: 'nil',
                 test: [
@@ -703,10 +744,14 @@ mocha_1.describe("Testing type map functions", function () {
                         { omit: "whenArray", expected: MapCallbackId.whenArrayLike },
                         { omit: ["whenArray", "whenArrayLike"], expected: MapCallbackId.whenObject },
                         { omit: ["whenArray", "whenArrayLike", "whenObject"], expected: MapCallbackId.otherwise },
-                        { expected: MapCallbackId.whenArray, simpleCheck: false },
-                        { omit: "whenArray", expected: MapCallbackId.whenArrayLike, simpleCheck: false },
-                        { omit: ["whenArray", "whenArrayLike"], expected: MapCallbackId.whenObject, simpleCheck: false },
-                        { omit: ["whenArray", "whenArrayLike", "whenObject"], expected: MapCallbackId.otherwise, simpleCheck: false }
+                        { expected: MapCallbackId.whenArray, checkElements: false },
+                        { omit: "whenArray", expected: MapCallbackId.whenArrayLike, checkElements: false },
+                        { omit: ["whenArray", "whenArrayLike"], expected: MapCallbackId.whenObject, checkElements: false },
+                        { omit: ["whenArray", "whenArrayLike", "whenObject"], expected: MapCallbackId.otherwise, checkElements: false },
+                        { expected: MapCallbackId.whenArray, checkElements: true },
+                        { omit: "whenArray", expected: MapCallbackId.whenArrayLike, checkElements: true },
+                        { omit: ["whenArray", "whenArrayLike"], expected: MapCallbackId.whenObject, checkElements: true },
+                        { omit: ["whenArray", "whenArrayLike", "whenObject"], expected: MapCallbackId.otherwise, checkElements: true }
                     ]
                 }
             }, {
@@ -715,10 +760,11 @@ mocha_1.describe("Testing type map functions", function () {
                     {
                         arg: [
                             { display: '{ length: 0 }', getValue: function () { return { length: 0 }; } },
-                            { display: '{ length: 2, [0]: "test", [1]: "again" }', getValue: function () {
-                                    return _a = { length: 2 }, _a[0] = "test", _a[1] = "again", _a;
-                                    var _a;
-                                } },
+                            { display: '{ length: 2, [0]: "test", [1]: "again" }',
+                                getValue: function () { var a = { length: 2 }; a[0] = "test"; a[1] = "again"; return a; } },
+                            { display: '{ length: 2, [0]: "test", [2]: "again" }',
+                                getValue: function () { var a = { length: 2 }; a[0] = "test"; a[2] = "again"; return a; } },
+                            { display: '{ length: 1 }', getValue: function () { return { length: 1 }; } }
                         ],
                         opt: [
                             { expected: MapCallbackId.whenArrayLike },
@@ -728,43 +774,43 @@ mocha_1.describe("Testing type map functions", function () {
                     }, {
                         arg: [
                             { display: '{ length: 0 }', getValue: function () { return { length: 0 }; } },
-                            { display: '{ length: 2, [0]: "test", [1]: "again" }', getValue: function () {
-                                    return _a = { length: 2 }, _a[0] = "test", _a[1] = "again", _a;
-                                    var _a;
-                                } },
-                            { display: '{ length: 1 }', getValue: function () { return { length: 1 }; } },
-                            { display: '{ length: 2, [0]: "test", [2]: "again" }', getValue: function () {
-                                    return _a = { length: 2 }, _a[0] = "test", _a[2] = "again", _a;
-                                    var _a;
-                                } }
+                            { display: '{ length: 2, [0]: "test", [1]: "again" }',
+                                getValue: function () { var a = { length: 2 }; a[0] = "test"; a[1] = "again"; return a; } }
                         ],
                         opt: [
-                            { expected: MapCallbackId.whenArrayLike, simpleCheck: true },
-                            { omit: "whenArrayLike", simpleCheck: true, expected: MapCallbackId.whenObject },
-                            { omit: ["whenArrayLike", "whenObject"], simpleCheck: true, expected: MapCallbackId.otherwise }
+                            { expected: MapCallbackId.whenArrayLike, checkElements: true },
+                            { omit: "whenArrayLike", checkElements: true, expected: MapCallbackId.whenObject },
+                            { omit: ["whenArrayLike", "whenObject"], checkElements: true, expected: MapCallbackId.otherwise }
                         ]
                     }
                 ]
             }, {
                 type: 'not ArrayLike',
-                test: {
-                    arg: [
-                        { display: '{ }', getValue: function () { return {}; } },
-                        { display: '{ length: 1 }', getValue: function () { return { length: 1 }; } },
-                        { display: '{ length: 2, [0]: "test", [2]: "again" }', getValue: function () {
-                                return _a = { length: 2 }, _a[0] = "test", _a[2] = "again", _a;
-                                var _a;
-                            } },
-                    ],
-                    opt: [
-                        { expected: MapCallbackId.whenNotArrayLike },
-                        { omit: "whenNotArrayLike", expected: MapCallbackId.whenObject },
-                        { omit: ["whenNotArrayLike", "whenObject"], expected: MapCallbackId.otherwise },
-                        { expected: MapCallbackId.whenNotArrayLike, simpleCheck: false },
-                        { omit: "whenNotArrayLike", expected: MapCallbackId.whenObject, simpleCheck: false },
-                        { omit: ["whenNotArrayLike", "whenObject"], expected: MapCallbackId.otherwise, simpleCheck: false }
-                    ]
-                }
+                test: [
+                    {
+                        arg: { display: '{ }', getValue: function () { return {}; } },
+                        opt: [
+                            { expected: MapCallbackId.whenNotArrayLike },
+                            { omit: "whenNotArrayLike", expected: MapCallbackId.whenObject },
+                            { omit: ["whenNotArrayLike", "whenObject"], expected: MapCallbackId.otherwise },
+                            { expected: MapCallbackId.whenNotArrayLike, checkElements: false },
+                            { omit: "whenNotArrayLike", expected: MapCallbackId.whenObject, checkElements: false },
+                            { omit: ["whenNotArrayLike", "whenObject"], expected: MapCallbackId.otherwise, checkElements: false }
+                        ]
+                    }, {
+                        arg: [
+                            { display: '{ }', getValue: function () { return {}; } },
+                            { display: '{ length: 1 }', getValue: function () { return { length: 1 }; } },
+                            { display: '{ length: 2, [0]: "test", [2]: "again" }',
+                                getValue: function () { var a = { length: 2 }; a[0] = "test"; a[2] = "again"; return a; } },
+                        ],
+                        opt: [
+                            { expected: MapCallbackId.whenNotArrayLike, checkElements: true },
+                            { omit: "whenNotArrayLike", expected: MapCallbackId.whenObject, checkElements: true },
+                            { omit: ["whenNotArrayLike", "whenObject"], expected: MapCallbackId.otherwise, checkElements: true }
+                        ]
+                    }
+                ]
             }, {
                 type: 'string',
                 test: {
@@ -785,7 +831,8 @@ mocha_1.describe("Testing type map functions", function () {
                 }
             }
         ];
-        testDataArr.forEach(function (testData) {
+        var dataIterationIndex = 0;
+        mapByTypeValueTestDefintions.forEach(function (testData) {
             mocha_1.describe('Testing ' + testData.type + " values", function () {
                 var _this = this;
                 var tests = (Array.isArray(testData.test)) ? testData.test : [testData.test];
@@ -795,13 +842,14 @@ mocha_1.describe("Testing type map functions", function () {
                     opts.forEach(function (o) {
                         var omit = (typeof (o.omit) == "undefined") ? [] : ((typeof (o.omit) == "string") ? [o.omit] : o.omit);
                         args.forEach(function (a) {
-                            var tgh = new TypeGateCallbackHelper(omit);
-                            it('JsTypeCommander.mapByTypeValue(' + args.map(function (a) { return a.display; }).join(", ") + ', ' + JSON.stringify(tgh) + ') should return ' + o.expected +
+                            var tgh = new MapByTypeHelper(omit);
+                            it('JsTypeCommander.mapByTypeValue(' + a.display + ', ' + JSON.stringify(tgh.toJSON()) + ((typeof (o.checkElements) == "boolean") ? ", " + o.checkElements : "") + ') should return ' + o.expected +
                                 " (calling " + mapCallbackIdToName(o.expected) + ")", function () {
-                                var result = (typeof (o.simpleCheck) == "boolean") ? JsTypeCommander_1.JsTypeCommander.mapByTypeValue.call(this, a.getValue(), tgh, o.simpleCheck) :
+                                var result = (typeof (o.checkElements) == "boolean") ? JsTypeCommander_1.JsTypeCommander.mapByTypeValue.call(this, a.getValue(), tgh, o.checkElements) :
                                     JsTypeCommander_1.JsTypeCommander.mapByTypeValue.call(this, a.getValue(), tgh);
-                                chai_1.expect(result).to.a("number");
-                                chai_1.expect(result).to.equal(o.expected);
+                                dataIterationIndex++;
+                                chai_1.expect(result).to.a("number", "at dataIterationIndex " + dataIterationIndex);
+                                chai_1.expect(result).to.equal(o.expected, mapCallbackIdToName(result) + " called, insteaat dataIterationIndex " + dataIterationIndex);
                             });
                         }, _this);
                     }, _this);
@@ -809,42 +857,43 @@ mocha_1.describe("Testing type map functions", function () {
             });
         }, this);
     });
-    mocha_1.describe("Testing mapByDefined function", function () {
-        it("mapByDefined(undefined, fn() => 1, fn() => 2) should return 2 (otherwise called)");
-        it("mapByDefined(null, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined(NaN, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined(0, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined(false, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined(\"\", fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined([], fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined([undefined], fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined({ }, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined(Symbol.iterator, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-    });
-    mocha_1.describe("Testing mapByNotNull function", function () {
-        it("mapByNotNull(undefined, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull(null, fn() => 1, fn() => 2) should return 2 (otherwise called)");
-        it("mapByNotNull(NaN, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull(0, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull(false, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull(\"\", fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull([], fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull([undefined], fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull({ }, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull(Symbol.iterator, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-    });
-    mocha_1.describe("Testing mapByNotNil function", function () {
-        it("mapByNotNil(undefined, fn() => 1, fn() => 2) should return 2 (otherwise called)");
-        it("mapByNotNil(null, fn() => 1, fn() => 2) should return 2 (otherwise called)");
-        it("mapByNotNil(NaN, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil(0, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil(false, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil(\"\", fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil([], fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil([undefined], fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil({ }, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil(Symbol.iterator, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-    });
+    var functionDefinitions = [
+        { name: 'mapByDefined', callback: JsTypeCommander_1.JsTypeCommander.mapByDefined, allowUndefined: false, allowNull: true },
+        { name: 'mapByNotNull', callback: JsTypeCommander_1.JsTypeCommander.mapByNotNull, allowUndefined: true, allowNull: false },
+        { name: 'mapByNotNil', callback: JsTypeCommander_1.JsTypeCommander.mapByNotNil, allowUndefined: false, allowNull: false }
+    ];
+    var mapByNilArguments = [
+        { display: 'undefined', type: 'undefined', getValue: function () { return undefined; } },
+        { display: 'null', type: 'null', getValue: function () { return null; } },
+        { display: 'NaN', type: 'notNil', getValue: function () { return NaN; } },
+        { display: '0', type: 'notNil', getValue: function () { return 0; } },
+        { display: 'false', type: 'notNil', getValue: function () { return false; } },
+        { display: '""', type: 'notNil', getValue: function () { return ""; } },
+        { display: '[]', type: 'notNil', getValue: function () { return []; } },
+        { display: '[undefined', type: 'notNil', getValue: function () { return [undefined]; } },
+        { display: '{}', type: 'notNil', getValue: function () { return {}; } },
+        { display: 'Symbol.iterator', type: 'notNil', getValue: function () { return Symbol.iterator; } }
+    ];
+    functionDefinitions.forEach(function (fd) {
+        mocha_1.describe("Testing " + fd.name + " function", function () {
+            mapByNilArguments.forEach(function (a) {
+                var whenTrue = (a.type == "notNil" || ((a.type == "null") ? fd.allowNull : fd.allowUndefined));
+                var mapByNilHelper = new MapByNilHelper();
+                var expected = (whenTrue) ? mapByNilHelper.trueNum : mapByNilHelper.otherwiseNum;
+                it(fd.name + "(" + a.display + ", fn(v) => " + mapByNilHelper.trueNum + ', fn' + ((fd.name == "mapByNotNil") ? '(v)' : '()') + ' => ' + mapByNilHelper.otherwiseNum +
+                    ') should return ' + expected + ' (' + ((whenTrue) ? 'whenTrue' : 'otherwise') + ')', function () {
+                    var result = fd.callback(a.getValue(), mapByNilHelper.whenTrue, mapByNilHelper.otherwise, mapByNilHelper);
+                    chai_1.expect(result).to.a('number').and.to.equal(expected);
+                    chai_1.expect(mapByNilHelper.callCount).to.not.equal(0, 'Callback not invoked');
+                    chai_1.expect(mapByNilHelper.callCount).to.equal(1, 'Callback invoked more than once');
+                    if (whenTrue)
+                        chai_1.expect(mapByNilHelper.whenTrueInvoked).to.equal(true, 'Wrong callback invoked');
+                    else
+                        chai_1.expect(mapByNilHelper.otherwiseInvoked).to.equal(true, 'Wrong callback invoked');
+                });
+            }, this);
+        });
+    }, this);
 });
 mocha_1.describe("Testing type guard functions", function () {
     mocha_1.describe("Testing notDefined function", function () {

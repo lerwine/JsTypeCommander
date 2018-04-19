@@ -430,16 +430,19 @@ function mapCallbackIdToName(id: MapCallbackId): MapCallbackName {
 }
 
 interface ArgumentDescriptor { display: string, getValue: { (): JsTypeCommander.TAnythingAtAll; } }
-interface MapByTypeOptions { omit?: MapCallbackName[]|MapCallbackName; simpleCheck?: boolean; expected: MapCallbackId }
-interface MapTyTypeTest {
+interface MapByTypeOptions { omit?: MapCallbackName[]|MapCallbackName; checkElements?: boolean; expected: MapCallbackId }
+interface MapByTypeTest {
     arg: ArgumentDescriptor[]|ArgumentDescriptor;
     opt: MapByTypeOptions[]|MapByTypeOptions;
 }
 interface MapByTypeDefinition {
     type: string;
-    test: MapTyTypeTest[]|MapTyTypeTest
+    test: MapByTypeTest[]|MapByTypeTest
 }
-class TypeGateCallbackHelper implements JsTypeCommander.TypeGateCallbacks<JsTypeCommander.TAnythingAtAll, MapCallbackId> {
+interface MapByNilArguments extends ArgumentDescriptor {
+    type: "notNil"|"null"|"undefined";
+}
+class MapByTypeHelper implements JsTypeCommander.TypeGuardResultSpecs<JsTypeCommander.TAnythingAtAll, MapCallbackId> {
     private _isOmmitted: { [key: string]: boolean } = { };
     private _invokeFlags: number = 0;
     private _callCount: number = 0;
@@ -450,19 +453,19 @@ class TypeGateCallbackHelper implements JsTypeCommander.TypeGateCallbacks<JsType
         this._lastArg = value;
         return key;
     }
-    private _whenBoolean(value: boolean): MapCallbackId { return this._onInvoked(MapCallbackId.whenBoolean, value); };
-    private _whenFunction(value: Function): MapCallbackId { return this._onInvoked(MapCallbackId.whenFunction, value); };
-    private _whenInfinity(value: number): MapCallbackId { return this._onInvoked(MapCallbackId.whenInfinity, value); };
-    private _whenNaN(value: number): MapCallbackId { return this._onInvoked(MapCallbackId.whenNaN, value); };
-    private _whenNumber(value: number): MapCallbackId { return this._onInvoked(MapCallbackId.whenNumber, value); };
-    private _whenArray(value: JsTypeCommander.TAnythingAtAll[]): MapCallbackId { return this._onInvoked(MapCallbackId.whenArray, value); };
-    private _whenArrayLike(value: ArrayLike<JsTypeCommander.TAnythingAtAll>): MapCallbackId { return this._onInvoked(MapCallbackId.whenArrayLike, value); };
-    private _whenNotArrayLike(value: JsTypeCommander.IStringKeyedObject): MapCallbackId { return this._onInvoked(MapCallbackId.whenNotArrayLike, value); };
-    private _whenString(value: string): MapCallbackId { return this._onInvoked(MapCallbackId.whenString, value); };
-    private _whenSymbol(value: symbol): MapCallbackId { return this._onInvoked(MapCallbackId.whenSymbol, value); };
-    private _whenNull(value: null): MapCallbackId { return this._onInvoked(MapCallbackId.whenNull, value); };
-    private _whenUndefined(value: undefined): MapCallbackId { return this._onInvoked(MapCallbackId.whenUndefined, value); };
-    private _whenObject(value: JsTypeCommander.IStringKeyedObject): MapCallbackId { return this._onInvoked(MapCallbackId.whenObject, value); };
+    private _whenBoolean(value: boolean): MapCallbackId { return this._onInvoked(MapCallbackId.whenBoolean, value); }
+    private _whenFunction(value: Function): MapCallbackId { return this._onInvoked(MapCallbackId.whenFunction, value); }
+    private _whenInfinity(value: number): MapCallbackId { return this._onInvoked(MapCallbackId.whenInfinity, value); }
+    private _whenNaN(value: number): MapCallbackId { return this._onInvoked(MapCallbackId.whenNaN, value); }
+    private _whenNumber(value: number): MapCallbackId { return this._onInvoked(MapCallbackId.whenNumber, value); }
+    private _whenArray(value: JsTypeCommander.TAnythingAtAll[]): MapCallbackId { return this._onInvoked(MapCallbackId.whenArray, value); }
+    private _whenArrayLike(value: ArrayLike<JsTypeCommander.TAnythingAtAll>): MapCallbackId { return this._onInvoked(MapCallbackId.whenArrayLike, value); }
+    private _whenNotArrayLike(value: JsTypeCommander.IStringKeyedObject): MapCallbackId { return this._onInvoked(MapCallbackId.whenNotArrayLike, value); }
+    private _whenString(value: string): MapCallbackId { return this._onInvoked(MapCallbackId.whenString, value); }
+    private _whenSymbol(value: symbol): MapCallbackId { return this._onInvoked(MapCallbackId.whenSymbol, value); }
+    private _whenNull(value: null): MapCallbackId { return this._onInvoked(MapCallbackId.whenNull, value); }
+    private _whenUndefined(value: undefined): MapCallbackId { return this._onInvoked(MapCallbackId.whenUndefined, value); }
+    private _whenObject(value: JsTypeCommander.IStringKeyedObject): MapCallbackId { return this._onInvoked(MapCallbackId.whenObject, value); }
     private _invokeThis<T>(name: string, func: JsTypeCommander.MapFromValueCallback<T, MapCallbackId>) : JsTypeCommander.MapFromValueCallback<T, MapCallbackId>|undefined {
         if (this._isOmmitted[name])
             return;
@@ -499,6 +502,7 @@ class TypeGateCallbackHelper implements JsTypeCommander.TypeGateCallbacks<JsType
     get invokeFlags(): number { return this._invokeFlags; }
     get callCount(): number { return this._callCount; }
     get lastArg(): JsTypeCommander.TAnythingAtAll { return this._lastArg; }
+    get thisObj(): MapByTypeHelper { return this; }
     get whenBoolean(): JsTypeCommander.MapFromValueCallback<boolean, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<boolean>("whenBoolean", this._whenBoolean); }
     get whenFunction(): JsTypeCommander.MapFromValueCallback<Function, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<Function>("whenFunction", this._whenFunction); }
     get whenInfinity(): JsTypeCommander.MapFromValueCallback<number, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<number>("whenInfinity", this._whenInfinity); }
@@ -512,23 +516,53 @@ class TypeGateCallbackHelper implements JsTypeCommander.TypeGateCallbacks<JsType
     get whenNull(): JsTypeCommander.MapFromValueCallback<null, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<null>("whenNull", this._whenNull); }
     get whenUndefined(): JsTypeCommander.MapFromValueCallback<undefined, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<undefined>("whenUndefined", this._whenUndefined); }
     get whenObject(): JsTypeCommander.MapFromValueCallback<JsTypeCommander.IStringKeyedObject, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<JsTypeCommander.IStringKeyedObject>("whenObject", this._whenObject); }
-    otherwise(value: JsTypeCommander.TAnythingAtAll): MapCallbackId { return this._onInvoked(MapCallbackId.otherwise, value); };
-    asJSON(): { [key: string]: Function|undefined } {
+    otherwise(value: JsTypeCommander.TAnythingAtAll): MapCallbackId { return this._onInvoked(MapCallbackId.otherwise, value); }
+    toJSON(): { [key: number]: boolean|undefined } {
         let allIds: MapCallbackId[] = [ MapCallbackId.whenBoolean, MapCallbackId.whenFunction, MapCallbackId.whenInfinity, MapCallbackId.whenNaN, MapCallbackId.whenNumber, MapCallbackId.whenArray, MapCallbackId.whenArrayLike, MapCallbackId.whenNotArrayLike, MapCallbackId.whenString,
             MapCallbackId.whenSymbol, MapCallbackId.whenNull, MapCallbackId.whenUndefined, MapCallbackId.whenObject ];
-        let result: { [key: string]: Function|undefined } = { };
+        let result: { [key: string]: boolean|undefined } = { };
         allIds.forEach(i => {
             let n: MapCallbackName = mapCallbackIdToName(i);
-            if (!this._isOmmitted[n])
-                result[n] = function() { return i; }
+            if (this._isOmmitted[n])
+                result[n] = false
         })
         return result;
     }
 }
-
+class MapByNilHelper {
+    private _whenTrueInvoked: boolean = false;
+    private _otherwiseInvoked: boolean = false;
+    private _callCount: number = 0;
+    private _lastArg: JsTypeCommander.TAnythingAtAll = undefined;
+    private _trueNum: number;
+    private _otherwiseNum: number;
+    get whenTrueInvoked(): boolean { return this._whenTrueInvoked; }
+    get otherwiseInvoked(): boolean { return this._otherwiseInvoked; }
+    get callCount(): number { return this._callCount; }
+    get trueNum(): number { return this._trueNum; }
+    get otherwiseNum(): number { return this._otherwiseNum; }
+    whenTrue(arg: JsTypeCommander.TAnythingAtAll): number {
+        this._callCount++;
+        this._whenTrueInvoked = true;
+        this._lastArg = arg;
+        return this._trueNum;
+    }
+    otherwise(arg?: any): number {
+        this._callCount++;
+        this._otherwiseInvoked = true;
+        this._lastArg = arg;
+        return this._otherwiseNum;
+    }
+    constructor() {
+        this._trueNum = Math.floor(Math.random() * 100);
+        this._otherwiseNum = Math.floor(Math.random() * 100);
+        while (this._trueNum == this._otherwiseNum)
+            this._otherwiseNum = Math.floor(Math.random() * 100);
+    }
+}
 describe("Testing type map functions", function() {
     describe("Testing mapByTypeValue function", function() {
-        let testDataArr: MapByTypeDefinition[] = [
+        let mapByTypeValueTestDefintions: MapByTypeDefinition[] = [
             {
                 type: 'nil',
                 test: [
@@ -593,10 +627,14 @@ describe("Testing type map functions", function() {
                         { omit: "whenArray", expected: MapCallbackId.whenArrayLike },
                         { omit: ["whenArray", "whenArrayLike"], expected: MapCallbackId.whenObject },
                         { omit: ["whenArray", "whenArrayLike", "whenObject"], expected: MapCallbackId.otherwise },
-                        { expected: MapCallbackId.whenArray, simpleCheck: false },
-                        { omit: "whenArray", expected: MapCallbackId.whenArrayLike, simpleCheck: false },
-                        { omit: ["whenArray", "whenArrayLike"], expected: MapCallbackId.whenObject, simpleCheck: false },
-                        { omit: ["whenArray", "whenArrayLike", "whenObject"], expected: MapCallbackId.otherwise, simpleCheck: false }
+                        { expected: MapCallbackId.whenArray, checkElements: false },
+                        { omit: "whenArray", expected: MapCallbackId.whenArrayLike, checkElements: false },
+                        { omit: ["whenArray", "whenArrayLike"], expected: MapCallbackId.whenObject, checkElements: false },
+                        { omit: ["whenArray", "whenArrayLike", "whenObject"], expected: MapCallbackId.otherwise, checkElements: false },
+                        { expected: MapCallbackId.whenArray, checkElements: true },
+                        { omit: "whenArray", expected: MapCallbackId.whenArrayLike, checkElements: true },
+                        { omit: ["whenArray", "whenArrayLike"], expected: MapCallbackId.whenObject, checkElements: true },
+                        { omit: ["whenArray", "whenArrayLike", "whenObject"], expected: MapCallbackId.otherwise, checkElements: true }
                     ]
                 }
             }, {
@@ -605,7 +643,11 @@ describe("Testing type map functions", function() {
                     {
                         arg: [
                             { display: '{ length: 0 }', getValue: () => { return { length: 0 } } },
-                            { display: '{ length: 2, [0]: "test", [1]: "again" }', getValue: () => { return { length: 2, [0]: "test", [1]: "again" } } },
+                            { display: '{ length: 2, [0]: "test", [1]: "again" }',
+                                getValue: () => { let a: { length: number, [key: number]: string } = { length: 2 }; a[0] = "test"; a[1] = "again"; return a; } },
+                            { display: '{ length: 2, [0]: "test", [2]: "again" }',
+                                getValue: () => { let a: { length: number, [key: number]: string } = { length: 2 }; a[0] = "test"; a[2] = "again"; return a; } },
+                            { display: '{ length: 1 }', getValue: () => { return { length: 1 } } }
                         ],
                         opt: [
                             { expected: MapCallbackId.whenArrayLike },
@@ -615,34 +657,43 @@ describe("Testing type map functions", function() {
                     }, {
                         arg: [
                             { display: '{ length: 0 }', getValue: () => { return { length: 0 } } },
-                            { display: '{ length: 2, [0]: "test", [1]: "again" }', getValue: () => { return { length: 2, [0]: "test", [1]: "again" } } },
-                            { display: '{ length: 1 }', getValue: () => { return { length: 1 } } },
-                            { display: '{ length: 2, [0]: "test", [2]: "again" }', getValue: () => { return { length: 2, [0]: "test", [2]: "again" } } }
+                            { display: '{ length: 2, [0]: "test", [1]: "again" }',
+                                getValue: () => { let a: { length: number, [key: number]: string } = { length: 2 }; a[0] = "test"; a[1] = "again"; return a; } }
                         ],
                         opt: [
-                            { expected: MapCallbackId.whenArrayLike, simpleCheck: true },
-                            { omit: "whenArrayLike", simpleCheck: true, expected: MapCallbackId.whenObject },
-                            { omit: ["whenArrayLike", "whenObject"], simpleCheck: true, expected: MapCallbackId.otherwise }
+                            { expected: MapCallbackId.whenArrayLike, checkElements: true },
+                            { omit: "whenArrayLike", checkElements: true, expected: MapCallbackId.whenObject },
+                            { omit: ["whenArrayLike", "whenObject"], checkElements: true, expected: MapCallbackId.otherwise }
                         ]
                     }
                 ]
             }, {
                 type: 'not ArrayLike',
-                test: {
-                    arg: [
-                        { display: '{ }', getValue: () => { return { } } },
-                        { display: '{ length: 1 }', getValue: () => { return { length: 1 } } },
-                        { display: '{ length: 2, [0]: "test", [2]: "again" }', getValue: () => { return { length: 2, [0]: "test", [2]: "again" } } },
-                    ],
-                    opt: [
-                        { expected: MapCallbackId.whenNotArrayLike },
-                        { omit: "whenNotArrayLike", expected: MapCallbackId.whenObject },
-                        { omit: ["whenNotArrayLike", "whenObject"], expected: MapCallbackId.otherwise },
-                        { expected: MapCallbackId.whenNotArrayLike, simpleCheck: false },
-                        { omit: "whenNotArrayLike", expected: MapCallbackId.whenObject, simpleCheck: false },
-                        { omit: ["whenNotArrayLike", "whenObject"], expected: MapCallbackId.otherwise, simpleCheck: false }
-                    ]
-                }
+                test: [
+                    {
+                        arg: { display: '{ }', getValue: () => { return { } } },
+                        opt: [
+                            { expected: MapCallbackId.whenNotArrayLike },
+                            { omit: "whenNotArrayLike", expected: MapCallbackId.whenObject },
+                            { omit: ["whenNotArrayLike", "whenObject"], expected: MapCallbackId.otherwise },
+                            { expected: MapCallbackId.whenNotArrayLike, checkElements: false },
+                            { omit: "whenNotArrayLike", expected: MapCallbackId.whenObject, checkElements: false },
+                            { omit: ["whenNotArrayLike", "whenObject"], expected: MapCallbackId.otherwise, checkElements: false }
+                        ]
+                    }, {
+                        arg: [
+                            { display: '{ }', getValue: () => { return { } } },
+                            { display: '{ length: 1 }', getValue: () => { return { length: 1 } } },
+                            { display: '{ length: 2, [0]: "test", [2]: "again" }',
+                                getValue: () => { let a: { length: number, [key: number]: string } = { length: 2 }; a[0] = "test"; a[2] = "again"; return a; } },
+                        ],
+                        opt: [
+                            { expected: MapCallbackId.whenNotArrayLike, checkElements: true },
+                            { omit: "whenNotArrayLike", expected: MapCallbackId.whenObject, checkElements: true },
+                            { omit: ["whenNotArrayLike", "whenObject"], expected: MapCallbackId.otherwise, checkElements: true }
+                        ]
+                    }
+                ]
             }, {
                 type: 'string',
                 test: {
@@ -663,620 +714,394 @@ describe("Testing type map functions", function() {
                 }
             }
         ];
-        testDataArr.forEach(testData => {
+        let dataIterationIndex: number = 0;
+        mapByTypeValueTestDefintions.forEach(testData => {
             describe('Testing ' + testData.type + " values", function() {
-                let tests: MapTyTypeTest[] = (Array.isArray(testData.test)) ? testData.test : [testData.test];
+                let tests: MapByTypeTest[] = (Array.isArray(testData.test)) ? testData.test : [testData.test];
                 tests.forEach(grp => {
                     let args: ArgumentDescriptor[] = (Array.isArray(grp.arg)) ? grp.arg : [grp.arg];
                     let opts: MapByTypeOptions[] = (Array.isArray(grp.opt)) ? grp.opt : [grp.opt];
                     opts.forEach(o => {
                         let omit: MapCallbackName[] = (typeof(o.omit) == "undefined") ? [] : ((typeof(o.omit) == "string") ? [o.omit] : o.omit);
                         args.forEach(a => {
-                            let tgh: TypeGateCallbackHelper = new TypeGateCallbackHelper(omit);
-                            it('JsTypeCommander.mapByTypeValue(' + args.map(a => a.display).join(", ") + ', ' + JSON.stringify(tgh) + ') should return ' + o.expected +
+                            let tgh: MapByTypeHelper = new MapByTypeHelper(omit);
+                            it('JsTypeCommander.mapByTypeValue(' + a.display + ', ' + JSON.stringify(tgh.toJSON()) + ((typeof(o.checkElements) == "boolean") ? ", " + o.checkElements : "") + ') should return ' + o.expected +
                                     " (calling " + mapCallbackIdToName(o.expected) + ")", function() {
-                                let result: JsTypeCommander.TAnythingAtAll = (typeof(o.simpleCheck) == "boolean") ? JsTypeCommander.mapByTypeValue.call(this, a.getValue(), tgh, o.simpleCheck) :
+                                let result: JsTypeCommander.TAnythingAtAll = (typeof(o.checkElements) == "boolean") ? JsTypeCommander.mapByTypeValue.call(this, a.getValue(), tgh, o.checkElements) :
                                     JsTypeCommander.mapByTypeValue.call(this, a.getValue(), tgh);
-                                expect(result).to.a("number");
-                                expect(result).to.equal(o.expected);
+                                dataIterationIndex++;
+                                expect(result).to.a("number", "at dataIterationIndex " + dataIterationIndex);
+                                expect(result).to.equal(o.expected, mapCallbackIdToName(result) + " called, insteaat dataIterationIndex " + dataIterationIndex);
                             });
                         }, this);
                     }, this);
                 }, this);
             });
         }, this);
-        
     });
-    describe("Testing mapByDefined function", function() {
-        it("mapByDefined(undefined, fn() => 1, fn() => 2) should return 2 (otherwise called)");
-        it("mapByDefined(null, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined(NaN, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined(0, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined(false, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined(\"\", fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined([], fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined([undefined], fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined({ }, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByDefined(Symbol.iterator, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-    });
-    describe("Testing mapByNotNull function", function() {
-        it("mapByNotNull(undefined, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull(null, fn() => 1, fn() => 2) should return 2 (otherwise called)");
-        it("mapByNotNull(NaN, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull(0, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull(false, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull(\"\", fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull([], fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull([undefined], fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull({ }, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNull(Symbol.iterator, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-    });
-    describe("Testing mapByNotNil function", function() {
-        it("mapByNotNil(undefined, fn() => 1, fn() => 2) should return 2 (otherwise called)");
-        it("mapByNotNil(null, fn() => 1, fn() => 2) should return 2 (otherwise called)");
-        it("mapByNotNil(NaN, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil(0, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil(false, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil(\"\", fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil([], fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil([undefined], fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil({ }, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-        it("mapByNotNil(Symbol.iterator, fn() => 1, fn() => 2) should return 1 (whenTrue called)");
-    });
+
+    let functionDefinitions: {
+        name: string,
+        callback: Function,
+        allowUndefined: boolean,
+        allowNull: boolean
+    }[] = [
+        { name: 'mapByDefined', callback: JsTypeCommander.mapByDefined, allowUndefined: false, allowNull: true },
+        { name: 'mapByNotNull', callback: JsTypeCommander.mapByNotNull, allowUndefined: true, allowNull: false },
+        { name: 'mapByNotNil', callback: JsTypeCommander.mapByNotNil, allowUndefined: false, allowNull: false }
+    ];
+    let mapByNilArguments: MapByNilArguments[] = [
+        { display: 'undefined', type: 'undefined', getValue: () => undefined },
+        { display: 'null', type: 'null', getValue: () => null },
+        { display: 'NaN', type: 'notNil', getValue: () => NaN },
+        { display: '0', type: 'notNil', getValue: () => 0 },
+        { display: 'false', type: 'notNil', getValue: () => false },
+        { display: '""', type: 'notNil', getValue: () => "" },
+        { display: '[]', type: 'notNil', getValue: () => [] },
+        { display: '[undefined', type: 'notNil', getValue: () => [undefined] },
+        { display: '{}', type: 'notNil', getValue: () => { return {}; } },
+        { display: 'Symbol.iterator', type: 'notNil', getValue: () => Symbol.iterator }
+    ];
+    functionDefinitions.forEach(fd => {
+        describe("Testing " + fd.name + " function", function() {
+            mapByNilArguments.forEach(a => {
+                let whenTrue: boolean = (a.type == "notNil" || ((a.type == "null") ? fd.allowNull : fd.allowUndefined));
+                let mapByNilHelper: MapByNilHelper = new MapByNilHelper();
+                let expected: number = (whenTrue) ? mapByNilHelper.trueNum : mapByNilHelper.otherwiseNum;
+                it(fd.name + "(" + a.display + ", fn(v) => " + mapByNilHelper.trueNum + ', fn' + ((fd.name == "mapByNotNil") ? '(v)' : '()') + ' => ' + mapByNilHelper.otherwiseNum +
+                        ') should return ' + expected + ' (' + ((whenTrue) ? 'whenTrue' : 'otherwise') + ')', function() {
+                    let result: JsTypeCommander.TAnythingAtAll = fd.callback(a.getValue(), mapByNilHelper.whenTrue, mapByNilHelper.otherwise, mapByNilHelper);
+                    expect(result).to.a('number').and.to.equal(expected);
+                    expect(mapByNilHelper.callCount).to.not.equal(0, 'Callback not invoked');
+                    expect(mapByNilHelper.callCount).to.equal(1, 'Callback invoked more than once');
+                    if (whenTrue)
+                        expect(mapByNilHelper.whenTrueInvoked).to.equal(true, 'Wrong callback invoked');
+                    else
+                        expect(mapByNilHelper.otherwiseInvoked).to.equal(true, 'Wrong callback invoked');
+                });
+            }, this);
+        });
+    }, this);
 });
 
-describe("Testing type guard functions", function() {
-    describe("Testing notDefined function", function() {
-        it("notDefined() should return true");
-        it("notDefined(undefined) should return true");
-        it("notDefined(null) should return false");
-        it("notDefined(NaN) should return false");
-        it("notDefined(0) should return false");
-        it("notDefined(false) should return false");
-        it("notDefined(\"\") should return false");
-        it("notDefined([]) should return false");
-        it("notDefined([undefined]) should return false");
-        it("notDefined({ }) should return false");
-        it("notDefined(Symbol.iterator) should return false");
-    });
-    describe("Testing isNil function", function() {
-        it("isNil() should return true");
-        it("isNil(undefined) should return true");
-        it("isNil(null) should return true");
-        it("isNil(NaN) should return false");
-        it("isNil(0) should return false");
-        it("isNil(false) should return false");
-        it("isNil(\"\") should return false");
-        it("isNil([]) should return false");
-        it("isNil([undefined]) should return false");
-        it("isNil({ }) should return false");
-        it("isNil(Symbol.iterator) should return false");
-    });
-    describe("Testing isNull function", function() {
-        it("isNull() should return false");
-        it("isNull(undefined) should return false");
-        it("isNull(null) should return true");
-        it("isNull(NaN) should return false");
-        it("isNull(0) should return false");
-        it("isNull(false) should return false");
-        it("isNull(\"\") should return false");
-        it("isNull([]) should return false");
-        it("isNull([undefined]) should return false");
-        it("isNull({ }) should return false");
-        it("isNull(Symbol.iterator) should return false");
-    });
-    describe("Testing isString functions", function() {
-        describe("Testing isString", function() {
-            it("isString() should return false");
-            it("isString(undefined) should return false");
-            it("isString(null) should return false");
-            it("isString(NaN) should return false");
-            it("isString(0) should return false");
-            it("isString(false) should return false");
-            it("isString(\"\") should return true");
-            it("isString(\"\\n\") should return true");
-            it("isString(\" test \") should return true");
-            it("isString([]) should return false");
-            it("isString([undefined]) should return false");
-            it("isString({ }) should return false");
-            it("isString(Symbol.iterator) should return false");
-        });
-        describe("Testing isStringIfDef", function() {
-            it("isStringIfDef() should return true");
-            it("isStringIfDef(undefined) should return true");
-            it("isStringIfDef(null) should return false");
-            it("isStringIfDef(NaN) should return false");
-            it("isStringIfDef(0) should return false");
-            it("isStringIfDef(false) should return false");
-            it("isStringIfDef(\"\") should return true");
-            it("isStringIfDef(\"\\n\") should return true");
-            it("isStringIfDef(\" test \") should return true");
-            it("isStringIfDef([]) should return false");
-            it("isStringIfDef([undefined]) should return false");
-            it("isStringIfDef({ }) should return false");
-            it("isStringIfDef(Symbol.iterator) should return false");
-        });
-        describe("Testing isStringOrNull", function() {
-            it("isStringOrNull() should return false");
-            it("isStringOrNull(undefined) should return false");
-            it("isStringOrNull(null) should return true");
-            it("isStringOrNull(NaN) should return false");
-            it("isStringOrNull(0) should return false");
-            it("isStringOrNull(false) should return false");
-            it("isStringOrNull(\"\") should return true");
-            it("isStringOrNull(\"\\n\") should return true");
-            it("isStringOrNull(\" test \") should return true");
-            it("isStringOrNull([]) should return false");
-            it("isStringOrNull([undefined]) should return false");
-            it("isStringOrNull({ }) should return false");
-            it("isStringOrNull(Symbol.iterator) should return false");
-        });
-        describe("Testing isStringOrNil", function() {
-            it("isStringOrNil() should return true");
-            it("isStringOrNil(undefined) should return true");
-            it("isStringOrNil(null) should return true");
-            it("isStringOrNil(NaN) should return false");
-            it("isStringOrNil(0) should return false");
-            it("isStringOrNil(false) should return false");
-            it("isStringOrNil(\"\") should return true");
-            it("isStringOrNil(\"\\n\") should return true");
-            it("isStringOrNil(\" test \") should return true");
-            it("isStringOrNil([]) should return false");
-            it("isStringOrNil([undefined]) should return false");
-            it("isStringOrNil({ }) should return false");
-            it("isStringOrNil(Symbol.iterator) should return false");
-        });
-    });
-    describe("Testing isEmptyString functions", function() {
-        describe("Testing isEmptyString", function() {
-            it("isEmptyString() should return false");
-            it("isEmptyString(undefined) should return false");
-            it("isEmptyString(null) should return false");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return false");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
-        });
-        describe("Testing isEmptyOrWhitespace", function() {
-            it("isEmptyString() should return false");
-            it("isEmptyString(undefined) should return false");
-            it("isEmptyString(null) should return false");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return true");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
-        });
-        describe("Testing isEmptyStringIfDef", function() {
-            it("isEmptyString() should return true");
-            it("isEmptyString(undefined) should return true");
-            it("isEmptyString(null) should return false");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return false");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
-        });
-        describe("Testing isEmptyOrWhitespaceIfDef", function() {
-            it("isEmptyString() should return true");
-            it("isEmptyString(undefined) should return true");
-            it("isEmptyString(null) should return false");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return true");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
-        });
-        describe("Testing isEmptyStringOrNull", function() {
-            it("isEmptyString() should return false");
-            it("isEmptyString(undefined) should return false");
-            it("isEmptyString(null) should return true");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return false");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
-        });
-        describe("Testing isNullOrWhitespace", function() {
-            it("isEmptyString() should return false");
-            it("isEmptyString(undefined) should return false");
-            it("isEmptyString(null) should return true");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return true");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
-        });
-        describe("Testing isEmptyStringOrNil", function() {
-            it("isEmptyString() should return true");
-            it("isEmptyString(undefined) should return true");
-            it("isEmptyString(null) should return true");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return false");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
-        });
-        describe("Testing isNilOrWhitespace", function() {
-            it("isEmptyString() should return true");
-            it("isEmptyString(undefined) should return true");
-            it("isEmptyString(null) should return true");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return true");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
-        });
-    });
-    describe("Testing isBoolean functions", function() {
-        describe("Testing isBoolean", function() {
-            it("isBoolean() should return false");
-            it("isBoolean(undefined) should return false");
-            it("isBoolean(null) should return false");
-            it("isBoolean(NaN) should return false");
-            it("isBoolean(1) should return false");
-            it("isBoolean(0) should return false");
-            it("isBoolean(true) should return true");
-            it("isBoolean(false) should return true");
-            it("isBoolean(\"\") should return false");
-            it("isBoolean(\"\\n\") should return false");
-            it("isBoolean(\"true\") should return false");
-            it("isBoolean(\"false\") should return false");
-            it("isBoolean([]) should return false");
-            it("isBoolean([undefined]) should return false");
-            it("isBoolean({ }) should return false");
-            it("isBoolean(Symbol.iterator) should return false");
-        });
-        describe("Testing isBooleanIfDef", function() {
-            it("isBooleanIfDef() should return true");
-            it("isBooleanIfDef(undefined) should return true");
-            it("isBooleanIfDef(null) should return false");
-            it("isBooleanIfDef(NaN) should return false");
-            it("isBooleanIfDef(1) should return false");
-            it("isBooleanIfDef(0) should return false");
-            it("isBooleanIfDef(true) should return true");
-            it("isBooleanIfDef(false) should return true");
-            it("isBooleanIfDef(\"\") should return false");
-            it("isBooleanIfDef(\"\\n\") should return false");
-            it("isBooleanIfDef(\"true\") should return false");
-            it("isBooleanIfDef(\"false\") should return false");
-            it("isBooleanIfDef([]) should return false");
-            it("isBooleanIfDef([undefined]) should return false");
-            it("isBooleanIfDef({ }) should return false");
-            it("isBooleanIfDef(Symbol.iterator) should return false");
-        });
-        describe("Testing isBooleanOrNull", function() {
-            it("isBooleanOrNull() should return false");
-            it("isBooleanOrNull(undefined) should return false");
-            it("isBooleanOrNull(null) should return true");
-            it("isBooleanOrNull(NaN) should return false");
-            it("isBooleanOrNull(1) should return false");
-            it("isBooleanOrNull(0) should return false");
-            it("isBooleanOrNull(true) should return true");
-            it("isBooleanOrNull(false) should return true");
-            it("isBooleanOrNull(\"\") should return false");
-            it("isBooleanOrNull(\"\\n\") should return false");
-            it("isBooleanOrNull(\"true\") should return false");
-            it("isBooleanOrNull(\"false\") should return false");
-            it("isBooleanOrNull([]) should return false");
-            it("isBooleanOrNull([undefined]) should return false");
-            it("isBooleanOrNull({ }) should return false");
-            it("isBooleanOrNull(Symbol.iterator) should return false");
-        });
-        describe("Testing isBooleanOrNil", function() {
-            it("isBooleanOrNil() should return true");
-            it("isBooleanOrNil(undefined) should return true");
-            it("isBooleanOrNil(null) should return true");
-            it("isBooleanOrNil(NaN) should return false");
-            it("isBooleanOrNil(1) should return false");
-            it("isBooleanOrNil(0) should return false");
-            it("isBooleanOrNil(true) should return true");
-            it("isBooleanOrNil(false) should return true");
-            it("isBooleanOrNil(\"\") should return false");
-            it("isBooleanOrNil(\"\\n\") should return false");
-            it("isBooleanOrNil(\"true\") should return false");
-            it("isBooleanOrNil(\"false\") should return false");
-            it("isBooleanOrNil([]) should return false");
-            it("isBooleanOrNil([undefined]) should return false");
-            it("isBooleanOrNil({ }) should return false");
-            it("isBooleanOrNil(Symbol.iterator) should return false");
-        });
-    });
-    describe("Testing isNumber functions", function() {
-        describe("Testing isNumber", function() {
-            it("isNumber() should return false");
-            it("isNumber(undefined) should return false");
-            it("isNumber(null) should return false");
-            it("isNumber(NaN) should return false");
-            it("isNumber(-1) should return true");
-            it("isNumber(1) should return true");
-            it("isNumber(0) should return true");
-            it("isNumber(0.0001) should return true");
-            it("isNumber(Infinity) should return false");
-            it("isNumber(Number.NEGATIVE_INFINITY) should return false");
-            it("isNumber(Number.POSITIVE_INFINITY) should return false");
-            it("isNumber(true) should return false");
-            it("isNumber(false) should return false");
-            it("isNumber(\"\") should return false");
-            it("isNumber(\"\\n\") should return false");
-            it("isNumber(\"1\") should return false");
-            it("isNumber(\"0\") should return false");
-            it("isNumber([]) should return false");
-            it("isNumber([undefined]) should return false");
-            it("isNumber({ }) should return false");
-            it("isNumber(Symbol.iterator) should return false");
-        });
-        describe("Testing isNumberIfDef", function() {
-            it("isNumber() should return true");
-            it("isNumber(undefined) should return true");
-            it("isNumber(null) should return false");
-            it("isNumber(NaN) should return false");
-            it("isNumber(-1) should return true");
-            it("isNumber(1) should return true");
-            it("isNumber(0) should return true");
-            it("isNumber(0.0001) should return true");
-            it("isNumber(Infinity) should return false");
-            it("isNumber(Number.NEGATIVE_INFINITY) should return false");
-            it("isNumber(Number.POSITIVE_INFINITY) should return false");
-            it("isNumber(true) should return false");
-            it("isNumber(false) should return false");
-            it("isNumber(\"\") should return false");
-            it("isNumber(\"\\n\") should return false");
-            it("isNumber(\"1\") should return false");
-            it("isNumber(\"0\") should return false");
-            it("isNumber([]) should return false");
-            it("isNumber([undefined]) should return false");
-            it("isNumber({ }) should return false");
-        });
-        describe("Testing isNumberOrNull", function() {
-            it("isNumber() should return false");
-            it("isNumber(undefined) should return false");
-            it("isNumber(null) should return true");
-            it("isNumber(NaN) should return false");
-            it("isNumber(-1) should return true");
-            it("isNumber(1) should return true");
-            it("isNumber(0) should return true");
-            it("isNumber(0.0001) should return true");
-            it("isNumber(Infinity) should return false");
-            it("isNumber(Number.NEGATIVE_INFINITY) should return false");
-            it("isNumber(Number.POSITIVE_INFINITY) should return false");
-            it("isNumber(true) should return false");
-            it("isNumber(false) should return false");
-            it("isNumber(\"\") should return false");
-            it("isNumber(\"\\n\") should return false");
-            it("isNumber(\"1\") should return false");
-            it("isNumber(\"0\") should return false");
-            it("isNumber([]) should return false");
-            it("isNumber([undefined]) should return false");
-            it("isNumber({ }) should return false");
-        });
-        describe("Testing isNumberNaNorNull", function() {
-            it("isNumber() should return false");
-            it("isNumber(undefined) should return false");
-            it("isNumber(null) should return true");
-            it("isNumber(NaN) should return true");
-            it("isNumber(-1) should return true");
-            it("isNumber(1) should return true");
-            it("isNumber(0) should return true");
-            it("isNumber(0.0001) should return true");
-            it("isNumber(Infinity) should return false");
-            it("isNumber(Number.NEGATIVE_INFINITY) should return false");
-            it("isNumber(Number.POSITIVE_INFINITY) should return false");
-            it("isNumber(true) should return false");
-            it("isNumber(false) should return false");
-            it("isNumber(\"\") should return false");
-            it("isNumber(\"\\n\") should return false");
-            it("isNumber(\"1\") should return false");
-            it("isNumber(\"0\") should return false");
-            it("isNumber([]) should return false");
-            it("isNumber([undefined]) should return false");
-            it("isNumber({ }) should return false");
-        });
-        describe("Testing isNumberOrNil", function() {
-            it("isNumber() should return true");
-            it("isNumber(undefined) should return true");
-            it("isNumber(null) should return true");
-            it("isNumber(NaN) should return false");
-            it("isNumber(-1) should return true");
-            it("isNumber(1) should return true");
-            it("isNumber(0) should return true");
-            it("isNumber(0.0001) should return true");
-            it("isNumber(Infinity) should return false");
-            it("isNumber(Number.NEGATIVE_INFINITY) should return false");
-            it("isNumber(Number.POSITIVE_INFINITY) should return false");
-            it("isNumber(true) should return false");
-            it("isNumber(false) should return false");
-            it("isNumber(\"\") should return false");
-            it("isNumber(\"\\n\") should return false");
-            it("isNumber(\"1\") should return false");
-            it("isNumber(\"0\") should return false");
-            it("isNumber([]) should return false");
-            it("isNumber([undefined]) should return false");
-            it("isNumber({ }) should return false");
-        });
-        describe("Testing isInfinite", function() {
-            it("isNumber() should return false");
-            it("isNumber(undefined) should return false");
-            it("isNumber(null) should return false");
-            it("isNumber(NaN) should return false");
-            it("isNumber(-1) should return false");
-            it("isNumber(1) should return false");
-            it("isNumber(0) should return false");
-            it("isNumber(0.0001) should return false");
-            it("isNumber(Infinity) should return true");
-            it("isNumber(Number.NEGATIVE_INFINITY) should return true");
-            it("isNumber(Number.POSITIVE_INFINITY) should return true");
-            it("isNumber(true) should return false");
-            it("isNumber(false) should return false");
-            it("isNumber(\"\") should return false");
-            it("isNumber(\"\\n\") should return false");
-            it("isNumber(\"1\") should return false");
-            it("isNumber(\"0\") should return false");
-            it("isNumber([]) should return false");
-            it("isNumber([undefined]) should return false");
-            it("isNumber({ }) should return false");
-        });
-    });
-    describe("Testing isFunction functions", function() {
-        describe("Testing isFunction", function() {
-    
-        });
-        describe("Testing isFunctionIfDef", function() {
-    
-        });
-        describe("Testing isFunctionOrNull", function() {
-    
-        });
-        describe("Testing isFunctionOrNil", function() {
-    
-        });
-    });
-    describe("Testing isObject functions", function() {
-        describe("Testing isObject", function() {
-    
-        });
-        describe("Testing isObjectType", function() {
-    
-        });
-        describe("Testing isNonArrayObject", function() {
-    
-        });
-        describe("Testing isPlainObject", function() {
-    
-        });
-        describe("Testing isObjectIfDef", function() {
-    
-        });
-        describe("Testing isObjectTypeIfDef", function() {
-    
-        });
-        describe("Testing isNonArrayObjectIfDef", function() {
-    
-        });
-        describe("Testing isPlainObjectIfDef", function() {
-    
-        });
-        describe("Testing isObjectOrNull", function() {
-    
-        });
-        describe("Testing isObjectTypeOrNull", function() {
-    
-        });
-        describe("Testing isNonArrayObjectOrNull", function() {
-    
-        });
-        describe("Testing isPlainObjectOrNull", function() {
-    
-        });
-        describe("Testing isObjectTypeOrNil", function() {
-    
-        });
-        describe("Testing isObjectOrNil", function() {
-    
-        });
-        describe("Testing isNonArrayObjectOrNil", function() {
-    
-        });
-        describe("Testing isPlainObjectOrNil", function() {
-    
-        });
-    });
-    describe("Testing isArray functions", function() {
-        describe("Testing isArray", function() {
-    
-        });
-        describe("Testing isEmptyArray", function() {
-    
-        });
-        describe("Testing isArrayLike", function() {
-    
-        });
-        describe("Testing isArrayIfDef", function() {
-    
-        });
-        describe("Testing isEmptyArrayIfDef", function() {
-    
-        });
-        describe("Testing isArrayLikeIfDef", function() {
-    
-        });
-        describe("Testing isArrayOrNull", function() {
-    
-        });
-        describe("Testing isEmptyArrayOrNull", function() {
-    
-        });
-        describe("Testing isArrayLikeOrNull", function() {
-    
-        });
-        describe("Testing isArrayOrNil", function() {
-    
-        });
-        describe("Testing isEmptyArrayOrNil", function() {
-    
-        });
-        describe("Testing isArrayLikeOrNil", function() {
-    
-        });
-    });
-    describe("Testing derivesFrom functions", function() {
-        describe("Testing derivesFrom", function() {
-    
-        });
-        describe("Testing derivesFromIfDef", function() {
-    
-        });
-        describe("Testing derivesFromOrNull", function() {
-    
-        });
-        describe("Testing derivesFromOrNil", function() {
-    
-        });
-    });
-    describe("Testing isErrorLike", function() {
+type typeSpec = "undefined"|"null"|"emptyString"|"whitespace"|"nonWhitespace"|"boolean"|"zero"|"nonZero"|"float"|"NaN"|"Infinity"|"function"|"plainObject"|"almostArrayLike"|"ArrayLike"|"Array"|"emptyArray"|
+    "errorLike"|"Error"|"RangeError"|"ParentClass"|"InheritedClass"|"DeepInheritedClass"
+interface TypeGuardTestArgument {
+    value?: ArgumentDescriptor;
+    type: typeSpec;
+}
+interface TypeGuardMethodGroup {
+    description: string;
+    methods: TypeGuardMethodDefinition[];
+}
+interface TypeGuardMethodDefinition {
+    name: string;
+    callback: Function;
+    allowed: (typeSpec|{
+        isGeneric?: boolean;
+        types: typeSpec[]|typeSpec;
+        arg?: ArgumentDescriptor;
+    })[]|typeSpec;
+}
 
-    });
+class ExampleBaseClass {
+    get (key: string): number { return parseInt(key); }
+}
+class ExampleChildClass extends ExampleBaseClass {
+    length: string = "0";
+}
+class ExampleNestedClass extends ExampleChildClass {
+    count: number = 0;
+}
+
+describe("Testing type guard functions", function() {
+    let typeGuardTestArgumentArr: TypeGuardTestArgument[] = [
+        { type: 'undefined' },
+        { type: 'undefined', value: { display: 'undefined', getValue: () => undefined } },
+        { type: 'null', value: { display: 'null', getValue: () => null } },
+        { type: 'emptyString', value: { display: '""', getValue: () => "" } },
+        { type: 'whitespace', value: { display: '" "', getValue: () => " " } },
+        { type: 'whitespace', value: { display: '"\\n\\r\\t"', getValue: () => "\n\r\t" } },
+        { type: 'nonWhitespace', value: { display: '"."', getValue: () => "" } },
+        { type: 'nonWhitespace', value: { display: '" . "', getValue: () => " . " } },
+        { type: 'nonWhitespace', value: { display: '"\\n\\r . \\t"', getValue: () => "\n\r . \t" } },
+        { type: 'boolean', value: { display: 'true', getValue: () => true } },
+        { type: 'boolean', value: { display: 'false', getValue: () => false } },
+        { type: 'nonZero', value: { display: '1', getValue: () => 1 } },
+        { type: 'nonZero', value: { display: '123', getValue: () => 123 } },
+        { type: 'nonZero', value: { display: '-1', getValue: () => -1 } },
+        { type: 'zero', value: { display: '0', getValue: () => 0 } },
+        { type: 'float', value: { display: '0.0001', getValue: () => 0.0001 } },
+        { type: 'NaN', value: { display: 'NaN', getValue: () => NaN } },
+        { type: 'Infinity', value: { display: 'Infinity', getValue: () => Infinity } },
+        { type: 'function', value: { display: 'function() { return false };', getValue: () => { return function() { return false }; } } },
+        { type: 'plainObject', value: { display: '{ }', getValue: () => { return { }; } } },
+        { type: 'almostArrayLike', value: { display: '{ length: 1 }', getValue: () => { return { length: 1 }; } } },
+        { type: 'almostArrayLike', value: { display: '{ length: 2, [0]: "1", [2]: "2" }', getValue: () => { let aa: { length: number, [key: number]: string } = { length: 2 }; aa[0] = "1"; aa[2] = "2" } } },
+        { type: 'ArrayLike', value: { display: '{ length: 0 }', getValue: () => { return { length: 1 }; } } },
+        { type: 'ArrayLike', value: { display: '{ length: 2, [0]: "1", [1]: "2" }', getValue: () => { let aa: { length: number, [key: number]: string } = { length: 2 }; aa[0] = "1"; aa[1] = "2" } } },
+        { type: 'emptyArray', value: { display: '[]', getValue: () => [] } },
+        { type: 'Array', value: { display: '[undefined]', getValue: () => [undefined] } },
+        { type: 'Error', value: { display: '[undefined]', getValue: () => {
+            try { throw new Error("Thrown for test"); }
+            catch (e) { return e; }
+        } } },
+        { type: 'RangeError', value: { display: '[undefined]', getValue: () => {
+            try { throw new RangeError("Out of range for a test"); }
+            catch (e) { return e; }
+        } } },
+        { type: 'ParentClass', value: { display: 'new ExampleBaseClass()', getValue: () => new ExampleBaseClass() } },
+        { type: 'InheritedClass', value: { display: 'new ExampleChildClass()', getValue: () => new ExampleChildClass() } },
+        { type: 'DeepInheritedClass', value: { display: 'new ExampleNestedClass()', getValue: () => new ExampleNestedClass() } }
+    ];
+    let typeGuardMethodGroupArr: TypeGuardMethodGroup[] = [
+        {
+            description: 'Testing nil type guard functions',
+            methods: [
+                { name: 'notDefined', callback: JsTypeCommander.notDefined, allowed: "undefined" },
+                { name: 'isNull', callback: JsTypeCommander.isNull, allowed: "null" },
+                { name: 'isNil', callback: JsTypeCommander.isNil, allowed: ["undefined", "null"] }
+            ]
+        }, {
+            description: 'Testing string type guard functions',
+            methods: [
+                { name: 'isString', callback: JsTypeCommander.isString, allowed: ["emptyString", "whitespace", "nonWhitespace"] },
+                { name: 'isStringIfDef', callback: JsTypeCommander.isStringIfDef, allowed: ["undefined", "emptyString", "whitespace", "nonWhitespace"] },
+                { name: 'isStringOrNull', callback: JsTypeCommander.isStringOrNull, allowed: ["null", "emptyString", "whitespace", "nonWhitespace"] },
+                { name: 'isStringOrNil', callback: JsTypeCommander.isStringOrNil, allowed: ["undefined", "null", "emptyString", "whitespace", "nonWhitespace"] }
+            ]
+        }, {
+            description: 'Testing empty string type guard functions',
+            methods: [
+                { name: 'isEmptyString', callback: JsTypeCommander.isEmptyString, allowed: ["emptyString", "whitespace"] },
+                { name: 'isEmptyStringIfDef', callback: JsTypeCommander.isEmptyStringIfDef, allowed: ["undefined", "emptyString", "whitespace"] },
+                { name: 'isEmptyStringOrNull', callback: JsTypeCommander.isEmptyStringOrNull, allowed: ["null", "emptyString", "whitespace"] },
+                { name: 'isEmptyStringOrNil', callback: JsTypeCommander.isEmptyStringOrNil, allowed: ["undefined", "null", "emptyString", "whitespace"] },
+                { name: 'isEmptyOrWhitespace', callback: JsTypeCommander.isEmptyOrWhitespace, allowed: ["emptyString", "whitespace"] },
+                { name: 'isEmptyOrWhitespaceIfDef', callback: JsTypeCommander.isEmptyOrWhitespaceIfDef, allowed: ["undefined", "emptyString", "whitespace"] },
+                { name: 'isNullOrWhitespace', callback: JsTypeCommander.isNullOrWhitespace, allowed: ["null", "emptyString", "whitespace"] },
+                { name: 'isNilOrWhitespace', callback: JsTypeCommander.isNilOrWhitespace, allowed: ["undefined", "null", "emptyString", "whitespace"] }
+            ]
+        }, {
+            description: 'Testing boolean type guard functions',
+            methods: [
+                { name: 'isBoolean', callback: JsTypeCommander.isBoolean, allowed: "boolean" },
+                { name: 'isBooleanIfDef', callback: JsTypeCommander.isBooleanIfDef, allowed: ["undefined", "boolean"] },
+                { name: 'isBooleanOrNull', callback: JsTypeCommander.isBooleanOrNull, allowed: ["null", "boolean"] },
+                { name: 'isBooleanOrNil', callback: JsTypeCommander.isBooleanOrNil, allowed: ["undefined", "null", "boolean"] }
+            ]
+        }, {
+            description: 'Testing number type guard functions',
+            methods: [
+                { name: 'isNumber', callback: JsTypeCommander.isNumber, allowed: ["zero", "nonZero", "float"] },
+                { name: 'isNumberIfDef', callback: JsTypeCommander.isNumberIfDef, allowed: ["undefined", "zero", "nonZero", "float"] },
+                { name: 'isNumberOrNull', callback: JsTypeCommander.isNumberOrNull, allowed: ["null", "zero", "nonZero", "float"] },
+                { name: 'isNumberNaNorNull', callback: JsTypeCommander.isNumberOrNull, allowed: ["null", "zero", "nonZero", "float", 'NaN'] },
+                { name: 'isNumberOrNil', callback: JsTypeCommander.isNumberOrNil, allowed: ["undefined", "null", "zero", "nonZero", "float"] },
+                { name: 'isInfinite', callback: JsTypeCommander.isInfinite, allowed: "Infinity" }
+            ]
+        }, {
+            description: 'Testing function type guard functions',
+            methods: [
+                { name: 'isFunction', callback: JsTypeCommander.isBoolean, allowed: "function" },
+                { name: 'isFunctionIfDef', callback: JsTypeCommander.isBooleanIfDef, allowed: ["undefined", "function"] },
+                { name: 'isFunctionOrNull', callback: JsTypeCommander.isBooleanOrNull, allowed: ["null", "function"] },
+                { name: 'isFunctionOrNil', callback: JsTypeCommander.isBooleanOrNil, allowed: ["undefined", "null", "function"] }
+            ]
+        }, {
+            description: 'Testing object type guard functions',
+            methods: [
+                { name: 'isObject', callback: JsTypeCommander.isObject, allowed: ["plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                { name: 'isPlainObject', callback: JsTypeCommander.isPlainObject, allowed: ["plainObject", "errorLike", "almostArrayLike", "ArrayLike"] },
+                { name: 'isObjectType', callback: JsTypeCommander.isObjectType, allowed: ["plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                { name: 'isNonArrayObject', callback: JsTypeCommander.isNonArrayObject, allowed: [
+                    {
+                        types: ["plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
+                    }, {
+                        arg: { display: 'true', getValue: () => true },
+                        types: ["plainObject", "errorLike", "almostArrayLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
+                    }, {
+                        arg: { display: 'false', getValue: () => false },
+                        types: ["plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
+                    }
+                ] },
+                { name: 'isArray', callback: JsTypeCommander.isArray, allowed: ["Array", "emptyArray"] },
+                { name: 'isEmptyArray', callback: JsTypeCommander.isEmptyArray, allowed: "emptyArray" },
+                { name: 'isArrayLike', callback: JsTypeCommander.isArrayLike, allowed: [
+                    {
+                        types: ["almostArrayLike", "ArrayLike", "Array", "emptyArray"]
+                    }, {
+                        arg: { display: 'true', getValue: () => true },
+                        types: ["ArrayLike", "Array", "emptyArray"]
+                    }, {
+                        arg: { display: 'false', getValue: () => false },
+                        types: ["almostArrayLike", "ArrayLike", "Array", "emptyArray"]
+                    }
+                ] },
+                { name: 'isObjectIfDef', callback: JsTypeCommander.isObjectIfDef, allowed: ["undefined", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                { name: 'isPlainObjectIfDef', callback: JsTypeCommander.isPlainObjectIfDef, allowed: ["undefined", "plainObject", "errorLike", "almostArrayLike", "ArrayLike"] },
+                { name: 'isObjectTypeIfDef', callback: JsTypeCommander.isObjectTypeIfDef, allowed: ["undefined", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                { name: 'isNonArrayObjectIfDef', callback: JsTypeCommander.isNonArrayObjectIfDef, allowed: [
+                    {
+                        types: ["undefined", "plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
+                    }, {
+                        arg: { display: 'true', getValue: () => true },
+                        types: ["undefined", "plainObject", "errorLike", "almostArrayLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
+                    }, {
+                        arg: { display: 'false', getValue: () => false },
+                        types: ["undefined", "plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
+                    }
+                ] },
+                { name: 'isArrayIfDef', callback: JsTypeCommander.isArrayIfDef, allowed: ["undefined", "Array", "emptyArray"] },
+                { name: 'isEmptyArrayIfDef', callback: JsTypeCommander.isEmptyArrayIfDef, allowed: ["undefined", "emptyArray"] },
+                { name: 'isArrayLikeIfDef', callback: JsTypeCommander.isArrayLikeIfDef, allowed: [
+                    {
+                        types: ["undefined", "almostArrayLike", "ArrayLike", "Array", "emptyArray"]
+                    }, {
+                        arg: { display: 'true', getValue: () => true },
+                        types: ["undefined", "ArrayLike", "Array", "emptyArray"]
+                    }, {
+                        arg: { display: 'false', getValue: () => false },
+                        types: ["undefined", "almostArrayLike", "ArrayLike", "Array", "emptyArray"]
+                    }
+                ] },
+                { name: 'isObjectOrNull', callback: JsTypeCommander.isObjectOrNull, allowed: ["null", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                { name: 'isPlainObjectOrNull', callback: JsTypeCommander.isPlainObjectOrNull, allowed: ["null", "plainObject", "errorLike", "almostArrayLike", "ArrayLike"] },
+                { name: 'isObjectTypeOrNull', callback: JsTypeCommander.isObjectTypeOrNull, allowed: ["null", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                { name: 'isNonArrayObjectOrNull', callback: JsTypeCommander.isNonArrayObjectOrNull, allowed: [
+                    {
+                        types: ["null", "plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
+                    }, {
+                        arg: { display: 'true', getValue: () => true },
+                        types: ["null", "plainObject", "errorLike", "almostArrayLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
+                    }, {
+                        arg: { display: 'false', getValue: () => false },
+                        types: ["null", "plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
+                    }
+                ] },
+                { name: 'isArrayOrNull', callback: JsTypeCommander.isArrayOrNull, allowed: ["null", "Array", "emptyArray"] },
+                { name: 'isEmptyArrayOrNull', callback: JsTypeCommander.isEmptyArrayOrNull, allowed: ["null", "emptyArray"] },
+                { name: 'isArrayLikeOrNull', callback: JsTypeCommander.isArrayLikeOrNull, allowed: [
+                    {
+                        types: ["null", "almostArrayLike", "ArrayLike", "Array", "emptyArray"]
+                    }, {
+                        arg: { display: 'true', getValue: () => true },
+                        types: ["null", "ArrayLike", "Array", "emptyArray"]
+                    }, {
+                        arg: { display: 'false', getValue: () => false },
+                        types: ["null", "almostArrayLike", "ArrayLike", "Array", "emptyArray"]
+                    }
+                ] },
+                { name: 'isObjectOrNil', callback: JsTypeCommander.isObjectOrNil, allowed: ["undefined", "null", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                { name: 'isPlainObjectOrNil', callback: JsTypeCommander.isPlainObjectOrNil, allowed: ["undefined", "null", "plainObject", "errorLike", "almostArrayLike", "ArrayLike"] },
+                { name: 'isObjectTypeOrNil', callback: JsTypeCommander.isObjectTypeOrNil, allowed: ["undefined", "null", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                { name: 'isNonArrayObjectOrNil', callback: JsTypeCommander.isNonArrayObjectOrNil, allowed: [
+                    {
+                        types: ["undefined", "null", "plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
+                    }, {
+                        arg: { display: 'true', getValue: () => true },
+                        types: ["undefined", "null", "plainObject", "errorLike", "almostArrayLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
+                    }, {
+                        arg: { display: 'false', getValue: () => false },
+                        types: ["undefined", "null", "plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
+                    }
+                 ] },
+                 { name: 'isArrayOrNil', callback: JsTypeCommander.isArrayOrNil, allowed: ["undefined", "null", "Array", "emptyArray"] },
+                 { name: 'isEmptyArrayOrNil', callback: JsTypeCommander.isEmptyArrayOrNil, allowed: ["undefined", "null", "emptyArray"] },
+                 { name: 'isArrayLikeOrNil', callback: JsTypeCommander.isArrayLikeOrNil, allowed: [
+                     {
+                         types: ["undefined", "null", "almostArrayLike", "ArrayLike", "Array", "emptyArray"]
+                     }, {
+                         arg: { display: 'true', getValue: () => true },
+                         types: ["undefined", "null", "ArrayLike", "Array", "emptyArray"]
+                     }, {
+                         arg: { display: 'false', getValue: () => false },
+                         types: ["undefined", "null", "almostArrayLike", "ArrayLike", "Array", "emptyArray"]
+                     }
+                  ] }
+            ]
+        }, {
+            description: 'Testing derrivation type guard functions',
+            methods: [
+                {
+                    name: 'derivesFrom', callback: JsTypeCommander.derivesFrom, allowed: [
+                        { isGeneric: true, arg: { display: 'Error', getValue: () => Error }, types: ["Error", "RangeError"] },
+                        { isGeneric: true, arg: { display: 'ExampleBaseClass', getValue: () => ExampleBaseClass }, types: ["ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                        { isGeneric: true, arg: { display: 'ExampleChildClass', getValue: () => ExampleChildClass }, types: ["InheritedClass", "DeepInheritedClass"] },
+                        { isGeneric: true, arg: { display: 'ExampleNestedClass', getValue: () => ExampleNestedClass }, types: ["DeepInheritedClass"] },
+                        { isGeneric: true, arg: { display: 'Object', getValue: () => Object }, types: ["emptyString", "whitespace", "nonWhitespace", "boolean", "zero", "nonZero", "float", "NaN", "Infinity", "function", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] }
+                    ]
+                }, {
+                    name: 'derivesFromIfDef', callback: JsTypeCommander.derivesFromIfDef, allowed: [
+                        { isGeneric: true, arg: { display: 'Error', getValue: () => Error }, types: ["undefined", "Error", "RangeError"] },
+                        { isGeneric: true, arg: { display: 'ExampleBaseClass', getValue: () => ExampleBaseClass }, types: ["undefined", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                        { isGeneric: true, arg: { display: 'ExampleChildClass', getValue: () => ExampleChildClass }, types: ["undefined", "InheritedClass", "DeepInheritedClass"] },
+                        { isGeneric: true, arg: { display: 'ExampleNestedClass', getValue: () => ExampleNestedClass }, types: ["undefined", "DeepInheritedClass"] },
+                        { isGeneric: true, arg: { display: 'Object', getValue: () => Object }, types: ["undefined", "emptyString", "whitespace", "nonWhitespace", "boolean", "zero", "nonZero", "float", "NaN", "Infinity", "function", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] }
+                    ]
+                }, {
+                    name: 'derivesFromOrNull', callback: JsTypeCommander.derivesFromOrNull, allowed: [
+                        { isGeneric: true, arg: { display: 'Error', getValue: () => Error }, types: ["null", "Error", "RangeError"] },
+                        { isGeneric: true, arg: { display: 'ExampleBaseClass', getValue: () => ExampleBaseClass }, types: ["null", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                        { isGeneric: true, arg: { display: 'ExampleChildClass', getValue: () => ExampleChildClass }, types: ["null", "InheritedClass", "DeepInheritedClass"] },
+                        { isGeneric: true, arg: { display: 'ExampleNestedClass', getValue: () => ExampleNestedClass }, types: ["null", "DeepInheritedClass"] },
+                        { isGeneric: true, arg: { display: 'Object', getValue: () => Object }, types: ["null", "emptyString", "whitespace", "nonWhitespace", "boolean", "zero", "nonZero", "float", "NaN", "Infinity", "function", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] }
+                    ]
+                }, {
+                    name: 'derivesFromOrNil', callback: JsTypeCommander.derivesFromOrNil, allowed: [
+                        { isGeneric: true, arg: { display: 'Error', getValue: () => Error }, types: ["undefined", "null", "Error", "RangeError"] },
+                        { isGeneric: true, arg: { display: 'ExampleBaseClass', getValue: () => ExampleBaseClass }, types: ["undefined", "null", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                        { isGeneric: true, arg: { display: 'ExampleChildClass', getValue: () => ExampleChildClass }, types: ["undefined", "null", "InheritedClass", "DeepInheritedClass"] },
+                        { isGeneric: true, arg: { display: 'ExampleNestedClass', getValue: () => ExampleNestedClass }, types: ["undefined", "null", "DeepInheritedClass"] },
+                        { isGeneric: true, arg: { display: 'Object', getValue: () => Object }, types: ["undefined", "null", "emptyString", "whitespace", "nonWhitespace", "boolean", "zero", "nonZero", "float", "NaN", "Infinity", "function", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] }
+                    ]
+                }, {
+                    name: 'isErrorLike', callback: JsTypeCommander.isErrorLike, allowed: ["Error", "RangeError", "errorLike"]
+                }
+            ]
+        }
+    ];
+    typeGuardMethodGroupArr.forEach(grp => {
+        describe(grp.description, function() {
+            grp.methods.forEach(tgm => {
+                describe('Testing ' + tgm.name + ' function', function() {
+                    let allowSetArr: { isGeneric?: boolean; types: typeSpec[]; arg?: ArgumentDescriptor; }[];
+                    if (typeof(tgm.allowed) == "string")
+                        allowSetArr = [{ types: [tgm.allowed] }];
+                    else
+                        allowSetArr = <{ isGeneric?: boolean; types: typeSpec[]; arg?: ArgumentDescriptor; }[]>tgm.allowed.map(a => (typeof(a) == "string") ? { types: [a] } : ((Array.isArray(a)) ? { types: a } : a));
+                    allowSetArr.forEach(allowSet => {
+                        typeGuardTestArgumentArr.forEach(tga => {
+                            let args = [];
+                            let description: string = tgm.name;
+                            if (typeof(tga.value) == "undefined") {
+                                if (typeof(allowSet.arg) != "undefined")
+                                    return;
+                                description += "(";
+                            } else {
+                                args.push(tga.value.getValue());
+                                if (typeof(allowSet.arg) != "undefined") {
+                                    if (allowSet.isGeneric)
+                                        description += "<" + allowSet.arg.display + ">(" + tga.value.display;
+                                    else
+                                        description += "(" + tga.value.display + ", " + allowSet.arg.display;
+                                    args.push(allowSet.arg.getValue());
+                                }
+                                else
+                                    description += "(" + tga.value.display;
+                            }
+                            let expected: boolean = allowSet.types.filter(t => t == tga.type).length > 0;
+                            it(description + ") should return " + expected, function() {
+                                let result: JsTypeCommander.TAnythingAtAll = tgm.callback.apply(this, args);
+                                expect(result).to.a('boolean');
+                                expect(result).to.equal(expected);
+                                });
+                        }, this);
+                    }, this);
+                });
+            }, this);
+        });
+    }, this);
 });
 
 describe("Testing type conversion functions", function() {

@@ -53,8 +53,6 @@ export declare module JsTypeCommander {
      * Represents an object which contains both named properties and indexed elements.
      */
     interface ICompoundArrayObject extends IStringKeyedObject, ArrayLike<TAnythingAtAll> {
-        readonly length: number;
-        readonly [n: number]: TAnythingAtAll;
         readonly [key: string]: TAnythingAtAll;
     }
     /**
@@ -110,73 +108,89 @@ export declare module JsTypeCommander {
         (value: TSource): TResult;
     }
     /**
-     * Represents supported return values from the {@link typeof} funciton.
+     * Represents supported return values from the <code>typeof</code> funciton.
      */
     type ObjectTypeString = "boolean" | "function" | "number" | "object" | "string" | "symbol" | "undefined";
     type ReservedClassPropertyName = "Arguments" | "Array" | "Boolean" | "Date" | "Error" | "Function" | "JSON" | "Math" | "Number" | "Object" | "RegExp" | "String";
     /**
-     * Defines a set of {@link MapFromValueCallback} callbacks one of which will be called, based upon a source object's type.
+     * Defines a set of values and/or {@link MapFromValueCallback} which will determine the mapped value according to a source value's type.
      */
-    interface TypeGateCallbacks<TSource, TResult> {
+    interface TypeGuardResultSpecs<TSource, TResult> {
         /**
-         * This gets called when the source value's type is "boolean".
+         * If defined, will be the "this" variable when callbacks defined in this interface are invoked.
+         */
+        thisObj?: any;
+        /**
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"boolean"</code>.
+         * @description If the source value is <code>"boolean"</code> and this property is not defined, then {@link TypeGuardResultSpecs#otherwise} will determine the mapped value.
          */
         whenBoolean?: MapFromValueCallback<boolean, TResult> | TResult;
         /**
-         * This gets called when the source value's type is "function".
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"function"</code>.
+         * @description If the source value is a <code>"function"</code> and this property is not defined, then {@link TypeGuardResultSpecs#otherwise} will determine the mapped value.
          */
         whenFunction?: MapFromValueCallback<Function, TResult> | TResult;
         /**
-         * This gets called when the source value is either negative or positive infinity.
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"number"</code> and the source value is an infinite value.
+         * @description If the source value is an infinite value and this property is not defined, then {@link TypeGuardResultSpecs#whenNumber} will be next in line to determine the mapped value.
          */
         whenInfinity?: MapFromValueCallback<number, TResult> | TResult;
         /**
-         * This gets called when the source value's type is "number" and it is NaN.
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"number"</code> and the source value is <code>NaN</code>.
+         * @description If the source value is <code>NaN/code> and this property is not defined, then {@link TypeGuardResultSpecs#whenNumber} will be next in line to determine the mapped value.
          */
         whenNaN?: MapFromValueCallback<number, TResult> | TResult;
         /**
-         * This gets called when the source value's type is "number".
-         * @description If the source value matches the conditions for {@link TypeGateCallbacks.whenNaN} or {@link TypeGateCallbacks.whenInfinity},
-         * then that other callback will be called, instead.
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"number"</code>.
+         * @description If the source value is a <code>"number"</code> and this property is not defined, then {@link TypeGuardResultSpecs#otherwise} will determine the mapped value.
+         * If the source value is an infinite value, and {@link TypeGuardResultSpecs#whenInfinity} is defined, then that property will determine the mapped value, instead.
+         * Likewise, if the source value is <code>NaN</code>, and {@link TypeGuardResultSpecs#whenNaN} is defined, then that property will determine the mapped value, instead.
          */
         whenNumber?: MapFromValueCallback<number, TResult> | TResult;
         /**
-         * This gets called when the source object derives from {@link Array}.
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"object"</code> and the source value derrives from <code>Array</code>.
+         * @description If the source value derrives from <code>Array</code> and this property is not defined, then {@link TypeGuardResultSpecs#whenArrayLike} will be next in line to determine the mapped value.
          */
         whenArray?: MapFromValueCallback<TAnythingAtAll[], TResult> | TResult;
         /**
-         * This gets called when the source value's type is "object" and the object appears to implement {@link ArrayLike}.
-         * @description If the source value matches the conditions for {@link TypeGateCallbacks.whenArray}, then that other callback will be called, instead.
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"object"</code> and the source appears to implement the <code>ArrayLike</code> interface.
+         * @description If this property is not defined then the following rules apply:
+         * If the source value derrives from <code>Array</code> and {@link TypeGuardResultSpecs#whenArrayLike} is defined, then {@link TypeGuardResultSpecs#whenArrayLike} will determine the mapped value.
+         * Otherwise, {@link TypeGuardResultSpecs#whenObject} will be next in line to determine the mapped value.
          */
         whenArrayLike?: MapFromValueCallback<ArrayLike<TAnythingAtAll>, TResult> | TResult;
         /**
-         * This gets called when the source value's type is "object" and the object does not derive from {@link Array}, and does not appear to implement {@link ArrayLike}.
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"object"</code> and the source value does not derrive from <code>Array</code> and does not appear to implement the <code>ArrayLike</code> interface.
+         * @description If the source value is an object and this property is not defined, then {@link TypeGuardResultSpecs#whenObject} will be next in line to determine the mapped value.
          */
         whenNotArrayLike?: MapFromValueCallback<IStringKeyedObject, TResult> | TResult;
         /**
-         * This gets called when the source value's type is "string".
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"string"</code>.
+         * @description If the source value is a <code>"string"</code> and this property is not defined, then {@link TypeGuardResultSpecs#otherwise} will determine the mapped value.
          */
         whenString?: MapFromValueCallback<string, TResult> | TResult;
         /**
-         * This gets called when the source value's type is "symbol".
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"symbol"</code>.
+         * @description If the source value is a <code>"symbol"</code> and this property is not defined, then {@link TypeGuardResultSpecs#otherwise} will determine the mapped value.
          */
         whenSymbol?: MapFromValueCallback<symbol, TResult> | TResult;
         /**
-         * This gets called when the source value's type is "object" and it is equal to {@link null}.
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"object"</code> and it is equal to <code>null</code>.
+         * @description If the source value is null and this property is not defined, then {@link TypeGuardResultSpecs#otherwise} will determine the mapped value.
          */
         whenNull?: MapFromValueCallback<null, TResult> | TResult;
         /**
-         * This gets called when the source value's type is "undefined".
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"undefined"</code>.
+         * @description If the source value is <code>"undefined"</code> and this property is not defined, then {@link TypeGuardResultSpecs#otherwise} will determine the mapped value.
          */
         whenUndefined?: MapFromValueCallback<undefined, TResult> | TResult;
         /**
-         * This gets called when the source value's type is "object".
-         * @description If the source value matches the conditions for {@link TypeGateCallbacks.whenArray}, {@link TypeGateCallbacks.whenArrayLike},
-         * {@link TypeGateCallbacks.whenNotArrayLike} or {@link TypeGateCallbacks.whenNull}, then that other callback will be called, instead.
+         * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"object"</code> and it is not equal to <code>null</code>.
+         * @description If the source value is array-like and either {@link TypeGuardResultSpecs#whenArray} or {@link TypeGuardResultSpecs#whenArrayLike} are defined, then those methods will determine the mapped value, instead.
          */
         whenObject?: MapFromValueCallback<IStringKeyedObject, TResult> | TResult;
         /**
-         * This gets called when the conditions for no other callback is met.
+         * This determines the mapped value when the associated type-based property was not defined.
          */
         otherwise: MapFromValueCallback<TSource, TResult> | TResult;
     }
@@ -207,43 +221,41 @@ export declare module JsTypeCommander {
      * Maps a source value to a new value based upon the source value's type.
      * @param target Source value to be mapped.
      * @param callbacks Conditional callbacks which get invoked based upon the source object's type.
-     * @param simpleCheck When checking whether an object is {@link ArrayLike} and this is set true, then the existance of each element index is not checked,
-     * which makes this function faster, but can result in false positives for non-array objects which have a numeric "length" property.
+     * @param checkElements When checking whether an object is <code>ArrayLike</code> and this is set true, then the existance of each element index is checked, which makes it slower, but more accurate.
      * @returns {*} Value returned from the matching callback.
      */
-    function mapByTypeValue<TSource, TResult>(target: TSource | null | undefined, callbacks: TypeGateCallbacks<TSource | null | undefined, TResult>, simpleCheck?: boolean): TResult;
-    /**
-     * Callback which is called to get mapped value according to a type string.
-     * @param {"boolean"|"function"|"number"|"object"|"string"|"symbol"|"undefined"} type Object type.
-     * @returns {*} Mapped value.
-     */
-    interface MapFromTypeCallback<TResult> {
-        (type?: ObjectTypeString): TResult;
-    }
+    function mapByTypeValue<TSource, TResult>(target: TSource | null | undefined, callbacks: TypeGuardResultSpecs<TSource | null | undefined, TResult>, checkElements?: boolean): TResult;
     /**
      * Gets a mapped value according to whether the object is defined and optionally by target object type.
      * @param target Value to test.
      * @param whenTrue When target type is not "undefined": Callback to invoke to get the return value according to target object type, or value to return.
      * @param otherwise When target is "undefined": Function to call to get return value, or value to return.
+     * @param thisObj Object which becomes the <code>this</code> variable when callbacks are invoked.
      * @returns {*} Mapped value according to whether the object is defined and optionally by target object type.
      */
-    function mapByDefined<TResult>(target: TAnythingAtAll, whenTrue: MapFromTypeCallback<TResult> | TResult, otherwise: MapFromTypeCallback<TResult> | TResult): TResult;
+    function mapByDefined<TSource, TResult>(target: TSource | undefined, whenTrue: MapFromValueCallback<TSource, TResult> | TResult, otherwise: {
+        (): TResult;
+    } | TResult, thisObj?: any): TResult;
     /**
      * Gets a mapped value according to whether the object is not defined or not null and optionally by defined target object type.
      * @param target Value to test.
      * @param whenTrue When target value is not null: Function to call to get return value according to target object type, or value to return.
      * @param otherwise When target value is null: Function to call to get return value, or value to return, when target is null.
+     * @param thisObj Object which becomes the <code>this</code> variable when callbacks are invoked.
      * @returns {*} Mapped value according to whether the object is not defined or not null and optionally by defined target object type.
      */
-    function mapByNotNull<TResult>(target: TAnythingAtAll, whenTrue: MapFromTypeCallback<TResult> | TResult, otherwise: MapFromTypeCallback<TResult> | TResult): TResult;
+    function mapByNotNull<TSource, TResult>(target: TSource, whenTrue: MapFromValueCallback<TSource, TResult> | TResult, otherwise: {
+        (): TResult;
+    } | TResult, thisObj?: any): TResult;
     /**
      * Gets a mapped value according to whether the object is defined and not null and optionally by defined target object type.
      * @param target Value to test.
      * @param whenTrue When target type is not "undefined" and target value is not null: Function to call to get return value according to target object type, or value to return.
      * @param otherwise When target type is "undefined" or target value is null: Function to call to get return value, or value to return.
+     * @param thisObj Object which becomes the <code>this</code> variable when callbacks are invoked.
      * @returns {*} Mapped value according to whether the object is defined and not null and optionally by defined target object type.
      */
-    function mapByNotNil<TResult>(obj: TAnythingAtAll, whenTrue: MapFromTypeCallback<TResult> | TResult, otherwise: MapFromTypeCallback<TResult> | TResult): TResult;
+    function mapByNotNil<TSource, TResult>(target: TSource | undefined, whenTrue: MapFromValueCallback<TSource, TResult> | TResult, otherwise: MapFromValueCallback<TAnythingAtAll, TResult> | TResult, thisObj?: any): TResult;
     /**
      * Determesin whether an object is undefined.
      * @param {*} obj Object to test.
@@ -677,12 +689,11 @@ export declare module JsTypeCommander {
     /**
      * Determines whether an object has properties which indiciates it behaves like an array.
      * @param {*} obj Object to test.
-     * @param {boolan} simpleCheck If true, then the existance of each element index is not checked, which makes this function faster,
-     * but can result in false positives for non-array objects which have a numeric "length" property.
+     * @param {boolan} checkElements If true, then the existance of each element index is checked, which makes this function slower, but more accurate.
      * @returns {boolean} True if the object has properties which indiciates it behaves like an array; otherwise false.
      * @see {@link https://github.com/Microsoft/TypeScript/blob/530d7e9358ee95d2101a619e73356867b617cd95/lib/lib.es5.d.ts}
      */
-    function isArrayLike(obj?: TDefined, simpleCheck?: boolean): obj is ArrayLike<TAnythingAtAll>;
+    function isArrayLike(obj?: TDefined, checkElements?: boolean): obj is ArrayLike<TAnythingAtAll>;
     /**
      * Determines whether an object has properties which indiciates it behaves like an array.
      * @param {*} obj Object to test.
@@ -710,15 +721,14 @@ export declare module JsTypeCommander {
     /**
      * Ensures that a value is a true array.
      * @param {*} obj Value to convert.
-     * @param {boolan} simpleCheck If true and obj is Array-like (but not a true array), then the existance of each element index is not checked, which makes this function faster,
-     * but can result in false positives for non-array objects which have a numeric "length" property.
+     * @param {boolan} checkElements If true and obj is Array-like (but not a true array), then the existance of each element index is checked, which makes this function more accurate, but slower.
      * @returns {*[]} Value as an array.
      * @description If the value is undefined, an empty array is returned.
      * If the value is an actual array, then the object itself is returned;
      * If the object is Array-like, an array is returned with values taken from each of its indexed values.
      * Otherwise, an array with a single element containing the value is returned.
      */
-    function toArray(obj?: TDefined, simpleCheck?: boolean): TAnythingAtAll[];
+    function toArray(obj?: TDefined, checkElements?: boolean): TAnythingAtAll[];
     /**
      * Searches the value's inherited prototype chain for a matching constructor function.
      * @param value Value to test.

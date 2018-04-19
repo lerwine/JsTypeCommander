@@ -4,16 +4,44 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "Build JsTypeCommander",
             "identifier": "buildTarget",
             "type": "typescript",
             "tsconfig": "tsconfig.json",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "problemMatcher": [
-                "$tsc"
-            ]
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": [ "$tsc" ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Build Test Script",
+            "identifier": "buildTest",
+            "type": "typescript",
+            "tsconfig": "tsconfig-test.json",
+            "group": "build",
+            "problemMatcher": [ "$tsc" ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "new"
+            }
+        },
+        {
+            "label": "Start web server",
+            "type": "gulp",
+            "task": "startWebServer",
+            "problemMatcher": []
+        },
+        {
+            "label": "Stop web server",
+            "type": "gulp",
+            "task": "stopWebServer",
+            "problemMatcher": []
         }
     ]
 }
