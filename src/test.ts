@@ -5,7 +5,7 @@ import { describe } from 'mocha';
 import { JsTypeCommander } from '../dist/JsTypeCommander';
 import { log, error, debug } from 'util';
 
-function expectForNull(expected: any|null, result: any|null, message?: string): result is null {
+function expectNullStatus(expected: any|null, result: any|null, message?: string): result is null {
     if (expected == null) {
         expect(result).to.a('null', message);
         return true;
@@ -223,671 +223,7 @@ function typeMappingConditionToString(value: TypeMappingCondition): string {
     return "otherwise";
 }
 enum TypeGateNilHandling { notNil, allowUndefined, allowNull, allowNil }
-enum JsTypeExt {
-    Undefined = 0x0001,
-    Boolean = 0x0002,
-    FiniteNumber = 0x0004,
-    String = 0x0008,
-    Symbol = 0x0010,
-    Function = 0x0020,
-    NonArrayObject = 0x0040,
-    Null = 0x0080,
-    Array = 0x0100,
-    NaN = 0x0200,
-    Infinity = 0x0400
-}
-enum JsTypeExtMask {
-    None = 0,
-    Nil = JsTypeExt.Undefined | JsTypeExt.Null,
-    NonNil = JsTypeExt.Boolean | JsTypeExt.FiniteNumber | JsTypeExt.Infinity | JsTypeExt.NaN | JsTypeExt.String | JsTypeExt.Symbol | JsTypeExt.Function | JsTypeExt.NonArrayObject |
-        JsTypeExt.Array,
-    NonNilObject = JsTypeExt.NonArrayObject | JsTypeExt.Array,
-    JSONSerializable = JsTypeExt.Null | JsTypeExt.Boolean | JsTypeExt.FiniteNumber | JsTypeExt.String | JsTypeExt.NonArrayObject | JsTypeExt.Array,
-    All = JsTypeExt.Undefined | JsTypeExt.Null | JsTypeExt.Boolean | JsTypeExt.FiniteNumber | JsTypeExt.Infinity | JsTypeExt.NaN | JsTypeExt.String | JsTypeExt.Symbol |
-        JsTypeExt.Function | JsTypeExt.NonArrayObject | JsTypeExt.Array
-}
-enum JsType {
-    Undefined = JsTypeExt.Undefined,
-    Boolean = JsTypeExt.Boolean,
-    Number = JsTypeExt.FiniteNumber,
-    String = JsTypeExt.String,
-    Symbol = JsTypeExt.Symbol,
-    Function = JsTypeExt.Function,
-    Object = JsTypeExt.NonArrayObject
-}
-enum JsTypeMask {
-    None = 0,
-    JSONSerializable = JsType.Boolean | JsType.Number | JsType.String | JsType.Object,
-    All = JsType.Undefined | JsType.Boolean | JsType.Number | JsType.String | JsType.Symbol | JsType.Function | JsType.Object
-}
 
-const getClassNameSymbol: symbol = Symbol();
-
-abstract class BaseJsTypeInfo {
-    private _jsType: JsType;
-    private _type: JsTypeExt;
-    get jsType(): JsType { return this._jsType; }
-    get type(): JsTypeExt { return this._type; }
-    get isNonNilObject(): boolean { return this._jsType == JsType.Object && this._type != JsTypeExt.Null; }
-    get isNil(): boolean { return this._type == JsTypeExt.Null || this._type == JsTypeExt.Undefined; }
-    constructor(type?: JsTypeExt) {
-        if (typeof(type) == "undefined")
-            type = JsTypeExt.Undefined;
-        switch (type) {
-            case JsTypeExt.Undefined:
-                this._jsType = JsType.Undefined;
-                break;
-            case JsTypeExt.Boolean:
-                this._jsType = JsType.Boolean;
-                break;
-            case JsTypeExt.FiniteNumber:
-            case JsTypeExt.NaN:
-            case JsTypeExt.Infinity:
-                this._jsType = JsType.Number;
-                break;
-            case JsTypeExt.String:
-                this._jsType = JsType.String;
-                break;
-            case JsTypeExt.Symbol:
-                this._jsType = JsType.Symbol;
-                break;
-            case JsTypeExt.Function:
-                this._jsType = JsType.Function;
-                break;
-            case JsTypeExt.NonArrayObject:
-            case JsTypeExt.Null:
-            case JsTypeExt.Array:
-                this._jsType = JsType.Object;
-                break;
-            default:
-                throw new RangeError("Invalid extended type value");
-        }
-        this._type = type;
-    }
-    protected _equals(type: BaseJsTypeInfo|JsTypeExt): boolean {
-        if (typeof(type) == "object")
-            return type._type == this._type;
-        return type == this._type;
-    }
-    abstract equals(obj: BaseJsTypeInfo)
-    objectMatchesJsType(obj?: any): boolean {
-        switch (typeof(obj)) {
-            case "undefined":
-                return this._jsType == JsType.Undefined;
-            case "boolean":
-                return this._jsType == JsType.Boolean;
-            case "number":
-                return this._jsType == JsType.Number;
-            case "string":
-                return this._jsType == JsType.String;
-            case "symbol":
-                return this._jsType == JsType.Symbol;
-            case "function":
-                return this._jsType == JsType.Function;
-            default:
-                return this._jsType == JsType.Object;
-        }
-    }
-    objectMatchesExtType(obj?: any): boolean {
-        switch (typeof(obj)) {
-            case "undefined":
-                return this._type == JsTypeExt.Undefined;
-            case "boolean":
-                return this._type == JsTypeExt.Boolean;
-            case "number":
-                return this._type == ((isNaN(obj)) ? JsTypeExt.NaN : ((obj === Infinity || obj === !Infinity) ? JsTypeExt.Infinity : JsTypeExt.FiniteNumber));
-            case "string":
-                return this._type == JsTypeExt.String;
-            case "symbol":
-                return this._type == JsTypeExt.Symbol;
-            case "function":
-                return this._type == JsTypeExt.Function;
-            default:
-                return this._type == ((obj === null) ? JsTypeExt.Null : ((Array.isArray(obj)) ? JsTypeExt.Array : JsTypeExt.NonArrayObject));
-        }
-    }
-    objectExtendsExtType(obj?: any): boolean {
-        switch (typeof(obj)) {
-            case "undefined":
-                return this._type == JsTypeExt.Undefined;
-            case "boolean":
-                return this._type == JsTypeExt.Boolean;
-            case "number":
-                if (this._type == JsTypeExt.FiniteNumber)
-                    return true;
-                return (this._type == JsTypeExt.NaN) ? isNaN(obj) : (obj === Infinity || obj === !Infinity);
-            case "string":
-                return this._type == JsTypeExt.String;
-            case "symbol":
-                return this._type == JsTypeExt.Symbol;
-            case "function":
-                return this._type == JsTypeExt.Function;
-            default:
-                return (obj == null) ? this._type == JsTypeExt.Null : (this._type == JsTypeExt.NonArrayObject || Array.isArray(obj));
-        }
-    }
-    jsTypeIsAnyOf(flags: number|number[], ...otherFlags: (number|number[])[]) {
-        let i: number;
-        if (typeof(flags) == "number") {
-            if ((flags | this._jsType) != 0)
-                return true;
-        } else {
-            for (i = 0; i < flags.length; i++) {
-                if ((flags[i] | this._jsType) != 0)
-                    return true;
-            }
-        }
-        if (typeof(otherFlags) != "undefined" && otherFlags.length > 0) {
-            for (var n: number = 0; n < otherFlags.length; n++) {
-                let f: number|number[] = otherFlags[n];
-                if (typeof(f) == "number") {
-                    if ((f | this._jsType) != 0)
-                        return true;
-                } else {
-                    for (i = 0; i < f.length; i++) {
-                        if ((f[i] | this._jsType) != 0)
-                            return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-    jsTypeExtIsAnyOf(flags: number|number[], ...otherFlags: (number|number[])[]) {
-        let i: number;
-        if (typeof(flags) == "number") {
-            if ((flags | this._type) != 0)
-                return true;
-        } else {
-            for (i = 0; i < flags.length; i++) {
-                if ((flags[i] | this._type) != 0)
-                    return true;
-            }
-        }
-        if (typeof(otherFlags) != "undefined" && otherFlags.length > 0) {
-            for (var n: number = 0; n < otherFlags.length; n++) {
-                let f: number|number[] = otherFlags[n];
-                if (typeof(f) == "number") {
-                    if ((f | this._type) != 0)
-                        return true;
-                } else {
-                    for (i = 0; i < f.length; i++) {
-                        if ((f[i] | this._type) != 0)
-                            return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-    static jsTypeToString(value: JsType): string|undefined {
-        switch (value) {
-            case JsType.Boolean:
-                return "boolean";
-            case JsType.Number:
-                return "number";
-            case JsType.String:
-                return "string";
-            case JsType.Function:
-                return "function";
-            case JsType.Object:
-                return "object";
-            case JsType.Symbol:
-                return "symbol";
-            case JsType.Undefined:
-                return "undefined";
-        }
-    }
-    static toJsType(value?: any): JsType|undefined {
-        if (typeof(value) == "string") {
-            switch (value) {
-                case "boolean":
-                    return JsType.Boolean;
-                case "number":
-                    return JsType.Number;
-                case "string":
-                    return JsType.String;
-                case "function":
-                    return JsType.Function;
-                case "object":
-                    return JsType.Object;
-                case "symbol":
-                    return JsType.Symbol;
-                case "undefined":
-                    return JsType.Undefined;
-            }
-        } else if (typeof(value) == "number") {
-            switch (value) {
-                case JsType.Boolean:
-                case JsType.Number:
-                case JsType.String:
-                case JsType.Function:
-                case JsType.Object:
-                case JsType.Symbol:
-                case JsType.Undefined:
-                    return value;
-            }
-        } else if (typeof(value) == "object" && value !== null) {
-            let obj: { [key: string]: JsTypeCommander.TAnythingAtAll } = <{ [key: string]: JsTypeCommander.TAnythingAtAll }>value;
-            if (typeof(obj.jsType) == "number" || typeof(obj.jsType) == "string")
-                return this.toJsType(obj.jsType);
-        }
-    }
-    toString(): string {
-        switch (this._type) {
-            case JsTypeExt.Boolean:
-                return "boolean";
-            case JsTypeExt.FiniteNumber:
-                return "number";
-            case JsTypeExt.String:
-                return "string";
-            case JsTypeExt.Symbol:
-                return "symbol";
-            case JsTypeExt.Function:
-                return "function";
-            case JsTypeExt.Null:
-                return "null";
-            case JsTypeExt.Array:
-                return "Array";
-            case JsTypeExt.NaN:
-                return "NaN";
-            case JsTypeExt.Infinity:
-                return "Infinity";
-            default:
-                return "undefined";
-        }
-    }
-    static toJsTypeExt(value?: any): JsTypeExt|undefined {
-        if (typeof(value) == "string") {
-            switch (value) {
-                case "boolean":
-                    return JsTypeExt.Boolean;
-                case "number":
-                    return JsTypeExt.FiniteNumber;
-                case "NaN":
-                    return JsTypeExt.NaN;
-                case "Infinity":
-                    return JsTypeExt.Infinity;
-                case "string":
-                    return JsTypeExt.String;
-                case "function":
-                    return JsTypeExt.Function;
-                case "Array":
-                    return JsTypeExt.Array;
-                case "null":
-                    return JsTypeExt.Null;
-                case "object":
-                    return JsTypeExt.NonArrayObject;
-                case "symbol":
-                    return JsTypeExt.Symbol;
-                case "undefined":
-                    return JsTypeExt.Undefined;
-            }
-        } else if (typeof(value) == "number") {
-            switch (value) {
-                case JsTypeExt.Boolean:
-                case JsTypeExt.FiniteNumber:
-                case JsTypeExt.NaN:
-                case JsTypeExt.Infinity:
-                case JsTypeExt.String:
-                case JsTypeExt.Function:
-                case JsTypeExt.NonArrayObject:
-                case JsTypeExt.Symbol:
-                case JsTypeExt.Array:
-                case JsTypeExt.Null:
-                case JsTypeExt.Undefined:
-                    return value;
-            }
-        } else if (typeof(value) == "object" && value !== null) {
-            let obj: { [key: string]: JsTypeCommander.TAnythingAtAll } = <{ [key: string]: JsTypeCommander.TAnythingAtAll }>value;
-            if (typeof(obj.typeExt) == "number" || typeof(obj.typeExt) == "string")
-                return this.toJsTypeExt(obj.typeExt);
-        }
-    }
-    toJSON(): { [key: string]: string } { return { jsType: BaseJsTypeInfo.jsTypeToString(this._jsType), typeExt: this.toString() }; }
-}
-abstract class BaseJsTypeFlags {
-    private _jsFlags: number = 0;
-    private _extFlags: number = 0;
-    get jsFlags(): number { return this._jsFlags; }
-    get extFlags(): number { return this._extFlags; }
-    constructor(values: number|(number|BaseJsTypeInfo)[]) {
-        if (typeof(values) != "object" || values == null || values.length == 0)
-            return;
-
-        values.forEach((i: number|BaseJsTypeInfo) => {
-            let obj: BaseJsTypeInfo;
-            if (typeof(i) == "number") {
-                if (i == 0)
-                    return;
-                obj = new JsTypeInfo(i);
-            } else
-                obj = i;
-            this._jsFlags |= obj.jsType;
-            this._extFlags |= obj.type;
-        });
-    }
-    hasJsType(type: JsType|JsType[], ...otherTypes: (JsType|JsType[])[]): boolean {
-        if (this._jsFlags == JsTypeMask.None)
-            return false;
-        if (this._jsFlags == JsTypeMask.All)
-            return true;
-        let i: number;
-        if (typeof(type) == "number") {
-            if ((type & this._jsFlags) != JsTypeMask.None)
-                return true;
-        } else {
-            for (i = 0; i < type.length; i++) {
-                if ((type[i] & this._jsFlags) != JsTypeMask.None)
-                    return true;
-            }
-        }
-        if (typeof(otherTypes) == "object" && otherTypes !== null && otherTypes.length > 0) {
-            for (let n: number = 0; n < otherTypes.length; n++) {
-                let t: JsType|JsType[] = otherTypes[n];
-                if (typeof(t) == "number"){
-                    if ((t & this._jsFlags) != JsTypeMask.None)
-                        return true;
-                } else {
-                    for (i = 0; i < t.length; i++) {
-                        if ((t[i] & this._jsFlags) != JsTypeMask.None)
-                            return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-    atLeastJsType(type: JsType|JsType[], ...otherTypes: (JsType|JsType[])[]): boolean {
-        if (this._jsFlags == JsTypeMask.None)
-            return false;
-        if (this._jsFlags == JsTypeMask.All)
-            return true;
-        let i: number;
-        if (typeof(type) == "number") {
-            if ((type & this._jsFlags) != type)
-                return false;
-        } else {
-            for (i = 0; i < type.length; i++) {
-                if ((type[i] & this._jsFlags) != type[i])
-                    return false;
-            }
-        }
-        if (typeof(otherTypes) == "object" && otherTypes !== null && otherTypes.length > 0) {
-            for (let n: number = 0; n < otherTypes.length; n++) {
-                let t: JsType|JsType[] = otherTypes[n];
-                if (typeof(t) == "number") {
-                    if ((t & this._jsFlags) != t)
-                        return true;
-                } else {
-                    for (i = 0; i < t.length; i++) {
-                        if ((t[i] & this._jsFlags) != t[i])
-                            return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-    atMostJsType(type: JsType|JsType[], ...otherTypes: (JsType|JsType[])[]): boolean {
-        if (this._jsFlags == JsTypeMask.None)
-            return true;
-        if (this._jsFlags == JsTypeMask.All)
-            return true;
-        let flags: number;
-        if (typeof(type) == "number")
-            flags = type;
-        else
-            flags = type.reduce((p: number, c: number) => p | c, JsTypeMask.None);
-        if (typeof(otherTypes) == "object" && otherTypes !== null && otherTypes.length > 0)
-            flags = otherTypes.reduce((v: number, i: JsType|JsType[]) => {
-                if (typeof(i) == "number")
-                    return v | i;
-                return i.reduce((p: number, c: number) => p | c, v);
-            }, flags);
-        return (flags & this._jsFlags) == JsTypeMask.None;
-    }
-    hasJsTypeExt(type: JsTypeExt|JsTypeExt[], ...otherTypes: (JsTypeExt|JsTypeExt[])[]): boolean {
-        if (this._extFlags == JsTypeExtMask.None)
-            return false;
-        if (this._extFlags == JsTypeExtMask.All)
-            return true;
-        let i: number;
-        if (typeof(type) == "number") {
-            if ((type & this._extFlags) != JsTypeExtMask.None)
-                return true;
-        } else {
-            for (i = 0; i < type.length; i++) {
-                if ((type[i] & this._extFlags) != JsTypeExtMask.None)
-                    return true;
-            }
-        }
-        if (typeof(otherTypes) == "object" && otherTypes !== null && otherTypes.length > 0) {
-            for (let n: number = 0; n < otherTypes.length; n++) {
-                let t: JsTypeExt|JsTypeExt[] = otherTypes[n];
-                if (typeof(t) == "number"){
-                    if ((t & this._extFlags) != JsTypeExtMask.None)
-                        return true;
-                } else {
-                    for (i = 0; i < t.length; i++) {
-                        if ((t[i] & this._extFlags) != JsTypeExtMask.None)
-                            return true;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-    atLeastJsTypeExt(type: JsTypeExt|JsTypeExt[], ...otherTypes: (JsTypeExt|JsTypeExt[])[]): boolean {
-        if (this._jsFlags == JsTypeMask.None)
-            return false;
-        if (this._jsFlags == JsTypeMask.All)
-            return true;
-        let i: number;
-        if (typeof(type) == "number") {
-            if ((type & this._jsFlags) != type)
-                return false;
-        } else {
-            for (i = 0; i < type.length; i++) {
-                if ((type[i] & this._jsFlags) != type[i])
-                    return false;
-            }
-        }
-        if (typeof(otherTypes) == "object" && otherTypes !== null && otherTypes.length > 0) {
-            for (let n: number = 0; n < otherTypes.length; n++) {
-                let t: JsTypeExt|JsTypeExt[] = otherTypes[n];
-                if (typeof(t) == "number") {
-                    if ((t & this._jsFlags) != t)
-                        return true;
-                } else {
-                    for (i = 0; i < t.length; i++) {
-                        if ((t[i] & this._jsFlags) != t[i])
-                            return false;
-                    }
-                }
-            }
-        }
-        return true;
-    }
-    atMostJsTypeExt(type: JsTypeExt|JsTypeExt[], ...otherTypes: (JsTypeExt|JsTypeExt[])[]): boolean {
-        if (this._jsFlags == JsTypeExtMask.None)
-            return true;
-        if (this._jsFlags == JsTypeExtMask.All)
-            return true;
-        let flags: number;
-        if (typeof(type) == "number")
-            flags = type;
-        else
-            flags = type.reduce((p: number, c: number) => p | c, JsTypeExtMask.None);
-        if (typeof(otherTypes) == "object" && otherTypes !== null && otherTypes.length > 0)
-            flags = otherTypes.reduce((v: number, i: JsTypeExt|JsTypeExt[]) => {
-                if (typeof(i) == "number")
-                    return v | i;
-                return i.reduce((p: number, c: number) => p | c, v);
-            }, flags);
-        return (flags & this._jsFlags) == JsTypeExtMask.None;
-    }
-}
-class JsTypeFlags extends BaseJsTypeFlags {
-    static isJsTypeFlags(obj: object): obj is JsTypeFlags { return obj[getClassNameSymbol] == "JsTypeFlags"; }
-    [getClassNameSymbol]() { return "JsTypeFlags"; }
-    constructor(values: number|(number|BaseJsTypeInfo)[]) { super(values); }
-}
-class JsTypeInfo extends BaseJsTypeInfo {
-    static isJsTypeInfo(obj: BaseJsTypeInfo): obj is JsTypeInfo { return obj[getClassNameSymbol] == "JsTypeInfo"; }
-    [getClassNameSymbol]() { return "JsTypeInfo"; }
-    constructor(type?: JsTypeExt) { super(type); }
-    equals(type: BaseJsTypeInfo|JsTypeExt): boolean { return this._equals(type); }
-}
-enum JsVariant {
-    None = 0x0001,
-    Empty = 0x0002,
-    Whitespace = 0x0004,
-    Zero = 0x0008,
-    Float = 0x0010,
-    AlmostArrayLike = 0x0020,
-    ArrayLike = 0x0040,
-    Error = 0x0080,
-    InheritsError = 0x0100,
-    ErrorLike = 0x0200,
-    BaseObject = 0x0400,
-    InheritedObject = 0x0800,
-    MultiInheritanceObject = 0x1000
-}
-enum JsVariantFlags {
-    Unspecified = 0x0000,
-    EmptyOrNone = JsVariant.None | JsVariant.Empty,
-    WhitespaceEmptyOrNone = JsVariant.None | JsVariant.Empty | JsVariant.Whitespace,
-    AnyErrorLike = JsVariant.Error | JsVariant.InheritsError | JsVariant.ErrorLike,
-    InheritsBaseObject = JsVariant.BaseObject | JsVariant.InheritedObject | JsVariant.MultiInheritanceObject,
-    AnyInherited = JsVariant.InheritsError | JsVariant.InheritedObject | JsVariant.MultiInheritanceObject,
-    InheritsInheritedObject = JsVariant.InheritedObject | JsVariant.MultiInheritanceObject,
-    AnyArrayLike = JsVariant.None | JsVariant.Empty | JsVariant.ArrayLike,
-    NonZeroFiniteNumber = JsVariant.None | JsVariant.Float,
-    ArrayLikeOrAlmost = JsVariant.None | JsVariant.Empty | JsVariant.ArrayLike | JsVariant.AlmostArrayLike,
-    All = JsVariant.None | JsVariant.Empty | JsVariant.Whitespace | JsVariant.Zero | JsVariant.Float | JsVariant.AlmostArrayLike | JsVariant.ArrayLike | JsVariant.Error |
-        JsVariant.InheritsError | JsVariant.ErrorLike | JsVariant.BaseObject | JsVariant.InheritedObject | JsVariant.MultiInheritanceObject
-}
-class JsTypeVariant extends BaseJsTypeInfo {
-    static IsJsTypeVariant(obj: BaseJsTypeInfo): obj is JsTypeVariant { return obj[getClassNameSymbol] == "JsTypeVariant"; }
-    [getClassNameSymbol]() { return "JsTypeVariant"; }
-    private _variant: JsVariant;
-    get variant(): JsVariant { return this._variant; }
-    constructor(type?: JsTypeExt|JsTypeInfo, variant?: JsVariant) {
-        super((typeof(type) == "number") ? type : type.type);
-        if (typeof(variant) == "undefined") {
-            this._variant = JsVariant.None;
-            return;
-        }
-        switch (this.type) {
-            case JsTypeExt.Undefined:
-            case JsTypeExt.Boolean:
-            case JsTypeExt.Symbol:
-            case JsTypeExt.Function:
-            case JsTypeExt.Null:
-            case JsTypeExt.NaN:
-            case JsTypeExt.Infinity:
-                if (variant !== JsVariant.None)
-                    throw new RangeError("Invalid variant value for undefined extended type");
-                break;
-            case JsTypeExt.FiniteNumber:
-                if (variant != JsVariant.None && variant != JsVariant.Zero && variant != JsVariant.Float)
-                    throw new RangeError("Invalid variant value for number extended type");
-                break;
-            case JsTypeExt.String:
-                if (variant != JsVariant.None && variant != JsVariant.Empty && variant != JsVariant.Whitespace)
-                    throw new RangeError("Invalid variant value for string extended type");
-                break;
-            case JsTypeExt.Array:
-                if (variant != JsVariant.None && variant != JsVariant.Empty)
-                    throw new RangeError("Invalid variant value for array extended type");
-                break;
-            default:
-                if (variant != JsVariant.None && variant != JsVariant.AlmostArrayLike && variant != JsVariant.ArrayLike && variant != JsVariant.Error &&
-                        variant != JsVariant.InheritsError && variant != JsVariant.BaseObject && variant != JsVariant.InheritedObject && variant != JsVariant.MultiInheritanceObject)
-                    throw new RangeError("Invalid variant value for object extended type");
-                break;
-        }
-        this._variant = variant;
-    }
-
-    equals(type: JsTypeVariant|BaseJsTypeInfo|JsVariant): boolean {
-        if (typeof(type) == "object")
-            return (JsTypeVariant.IsJsTypeVariant(type)) ? type._variant == this._variant : type.equals(this);
-        return type == this._variant;
-    }
-
-    static jsVariantToString(value: JsVariant) {
-        switch (value) {
-            case JsVariant.Empty:
-                return "empty";
-            case JsVariant.Whitespace:
-                return "whitespace";
-            case JsVariant.Zero:
-                return "zero";
-            case JsVariant.Float:
-                return "float";
-            case JsVariant.AlmostArrayLike:
-                return "~ArrayLike";
-            case JsVariant.ArrayLike:
-                return "ArrayLike";
-            case JsVariant.Error:
-                return "Error";
-            case JsVariant.InheritsError:
-                return "extends Error";
-            case JsVariant.BaseObject:
-                return "custom class";
-            case JsVariant.InheritedObject:
-                return "inherited custom";
-            case JsVariant.MultiInheritanceObject:
-                return "multi-inherited custom";
-            default:
-                return "none";
-        }
-    }
-
-    toString(): string {
-        if (this._variant == JsVariant.None)
-            return super.toString();
-        return super.toString() + " [" + JsTypeVariant.jsVariantToString(this._variant) + "]";
-    }
-
-    toJSON(): { [key: string]: string } {
-        let result: { [key: string]: string } = super.toJSON();
-        result.variant = JsTypeVariant.jsVariantToString(this._variant);
-        return result;
-    }
-}
-class JsTypeVariantFlags extends BaseJsTypeFlags {
-    private _variantFlags: number = 0;
-    get variantFlags(): number { return this._variantFlags; }
-    static isJsTypeVariantFlags(obj: object): obj is JsTypeVariantFlags { return obj[getClassNameSymbol] == "JsTypeVariantFlags"; }
-    [getClassNameSymbol]() { return "JsTypeVariantFlags"; }
-    readonly name: string = "JsTypeVariantFlags";
-    constructor(types: number|JsTypeFlags|(number|BaseJsTypeInfo)[], variant?: JsVariant|JsVariant[], ...otherVariants: (JsVariant|JsVariant[])[]) {
-        super((typeof(types) == "number") ? [types] : (Array.isArray(types)) ? types : [types.extFlags]);
-        if (typeof(variant) == "number")
-            this._variantFlags = variant;
-        else if (typeof(variant) == "object" && variant !== null)
-            this._variantFlags = variant.reduce((p: number, a: JsVariant) => p | a, JsVariantFlags.Unspecified);
-        if (typeof(variant) == "object" && variant !== null && otherVariants.length > 0)
-            this._variantFlags = otherVariants.reduce((n: number, v: JsVariant|JsVariant[]) => (typeof(v) == "number") ? v | n : v.reduce((p: number, a: JsVariant) => p | a, n),
-                this._variantFlags);
-    }
-    hasJsTypeExtAndVariant(type: JsType|JsTypeInfo|(JsType|JsTypeInfo)[], variant: JsTypeVariant|JsTypeVariant[], ...otherVariants: (JsTypeVariant|JsTypeVariant[])[]): boolean {
-        throw new Error("Not Implemented");
-    }
-    atLeastJsTypeExtAndVariant(type: JsType|JsTypeInfo|(JsType|JsTypeInfo)[], variant: JsTypeVariant|JsTypeVariant[], ...otherVariants: (JsTypeVariant|JsTypeVariant[])[]): boolean {
-        throw new Error("Not Implemented");
-    }
-    atMostJsTypeExtAndVariant(type: JsType|JsTypeInfo|(JsType|JsTypeInfo)[], variant: JsTypeVariant|JsTypeVariant[], ...otherVariants: (JsTypeVariant|JsTypeVariant[])[]): boolean {
-        throw new Error("Not Implemented");
-    }
-}
-//type typeSpec = "undefined"|"null"|"emptyString"|"whitespace"|"nonWhitespace"|"boolean"|"zero"|"nonZero"|"float"|"NaN"|"Infinity"|"function"|"plainObject"|"almostArrayLike"|
-//    "ArrayLike"|"Array"|"emptyArray"|"errorLike"|"Error"|"RangeError"|"ParentClass"|"InheritedClass"|"DeepInheritedClass";
 type ExpectedRegexTestResult = { captures: (string|null)[], groupZero?: string }|(string|null)[]|boolean|null;
 type RegexPatternTest = { input: string, expected: ExpectedRegexTestResult };
 interface ModuleRegexPattern {
@@ -1024,7 +360,7 @@ describe("Testing regular expressions", function() {
                         this.skip();
                     else {
                         let result: RegExpExecArray|null = regex.exec(input);
-                        if (expectForNull(expectedGroups, result, 'Unexpected match result') || expectedGroups === null)
+                        if (expectNullStatus(expectedGroups, result, 'Unexpected match result') || expectedGroups === null)
                             return;
                         expect(result.length).to.equal(expectedGroups.length, 'Length mismatch');
                         for (let i: number = 0; i < expectedGroups.length; i++) {
@@ -1041,6 +377,10 @@ describe("Testing regular expressions", function() {
         });
     }, this);
 });
+
+interface Descriptor { display: string; }
+
+interface ArgumentDescriptor extends Descriptor { getValue: { (): JsTypeCommander.AnyNilable; } }
 
 enum MapCallbackId {
     whenBoolean = 0x0001,
@@ -1094,7 +434,6 @@ function mapCallbackIdToName(id: MapCallbackId): MapCallbackName {
     return 'otherwise';
 }
 
-interface ArgumentDescriptor { display: string, getValue: { (): JsTypeCommander.TAnythingAtAll; } }
 interface MapByTypeOptions { omit?: MapCallbackName[]|MapCallbackName; checkElements?: boolean; expected: MapCallbackId }
 interface MapByTypeTest {
     arg: ArgumentDescriptor[]|ArgumentDescriptor;
@@ -1113,12 +452,13 @@ interface MapByNilFunction {
     allowUndefined: boolean,
     allowNull: boolean
 }
-class MapByTypeHelper implements JsTypeCommander.TypeGuardResultSpecs<JsTypeCommander.TAnythingAtAll, MapCallbackId> {
+
+class MapByTypeHelper implements JsTypeCommander.TypeGuardResultSpecs<JsTypeCommander.AnyNilable, MapCallbackId> {
     private _isOmmitted: { [key: string]: boolean } = { };
     private _invokeFlags: number = 0;
     private _callCount: number = 0;
-    private _lastArg: JsTypeCommander.TAnythingAtAll = undefined;
-    private _onInvoked(key: MapCallbackId, value: JsTypeCommander.TAnythingAtAll): MapCallbackId {
+    private _lastArg: JsTypeCommander.AnyNilable = undefined;
+    private _onInvoked(key: MapCallbackId, value: JsTypeCommander.AnyNilable): MapCallbackId {
         this._invokeFlags |= key;
         this._callCount++;
         this._lastArg = value;
@@ -1129,8 +469,8 @@ class MapByTypeHelper implements JsTypeCommander.TypeGuardResultSpecs<JsTypeComm
     private _whenInfinity(value: number): MapCallbackId { return this._onInvoked(MapCallbackId.whenInfinity, value); }
     private _whenNaN(value: number): MapCallbackId { return this._onInvoked(MapCallbackId.whenNaN, value); }
     private _whenNumber(value: number): MapCallbackId { return this._onInvoked(MapCallbackId.whenNumber, value); }
-    private _whenArray(value: JsTypeCommander.TAnythingAtAll[]): MapCallbackId { return this._onInvoked(MapCallbackId.whenArray, value); }
-    private _whenArrayLike(value: ArrayLike<JsTypeCommander.TAnythingAtAll>): MapCallbackId { return this._onInvoked(MapCallbackId.whenArrayLike, value); }
+    private _whenArray(value: JsTypeCommander.AnyNilable[]): MapCallbackId { return this._onInvoked(MapCallbackId.whenArray, value); }
+    private _whenArrayLike(value: ArrayLike<JsTypeCommander.AnyNilable>): MapCallbackId { return this._onInvoked(MapCallbackId.whenArrayLike, value); }
     private _whenNotArrayLike(value: JsTypeCommander.IStringKeyedObject): MapCallbackId { return this._onInvoked(MapCallbackId.whenNotArrayLike, value); }
     private _whenString(value: string): MapCallbackId { return this._onInvoked(MapCallbackId.whenString, value); }
     private _whenSymbol(value: symbol): MapCallbackId { return this._onInvoked(MapCallbackId.whenSymbol, value); }
@@ -1172,22 +512,22 @@ class MapByTypeHelper implements JsTypeCommander.TypeGuardResultSpecs<JsTypeComm
     }
     get invokeFlags(): number { return this._invokeFlags; }
     get callCount(): number { return this._callCount; }
-    get lastArg(): JsTypeCommander.TAnythingAtAll { return this._lastArg; }
+    get lastArg(): JsTypeCommander.AnyNilable { return this._lastArg; }
     get thisObj(): MapByTypeHelper { return this; }
     get whenBoolean(): JsTypeCommander.MapFromValueCallback<boolean, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<boolean>("whenBoolean", this._whenBoolean); }
     get whenFunction(): JsTypeCommander.MapFromValueCallback<Function, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<Function>("whenFunction", this._whenFunction); }
     get whenInfinity(): JsTypeCommander.MapFromValueCallback<number, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<number>("whenInfinity", this._whenInfinity); }
     get whenNaN(): JsTypeCommander.MapFromValueCallback<number, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<number>("whenNaN", this._whenNaN); }
     get whenNumber(): JsTypeCommander.MapFromValueCallback<number, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<number>("whenNumber", this._whenNumber); }
-    get whenArray(): JsTypeCommander.MapFromValueCallback<JsTypeCommander.TAnythingAtAll[], MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<JsTypeCommander.TAnythingAtAll[]>("whenArray", this._whenArray); }
-    get whenArrayLike(): JsTypeCommander.MapFromValueCallback<ArrayLike<JsTypeCommander.TAnythingAtAll>, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<ArrayLike<JsTypeCommander.TAnythingAtAll>>("whenArrayLike", this._whenArrayLike); }
+    get whenArray(): JsTypeCommander.MapFromValueCallback<JsTypeCommander.AnyNilable[], MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<JsTypeCommander.AnyNilable[]>("whenArray", this._whenArray); }
+    get whenArrayLike(): JsTypeCommander.MapFromValueCallback<ArrayLike<JsTypeCommander.AnyNilable>, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<ArrayLike<JsTypeCommander.AnyNilable>>("whenArrayLike", this._whenArrayLike); }
     get whenNotArrayLike(): JsTypeCommander.MapFromValueCallback<JsTypeCommander.IStringKeyedObject, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<JsTypeCommander.IStringKeyedObject>("whenNotArrayLike", this._whenNotArrayLike); }
     get whenString(): JsTypeCommander.MapFromValueCallback<string, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<string>("whenString", this._whenString); }
     get whenSymbol(): JsTypeCommander.MapFromValueCallback<symbol, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<symbol>("whenSymbol", this._whenSymbol); }
     get whenNull(): JsTypeCommander.MapFromValueCallback<null, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<null>("whenNull", this._whenNull); }
     get whenUndefined(): JsTypeCommander.MapFromValueCallback<undefined, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<undefined>("whenUndefined", this._whenUndefined); }
     get whenObject(): JsTypeCommander.MapFromValueCallback<JsTypeCommander.IStringKeyedObject, MapCallbackId>|MapCallbackId|undefined { return this._invokeThis<JsTypeCommander.IStringKeyedObject>("whenObject", this._whenObject); }
-    otherwise(value: JsTypeCommander.TAnythingAtAll): MapCallbackId { return this._onInvoked(MapCallbackId.otherwise, value); }
+    otherwise(value: JsTypeCommander.AnyNilable): MapCallbackId { return this._onInvoked(MapCallbackId.otherwise, value); }
     toJSON(): { [key: number]: boolean|undefined } {
         let allIds: MapCallbackId[] = [ MapCallbackId.whenBoolean, MapCallbackId.whenFunction, MapCallbackId.whenInfinity, MapCallbackId.whenNaN, MapCallbackId.whenNumber, MapCallbackId.whenArray, MapCallbackId.whenArrayLike, MapCallbackId.whenNotArrayLike, MapCallbackId.whenString,
             MapCallbackId.whenSymbol, MapCallbackId.whenNull, MapCallbackId.whenUndefined, MapCallbackId.whenObject ];
@@ -1204,7 +544,7 @@ class MapByNilHelper {
     private _whenTrueInvoked: boolean = false;
     private _otherwiseInvoked: boolean = false;
     private _callCount: number = 0;
-    private _lastArg: JsTypeCommander.TAnythingAtAll = undefined;
+    private _lastArg: JsTypeCommander.AnyNilable = undefined;
     private _trueNum: number;
     private _otherwiseNum: number;
     get whenTrueInvoked(): boolean { return this._whenTrueInvoked; }
@@ -1212,7 +552,7 @@ class MapByNilHelper {
     get callCount(): number { return this._callCount; }
     get trueNum(): number { return this._trueNum; }
     get otherwiseNum(): number { return this._otherwiseNum; }
-    whenTrue(arg: JsTypeCommander.TAnythingAtAll): number {
+    whenTrue(arg: JsTypeCommander.AnyNilable): number {
         this._callCount++;
         this._whenTrueInvoked = true;
         this._lastArg = arg;
@@ -1399,7 +739,7 @@ describe("Testing type map functions", function() {
                             let tgh: MapByTypeHelper = new MapByTypeHelper(omit);
                             it('JsTypeCommander.mapByTypeValue(' + argInfo.display + ', ' + JSON.stringify(tgh.toJSON()) + ((typeof(opt.checkElements) == "boolean") ? ", " +
                                     opt.checkElements : "") + ') should return ' + opt.expected + " (calling " + mapCallbackIdToName(opt.expected) + ")", function() {
-                                let result: JsTypeCommander.TAnythingAtAll = (typeof(opt.checkElements) == "boolean") ?
+                                let result: JsTypeCommander.AnyNilable = (typeof(opt.checkElements) == "boolean") ?
                                     JsTypeCommander.mapByTypeValue.call(this, argInfo.getValue(), tgh, opt.checkElements) :
                                     JsTypeCommander.mapByTypeValue.call(this, argInfo.getValue(), tgh);
                                 dataIterationIndex++;
@@ -1438,7 +778,7 @@ describe("Testing type map functions", function() {
                 let expected: number = (whenTrue) ? mapByNilHelper.trueNum : mapByNilHelper.otherwiseNum;
                 it(mapByNilFunction.name + "(" + argInfo.display + ", fn(v) => " + mapByNilHelper.trueNum + ', fn' + ((mapByNilFunction.name == "mapByNotNil") ? '(v)' : '()') +
                         ' => ' + mapByNilHelper.otherwiseNum + ') should return ' + expected + ' (' + ((whenTrue) ? 'whenTrue' : 'otherwise') + ')', function() {
-                    let result: JsTypeCommander.TAnythingAtAll = mapByNilFunction.callback(argInfo.getValue(), mapByNilHelper.whenTrue, mapByNilHelper.otherwise, mapByNilHelper);
+                    let result: JsTypeCommander.AnyNilable = mapByNilFunction.callback(argInfo.getValue(), mapByNilHelper.whenTrue, mapByNilHelper.otherwise, mapByNilHelper);
                     expect(result).to.a('number').and.to.equal(expected);
                     expect(mapByNilHelper.callCount).to.not.equal(0, 'Callback not invoked');
                     expect(mapByNilHelper.callCount).to.equal(1, 'Callback invoked more than once');
@@ -1452,25 +792,469 @@ describe("Testing type map functions", function() {
     }, this);
 });
 
-type TypeVariantSpec = JsTypeVariant|JsTypeExt|JsTypeInfo|{ type: JsTypeExt|JsTypeInfo, variant?: JsVariant; };
-type TypeVariantFlagSpec = JsTypeVariantFlags|JsVariant|JsVariant[];
+enum TypeFlag {
+    Undefined =    0x000001,
+    Boolean =      0x000002,
+    FiniteNumber = 0x000004,
+    String =       0x000008,
+    Symbol =       0x000010,
+    Function =     0x000020,
+    Object =       0x000040,
+    Null =         0x000080,
+    NaN =          0x000100,
+    Infinity =     0x000200,
+    Array =        0x000100,
+    Date =         0x000200,
+    Regexp =       0x000400,
+    Error =        0x000800,
+    Map =          0x001000,
+    Set =          0x002000,
+    WeakMap =      0x004000,
+    WeakSet =      0x008000,
+    Promise =      0x010000
+}
+const TypeFlag_All: number = TypeFlag.Undefined | TypeFlag.Boolean | TypeFlag.FiniteNumber | TypeFlag.String |
+    TypeFlag.Symbol | TypeFlag.Function | TypeFlag.Object | TypeFlag.Null | TypeFlag.NaN |
+    TypeFlag.Infinity | TypeFlag.Array | TypeFlag.Date | TypeFlag.Regexp | TypeFlag.Error |
+    TypeFlag.Map | TypeFlag.Set | TypeFlag.WeakMap | TypeFlag.WeakSet | TypeFlag.Promise;
+enum JsTypeExtFlag {
+    Undefined = TypeFlag.Undefined,
+    Boolean = TypeFlag.Boolean,
+    FiniteNumber = TypeFlag.FiniteNumber,
+    String = TypeFlag.String,
+    Symbol = TypeFlag.Symbol,
+    Function = TypeFlag.Function,
+    Object = TypeFlag.Object,
+    Null = TypeFlag.Null,
+    NaN = TypeFlag.NaN,
+    Infinity = TypeFlag.Infinity
+}
+const JsTypeExt_All: number = JsTypeExtFlag.Undefined | JsTypeExtFlag.Boolean | JsTypeExtFlag.FiniteNumber | JsTypeExtFlag.String | JsTypeExtFlag.Symbol |
+    JsTypeExtFlag.Function | JsTypeExtFlag.Object | JsTypeExtFlag.Null | JsTypeExtFlag.NaN | JsTypeExtFlag.Infinity;
+enum JsTypeFlag {
+    Undefined = TypeFlag.Undefined,
+    Boolean = TypeFlag.Boolean,
+    Number = TypeFlag.FiniteNumber,
+    String = TypeFlag.String,
+    Symbol = TypeFlag.Symbol,
+    Function = TypeFlag.Function,
+    Object = TypeFlag.Object
+}
+const JsType_All: number = JsTypeFlag.Undefined | JsTypeFlag.Boolean | JsTypeFlag.Number | JsTypeFlag.String | JsTypeFlag.Symbol | JsTypeFlag.Function |
+    JsTypeFlag.Object;
+enum InterfaceFlag {
+    ArrayLike = 0x01,
+    Iterable = 0x02,
+    ErrorLike = 0x04,
+    PromiseLike = 0x08,
+    HasLength = 0x10
+}
+abstract class BaseEnumBitFlags<T extends number, TCloneable extends BaseEnumBitFlags<T, TCloneable>> {
+    private _flags: number;
+    get flags(): number { return this._flags; }
+    constructor(values?: T|(T|T[])[]|TCloneable, otherValues?: T|(T|T[])[]) {
+        if (typeof(values) == "number")
+            this._flags = values;
+        else if (typeof(values) == "object" && values !== null) {
+            if (Array.isArray(values))
+                this._flags = values.reduce((p: number, a: T) => (Array.isArray(a)) ? a.reduce((n: number, v: T) => n | v, p) : p | a, 0);
+            else
+                this._flags = values.flags;
+        }
+        if (typeof(otherValues) == "number")
+            this._flags |= otherValues;
+        else if (typeof(otherValues) == "object" && otherValues !== null)
+            this._flags = otherValues.reduce((p: number, a: T) => (Array.isArray(a)) ? a.reduce((n: number, v: T) => n | v, p) : p | a, 0);
+    }
+    isEmpty(): boolean { return this._flags == 0; }
+    hasAnyFlag(value: T|T[], ...otherValues: (T|T[])[]) {
+        if (typeof(value) == "number") {
+            if ((this._flags & value) != 0)
+                return true;
+        } else
+            for (let i: number = 0; i < value.length; i++) {
+                if ((this._flags & value[i]) != 0)
+                    return true;
+            }
+        if (typeof(otherValues) != "object" || otherValues === null || otherValues.length == 0)
+            return false;
+        for (let n: number = 0; n < otherValues.length; n++) {
+            let v: T|T[] = otherValues[n];
+            if (typeof(v) == "number") {
+                if ((this._flags & v) != 0)
+                    return true;
+            } else
+                for (let i: number = 0; i < v.length; i++) {
+                    if ((this._flags & v[i]) != 0)
+                        return true;
+                }
+        }
+
+        return false;
+    }
+    hasAllFlags(value: T|T[], ...otherValues: (T|T[])[]) {
+        if (typeof(value) == "number") {
+            if ((this._flags & value) == 0)
+                return false;
+        } else
+            for (let i: number = 0; i < value.length; i++) {
+                if ((this._flags & value[i]) == 0)
+                    return false;
+            }
+        if (typeof(otherValues) != "object" || otherValues === null || otherValues.length == 0)
+            return true;
+        for (let n: number = 0; n < otherValues.length; n++) {
+            let v: T|T[] = otherValues[n];
+            if (typeof(v) == "number") {
+                if ((this._flags & v) == 0)
+                    return false;
+            } else
+                for (let i: number = 0; i < v.length; i++) {
+                    if ((this._flags & v[i]) == 0)
+                        return false;
+                }
+        }
+
+        return true;
+    }
+}
+
+const testTypeSymbol: symbol = Symbol();
+
+class EnumBitFlags<T extends number> extends BaseEnumBitFlags<T, EnumBitFlags<T>> {
+    constructor(values?: T|T[]|EnumBitFlags<T>, ...otherValues: (T|T[])[]) { super(values, otherValues); }
+}
+class InterfaceBitFlags extends BaseEnumBitFlags<InterfaceFlag, InterfaceBitFlags> {
+    get ArrayLike() { return this.hasAnyFlag(InterfaceFlag.ArrayLike); }
+    get Iterable() { return this.hasAnyFlag(InterfaceFlag.Iterable); }
+    get ErrorLike() { return this.hasAnyFlag(InterfaceFlag.ErrorLike); }
+    get PromiseLike() { return this.hasAnyFlag(InterfaceFlag.PromiseLike); }
+    get HasLength() { return this.hasAnyFlag(InterfaceFlag.HasLength); }
+    constructor(values?: InterfaceFlag|(InterfaceFlag|InterfaceFlag[])[]|InterfaceBitFlags, ...otherValues: (InterfaceFlag|InterfaceFlag[])[]) { super(values, otherValues); }
+}
+enum ValueVariant {
+    None = 0x0001,
+    Empty = 0x0002,
+    Whitespace = 0x0004,
+    Zero = 0x0008,
+    Float = 0x0010,
+    PlainObject = 0x0020,
+    DirectInheritance = 0x0040,
+    NestedInheritance = 0x0080
+}
+class VariantBitFlags extends BaseEnumBitFlags<ValueVariant, VariantBitFlags> {
+    get Zero() { return this.hasAnyFlag(ValueVariant.Zero); }
+    get Whitespace() { return this.hasAnyFlag(ValueVariant.Whitespace); }
+    get None() { return this.hasAnyFlag(ValueVariant.None); }
+    get NestedInheritance() { return this.hasAnyFlag(ValueVariant.NestedInheritance); }
+    get Float() { return this.hasAnyFlag(ValueVariant.Float); }
+    get Empty() { return this.hasAnyFlag(ValueVariant.Empty); }
+    get DirectInheritance() { return this.hasAnyFlag(ValueVariant.DirectInheritance); }
+    constructor(values?: ValueVariant|(ValueVariant|ValueVariant[])[]|VariantBitFlags, ...otherValues: (ValueVariant|ValueVariant[])[]) { super(values, otherValues); }
+}
+class JsType {
+    private _jsType: JsTypeFlag;
+    private _baseType: JsTypeExtFlag;
+    private _type: TypeFlag;
+
+    static isJsType(obj: any): obj is JsType { return typeof(obj) == "object" && obj !== null && obj[testTypeSymbol] == "JsType"; }
+    [testTypeSymbol]() { "JsType" }
+    get baseType(): JsTypeExtFlag { return this._baseType; }
+    get jsType(): JsTypeFlag { return this._jsType; }
+    get type(): TypeFlag { return this._type; }
+
+    constructor(value: TypeFlag) {
+        switch(value) {
+            case TypeFlag.Undefined:
+                this._jsType = JsTypeFlag.Undefined;
+                this._baseType = JsTypeExtFlag.Undefined;
+                break;
+            case TypeFlag.Boolean:
+                this._jsType = JsTypeFlag.Boolean;
+                this._baseType = JsTypeExtFlag.Boolean;
+                break;
+            case TypeFlag.FiniteNumber:
+                this._jsType = JsTypeFlag.Number;
+                this._baseType = JsTypeExtFlag.FiniteNumber;
+                break;
+            case TypeFlag.String:
+                this._jsType = JsTypeFlag.String;
+                this._baseType = JsTypeExtFlag.String;
+                break;
+            case TypeFlag.Symbol:
+                this._jsType = JsTypeFlag.Symbol;
+                this._baseType = JsTypeExtFlag.Symbol;
+                break;
+            case TypeFlag.Function:
+                this._jsType = JsTypeFlag.Function;
+                this._baseType = JsTypeExtFlag.Function;
+                break;
+            case TypeFlag.Object:
+                this._jsType = JsTypeFlag.Object;
+                this._baseType = JsTypeExtFlag.Object;
+                break;
+            case TypeFlag.Null:
+                this._jsType = JsTypeFlag.Object;
+                this._baseType = JsTypeExtFlag.Null;
+                break;
+            case TypeFlag.NaN:
+                this._jsType = JsTypeFlag.Number;
+                this._baseType = JsTypeExtFlag.NaN;
+                break;
+            case TypeFlag.Infinity:
+                this._jsType = JsTypeFlag.Number;
+                this._baseType = JsTypeExtFlag.Infinity;
+                break;
+            case TypeFlag.Array:
+                this._jsType = JsTypeFlag.Object;
+                this._baseType = JsTypeExtFlag.Object;
+                break;
+            case TypeFlag.Date:
+                this._jsType = JsTypeFlag.Object;
+                this._baseType = JsTypeExtFlag.Object;
+                break;
+            case TypeFlag.Regexp:
+                this._jsType = JsTypeFlag.Object;
+                this._baseType = JsTypeExtFlag.Object;
+                break;
+            case TypeFlag.Error:
+                this._jsType = JsTypeFlag.Object;
+                this._baseType = JsTypeExtFlag.Object;
+                break;
+            case TypeFlag.Map:
+                this._jsType = JsTypeFlag.Object;
+                this._baseType = JsTypeExtFlag.Object;
+                break;
+            case TypeFlag.Set:
+                this._jsType = JsTypeFlag.Object;
+                this._baseType = JsTypeExtFlag.Object;
+                break;
+            case TypeFlag.WeakMap:
+                this._jsType = JsTypeFlag.Object;
+                this._baseType = JsTypeExtFlag.Object;
+                break;
+            case TypeFlag.WeakSet:
+                this._jsType = JsTypeFlag.Object;
+                this._baseType = JsTypeExtFlag.Object;
+                break;
+            case TypeFlag.Promise:
+                this._jsType = JsTypeFlag.Object;
+                this._baseType = JsTypeExtFlag.Object;
+                break;
+            default:
+                throw new Error(value + " is an invalid builtin root type");
+        }
+    }
+}
+interface IJsType {
+    type: TypeFlag|JsType;
+    variant?: ValueVariant;
+    implementation?: InterfaceBitFlags|InterfaceFlag|InterfaceFlag[];
+}
+class JsTypeVariant extends JsType implements IJsType {
+    private _variant: ValueVariant;
+    private _implementation: InterfaceBitFlags;
+
+    static isJsTypeVariant(obj: any): obj is JsTypeVariant { return typeof(obj) == "object" && obj !== null && obj[testTypeSymbol] == "JsTypeVariant"; }
+    [testTypeSymbol]() { "JsTypeVariant" }
+    get variant(): ValueVariant { return this._variant; }
+    get implementation(): InterfaceBitFlags { return this._implementation; }
+
+    constructor(value: TypeFlag|JsType, variant?: ValueVariant, ...implementation: (InterfaceFlag|InterfaceFlag[])[]) {
+        super((typeof(value) == "number") ? value : value.type);
+        let bitFlags: InterfaceBitFlags = new InterfaceBitFlags(implementation);
+        if (typeof(variant) != "number")
+            variant = ValueVariant.None;
+        switch(this.type) {
+            case TypeFlag.Undefined:
+                if (!bitFlags.isEmpty())
+                    throw new Error("Undefined types cannot have interfaces");
+                if (variant != ValueVariant.None)
+                    throw new Error("Undefined types cannot have a variant");
+                break;
+            case TypeFlag.Boolean:
+                if (!bitFlags.isEmpty())
+                    throw new Error("Boolean types cannot have interfaces");
+                if (variant != ValueVariant.None)
+                    throw new Error("Boolean types cannot have a variant");
+                break;
+            case TypeFlag.FiniteNumber:
+                if (!bitFlags.isEmpty())
+                    throw new Error("Number types cannot have interfaces");
+                if (variant == ValueVariant.Empty || variant == ValueVariant.Whitespace)
+                    throw new Error("Number types cannot be empty or whitespace");
+                if (variant == ValueVariant.DirectInheritance || variant == ValueVariant.NestedInheritance)
+                    throw new Error("Number types inherit from objects");
+                break;
+            case TypeFlag.String:
+                if (!bitFlags.isEmpty())
+                    throw new Error("String types cannot have interfaces");
+                if (variant == ValueVariant.Float || variant == ValueVariant.Zero)
+                    throw new Error("String types cannot be float or zero");
+                if (variant == ValueVariant.DirectInheritance || variant == ValueVariant.NestedInheritance)
+                    throw new Error("String types inherit from objects");
+                break;
+            case TypeFlag.Symbol:
+                if (!bitFlags.isEmpty())
+                    throw new Error("Symbol types cannot have interfaces");
+                if (variant != ValueVariant.None)
+                    throw new Error("Symbol types cannot have a variant");
+                break;
+            case TypeFlag.Function:
+                if (!bitFlags.isEmpty())
+                    throw new Error("Function types cannot have interfaces");
+                if (variant != ValueVariant.None)
+                    throw new Error("Function types cannot have a variant");
+                break;
+            case TypeFlag.Object:
+                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
+                    throw new Error("Invalid object variant");
+                break;
+            case TypeFlag.Null:
+                if (!bitFlags.isEmpty())
+                    throw new Error("Null types cannot have interfaces");
+                if (variant != ValueVariant.None)
+                    throw new Error("Null types cannot have a variant");
+                break;
+            case TypeFlag.NaN:
+                if (!bitFlags.isEmpty())
+                    throw new Error("Number types cannot have interfaces");
+                if (variant != ValueVariant.None)
+                    throw new Error("NaN types cannot have a variant");
+                break;
+            case TypeFlag.Infinity:
+                if (!bitFlags.isEmpty())
+                    throw new Error("Number types cannot have interfaces");
+                if (variant != ValueVariant.None)
+                    throw new Error("Infinity types cannot have a variant");
+                break;
+            case TypeFlag.Array:
+                if (variant != ValueVariant.None && variant != ValueVariant.Empty)
+                    throw new Error("Arrays can only have None or Empty variant");
+                if (!bitFlags.ArrayLike)
+                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.ArrayLike, InterfaceFlag.Iterable);
+                else if (!bitFlags.Iterable)
+                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.Iterable);
+                break;
+            case TypeFlag.Date:
+                if (variant != ValueVariant.None)
+                    throw new Error("Infinity types cannot have a variant");
+                break;
+            case TypeFlag.Regexp:
+                if (variant != ValueVariant.None)
+                    throw new Error("Infinity types cannot have a variant");
+                break;
+            case TypeFlag.Error:
+                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
+                    throw new Error("Invalid object variant");
+                if (!bitFlags.ErrorLike)
+                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.ErrorLike);
+                break;
+            case TypeFlag.Map:
+                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
+                    throw new Error("Invalid object variant");
+                if (!bitFlags.Iterable)
+                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.Iterable);
+                break;
+            case TypeFlag.Set:
+                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
+                    throw new Error("Invalid object variant");
+                if (!bitFlags.Iterable)
+                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.Iterable);
+                break;
+            case TypeFlag.WeakMap:
+                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
+                    throw new Error("Invalid object variant");
+                if (!bitFlags.Iterable)
+                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.Iterable);
+                break;
+            case TypeFlag.WeakSet:
+                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
+                    throw new Error("Invalid object variant");
+                if (!bitFlags.Iterable)
+                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.Iterable);
+                break;
+            case TypeFlag.Promise:
+                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
+                    throw new Error("Invalid object variant");
+                break;
+        }
+        this._implementation = bitFlags;
+    }
+    asJsTypeVariant(type: JsTypeSpec): JsTypeVariant {
+        if (typeof(type) == "number" || JsType.isJsType(type))
+            return new JsTypeVariant(type);
+        if (JsTypeVariant.isJsTypeVariant(type))
+            return type;
+        if (typeof(type.implementation) == "object") {
+            if (!Array.isArray(type.implementation)) {
+                let result: JsTypeVariant = new JsTypeVariant(type.type, type.variant);
+                result._implementation = this.implementation;
+                return result;
+            }
+        } else if (typeof(type.implementation) != "number")
+            return new JsTypeVariant(type.type, type.variant);
+        return new JsTypeVariant(type.type, type.variant, type.implementation);
+    }
+}
+type JsTypeSpec = TypeFlag|JsTypeVariant|JsType|IJsType;
+class AllowedVariants {
+    private _type: JsType;
+    private _variants: VariantBitFlags;
+    private _implementation: InterfaceBitFlags;
+    static isAllowedVariants(obj: any): obj is AllowedVariants { return typeof(obj) == "object" && obj !== null && obj[testTypeSymbol] == "AllowedVariants"; }
+    [testTypeSymbol]() { "AllowedTypes" }
+    constructor(type: TypeFlag|JsType, implementation?: InterfaceBitFlags|InterfaceFlag|InterfaceFlag[], ...variant: (ValueVariant|ValueVariant[])[]) {
+        this._variants = new VariantBitFlags(variant);
+        this._implementation = new InterfaceBitFlags(implementation);
+        this._type = (typeof(type) == "number") ? new JsType(type) : type;
+    }
+    asAllowedVariants(variants: AllowedVariantsSpec): AllowedVariants {
+        if (typeof(variants) == "number" || JsType.isJsType(variants))
+            return new AllowedVariants(variants);
+        if (AllowedVariants.isAllowedVariants(variants))
+            return variants;
+        return new AllowedVariants(variants.type, variants.implementation, variants.variant);
+    }
+}
+type AllowedVariantsSpec = TypeFlag|JsType|IJsType|AllowedVariants;
+class AllowedTypes {
+    static isAllowedTypes(obj: any): obj is AllowedTypes { return typeof(obj) == "object" && obj !== null && obj[testTypeSymbol] == "AllowedTypes"; }
+    [testTypeSymbol]() { "AllowedTypes" }
+    constructor(type: JsTypeSpec|JsTypeSpec[], ...types: (JsTypeSpec|JsTypeSpec[])[]) {
+
+    }
+    isAllowed(value: JsTypeSpec) {
+
+    }
+    static toAllowedTypes(types: AllowedTypeSpec): AllowedTypes {
+        if (typeof(types) == "number" || Array.isArray(types))
+            return new AllowedTypes(types);
+        if (AllowedTypes.isAllowedTypes(types))
+            return types;
+        if (JsType.isJsType(types) || JsTypeVariant.isJsTypeVariant(types) || JsType.isJsType(types))
+        return new AllowedTypes(types);
+        types;
+    }
+}
+type AllowedTypeSpec = AllowedTypes|JsTypeSpec|JsTypeSpec[]|{ type: TypeFlag; variant: ValueVariant|ValueVariant[];
+    implementation?: InterfaceBitFlags|InterfaceFlag|InterfaceFlag[]; }
+
+interface GenericArgumentDescriptor extends Descriptor { getValue?: { (): any; } }
 
 interface TypeGuardTestArgument {
     value?: ArgumentDescriptor;
-    type: TypeVariantSpec;
-}
-interface TypeGuardTargetType {
-    description: string;
-    functions: TypeGuardFunction[];
+    type: JsTypeSpec;
 }
 interface TypeGuardFunction {
     name: string;
     callback: Function;
-    allowed: (TypeVariantFlagSpec|{
-        isGeneric?: boolean;
-        types: TypeVariantFlagSpec;
-        arg?: ArgumentDescriptor;
-    })[]|TypeVariantFlagSpec;
+    allowed: AllowedTypeSpec;
+    genericType?: GenericArgumentDescriptor|GenericArgumentDescriptor[];
+}
+interface TypeGuardTargetType {
+    description: string;
+    functions: TypeGuardFunction[];
 }
 
 class ExampleBaseClass {
@@ -1485,106 +1269,114 @@ class ExampleNestedClass extends ExampleChildClass {
 
 describe("Testing type guard functions", function() {
     let typeGuardTestArgumentArr: TypeGuardTestArgument[] = [
-        { type: JsTypeExt.Undefined },
-        { type: JsTypeExt.Undefined, value: { display: 'undefined', getValue: () => undefined } },
-        { type: JsTypeExt.Null, value: { display: 'null', getValue: () => null } },
-        { type: { type: JsTypeExt.String, variant: JsVariant.Empty }, value: { display: '""', getValue: () => "" } },
-        { type: { type: JsTypeExt.String, variant: JsVariant.Whitespace }, value: { display: '" "', getValue: () => " " } },
-        { type: { type: JsTypeExt.String, variant: JsVariant.Whitespace }, value: { display: '"\\n\\r\\t"', getValue: () => "\n\r\t" } },
-        { type: JsTypeExt.String, value: { display: '"."', getValue: () => "" } },
-        { type: JsTypeExt.String, value: { display: '" . "', getValue: () => " . " } },
-        { type: JsTypeExt.String, value: { display: '"\\n\\r . \\t"', getValue: () => "\n\r . \t" } },
-        { type: JsTypeExt.Boolean, value: { display: 'true', getValue: () => true } },
-        { type: JsTypeExt.Boolean, value: { display: 'false', getValue: () => false } },
-        { type: JsTypeExt.FiniteNumber, value: { display: '1', getValue: () => 1 } },
-        { type: JsTypeExt.FiniteNumber, value: { display: '123', getValue: () => 123 } },
-        { type: JsTypeExt.FiniteNumber, value: { display: '-1', getValue: () => -1 } },
-        { type: { type: JsTypeExt.FiniteNumber, variant: JsVariant.Zero }, value: { display: '0', getValue: () => 0 } },
-        { type: { type: JsTypeExt.FiniteNumber, variant: JsVariant.Float }, value: { display: '0.0001', getValue: () => 0.0001 } },
-        { type: JsTypeExt.NaN, value: { display: 'NaN', getValue: () => NaN } },
-        { type: JsTypeExt.Infinity, value: { display: 'Infinity', getValue: () => Infinity } },
-        { type: JsTypeExt.Function, value: { display: 'function() { return false };', getValue: () => { return function() { return false }; } } },
-        { type: JsTypeExt.NonArrayObject, value: { display: '{ }', getValue: () => { return { }; } } },
-        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.AlmostArrayLike }, value: { display: '{ length: 1 }', getValue: () => { return { length: 1 }; } } },
-        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.AlmostArrayLike }, value: { display: '{ length: 2, [0]: "1", [2]: "2" }', getValue: () => { let aa: { length: number, [key: number]: string } = { length: 2 }; aa[0] = "1"; aa[2] = "2" } } },
-        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.ArrayLike }, value: { display: '{ length: 0 }', getValue: () => { return { length: 1 }; } } },
-        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.ArrayLike }, value: { display: '{ length: 2, [0]: "1", [1]: "2" }', getValue: () => { let aa: { length: number, [key: number]: string } = { length: 2 }; aa[0] = "1"; aa[1] = "2" } } },
-        { type: { type: JsTypeExt.Array, variant: JsVariant.Empty }, value: { display: '[]', getValue: () => [] } },
-        { type: JsTypeExt.Array, value: { display: '[undefined]', getValue: () => [undefined] } },
-        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.Error }, value: { display: '[undefined]', getValue: () => {
+        { type: TypeFlag.Undefined },
+        { type: TypeFlag.Undefined, value: { display: 'undefined', getValue: () => undefined } },
+        { type: TypeFlag.Null, value: { display: 'null', getValue: () => null } },
+        { type: { type: TypeFlag.String, variant: ValueVariant.Empty }, value: { display: '""', getValue: () => "" } },
+        { type: { type: TypeFlag.String, variant: ValueVariant.Whitespace }, value: { display: '" "', getValue: () => " " } },
+        { type: { type: TypeFlag.String, variant: ValueVariant.Whitespace }, value: { display: '"\\n\\r\\t"', getValue: () => "\n\r\t" } },
+        { type: TypeFlag.String, value: { display: '"."', getValue: () => "" } },
+        { type: TypeFlag.String, value: { display: '" . "', getValue: () => " . " } },
+        { type: TypeFlag.String, value: { display: '"\\n\\r . \\t"', getValue: () => "\n\r . \t" } },
+        { type: TypeFlag.Boolean, value: { display: 'true', getValue: () => true } },
+        { type: TypeFlag.Boolean, value: { display: 'false', getValue: () => false } },
+        { type: TypeFlag.FiniteNumber, value: { display: '1', getValue: () => 1 } },
+        { type: TypeFlag.FiniteNumber, value: { display: '123', getValue: () => 123 } },
+        { type: TypeFlag.FiniteNumber, value: { display: '-1', getValue: () => -1 } },
+        { type: { type: TypeFlag.FiniteNumber, variant: ValueVariant.Zero }, value: { display: '0', getValue: () => 0 } },
+        { type: { type: TypeFlag.FiniteNumber, variant: ValueVariant.Float }, value: { display: '0.0001', getValue: () => 0.0001 } },
+        { type: TypeFlag.NaN, value: { display: 'NaN', getValue: () => NaN } },
+        { type: TypeFlag.Infinity, value: { display: 'Infinity', getValue: () => Infinity } },
+        { type: TypeFlag.Function, value: { display: 'function() { return false };', getValue: () => { return function() { return false }; } } },
+        { type: TypeFlag.Object, value: { display: '{ }', getValue: () => { return { }; } } },
+        { type: { type: TypeFlag.Object, implementation: InterfaceFlag.HasLength }, value: { display: '{ length: 1 }', getValue: () => { return { length: 1 }; } } },
+        { type: { type: TypeFlag.Object, implementation: InterfaceFlag.HasLength }, value: { display: '{ length: 2, [0]: "1", [2]: "2" }', getValue: () => { let aa: { length: number, [key: number]: string } = { length: 2 }; aa[0] = "1"; aa[2] = "2" } } },
+        { type: { type: TypeFlag.Object, implementation: InterfaceFlag.ArrayLike }, value: { display: '{ length: 0 }', getValue: () => { return { length: 1 }; } } },
+        { type: { type: TypeFlag.Object, implementation: InterfaceFlag.ArrayLike }, value: { display: '{ length: 2, [0]: "1", [1]: "2" }', getValue: () => { let aa: { length: number, [key: number]: string } = { length: 2 }; aa[0] = "1"; aa[1] = "2" } } },
+        { type: { type: TypeFlag.Array, variant: ValueVariant.Empty }, value: { display: '[]', getValue: () => [] } },
+        { type: TypeFlag.Array, value: { display: '[undefined]', getValue: () => [undefined] } },
+        { type: { type: TypeFlag.Error }, value: { display: '[undefined]', getValue: () => {
             try { throw new Error("Thrown for test"); }
             catch (e) { return e; }
         } } },
-        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.InheritsError }, value: { display: '[undefined]', getValue: () => {
+        { type: { type: TypeFlag.Error, variant: ValueVariant.DirectInheritance }, value: { display: '[undefined]', getValue: () => {
             try { throw new RangeError("Out of range for a test"); }
             catch (e) { return e; }
         } } },
-        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.BaseObject }, value: { display: 'new ExampleBaseClass()', getValue: () => new ExampleBaseClass() } },
-        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.InheritedObject }, value: { display: 'new ExampleChildClass()', getValue: () => new ExampleChildClass() } },
-        { type: { type: JsTypeExt.NonArrayObject, variant: JsVariant.MultiInheritanceObject }, value: { display: 'new ExampleNestedClass()', getValue: () => new ExampleNestedClass() } }
+        { type: { type: TypeFlag.Object }, value: { display: 'new ExampleBaseClass()', getValue: () => new ExampleBaseClass() } },
+        { type: { type: TypeFlag.Object, variant: ValueVariant.DirectInheritance }, value: { display: 'new ExampleChildClass()', getValue: () => new ExampleChildClass() } },
+        { type: { type: TypeFlag.Object, variant: ValueVariant.NestedInheritance }, value: { display: 'new ExampleNestedClass()', getValue: () => new ExampleNestedClass() } }
     ];
     let typeGuardTargetTypeArr: TypeGuardTargetType[] = [
         {
             description: 'Testing nil type guard functions',
             functions: [
-                { name: 'notDefined', callback: JsTypeCommander.notDefined, allowed: "undefined" },
-                { name: 'isNull', callback: JsTypeCommander.isNull, allowed: "null" },
-                { name: 'isNil', callback: JsTypeCommander.isNil, allowed: ["undefined", "null"] }
+                { name: 'notDefined', callback: JsTypeCommander.notDefined, allowed: TypeFlag.Undefined },
+                { name: 'isNull', callback: JsTypeCommander.isNull, allowed: TypeFlag.Null },
+                { name: 'isNil', callback: JsTypeCommander.isNil, allowed: [TypeFlag.Undefined, TypeFlag.Null] }
             ]
         }, {
             description: 'Testing string type guard functions',
             functions: [
-                { name: 'isString', callback: JsTypeCommander.isString, allowed: ["emptyString", "whitespace", "nonWhitespace"] },
-                { name: 'isStringIfDef', callback: JsTypeCommander.isStringIfDef, allowed: ["undefined", "emptyString", "whitespace", "nonWhitespace"] },
-                { name: 'isStringOrNull', callback: JsTypeCommander.isStringOrNull, allowed: ["null", "emptyString", "whitespace", "nonWhitespace"] },
-                { name: 'isStringOrNil', callback: JsTypeCommander.isStringOrNil, allowed: ["undefined", "null", "emptyString", "whitespace", "nonWhitespace"] }
+                { name: 'notDefined', callback: JsTypeCommander.notDefined, allowed: TypeFlag.Undefined },
+                { name: 'isNull', callback: JsTypeCommander.isNull, allowed: TypeFlag.Null },
+                { name: 'isNil', callback: JsTypeCommander.isNil, allowed: [TypeFlag.Undefined, TypeFlag.Null] }
+            ]
+        }, {
+            description: 'Testing string type guard functions',
+            functions: [
+                { name: 'isString', callback: JsTypeCommander.isString, allowed: TypeFlag.String },
+                { name: 'isStringIfDef', callback: JsTypeCommander.isStringIfDef, allowed: [TypeFlag.String, TypeFlag.Undefined] },
+                { name: 'isStringOrNull', callback: JsTypeCommander.isStringOrNull, allowed: [TypeFlag.String, TypeFlag.Null] },
+                { name: 'isStringOrNil', callback: JsTypeCommander.isStringOrNil, allowed: [TypeFlag.String, TypeFlag.Null, TypeFlag.Undefined] }
             ]
         }, {
             description: 'Testing empty string type guard functions',
             functions: [
-                { name: 'isEmptyString', callback: JsTypeCommander.isEmptyString, allowed: ["emptyString", "whitespace"] },
-                { name: 'isEmptyStringIfDef', callback: JsTypeCommander.isEmptyStringIfDef, allowed: ["undefined", "emptyString", "whitespace"] },
-                { name: 'isEmptyStringOrNull', callback: JsTypeCommander.isEmptyStringOrNull, allowed: ["null", "emptyString", "whitespace"] },
-                { name: 'isEmptyStringOrNil', callback: JsTypeCommander.isEmptyStringOrNil, allowed: ["undefined", "null", "emptyString", "whitespace"] },
-                { name: 'isEmptyOrWhitespace', callback: JsTypeCommander.isEmptyOrWhitespace, allowed: ["emptyString", "whitespace"] },
-                { name: 'isEmptyOrWhitespaceIfDef', callback: JsTypeCommander.isEmptyOrWhitespaceIfDef, allowed: ["undefined", "emptyString", "whitespace"] },
-                { name: 'isNullOrWhitespace', callback: JsTypeCommander.isNullOrWhitespace, allowed: ["null", "emptyString", "whitespace"] },
-                { name: 'isNilOrWhitespace', callback: JsTypeCommander.isNilOrWhitespace, allowed: ["undefined", "null", "emptyString", "whitespace"] }
+                { name: 'isEmptyString', callback: JsTypeCommander.isEmptyString, allowed: { type: TypeFlag.String, variant: ValueVariant.Empty } },
+                { name: 'isEmptyStringIfDef', callback: JsTypeCommander.isEmptyStringIfDef, allowed: [ TypeFlag.Undefined, { type: TypeFlag.String, variant: ValueVariant.Empty }] },
+                { name: 'isEmptyStringOrNull', callback: JsTypeCommander.isEmptyStringOrNull, allowed: [ TypeFlag.Null, { type: TypeFlag.String, variant: ValueVariant.Empty }] },
+                { name: 'isEmptyStringOrNil', callback: JsTypeCommander.isEmptyStringOrNil, allowed: [ TypeFlag.Undefined, TypeFlag.Null, { type: TypeFlag.String, variant: ValueVariant.Empty }] },
+                { name: 'isEmptyOrWhitespace', callback: JsTypeCommander.isEmptyOrWhitespace, allowed: { type: TypeFlag.String, variant: [ ValueVariant.Empty, ValueVariant.Whitespace ] } },
+                { name: 'isEmptyOrWhitespaceIfDef', callback: JsTypeCommander.isEmptyOrWhitespaceIfDef, allowed: [ TypeFlag.Undefined, { type: TypeFlag.String, variant: [ ValueVariant.Empty, ValueVariant.Whitespace ] }] },
+                { name: 'isNullOrWhitespace', callback: JsTypeCommander.isNullOrWhitespace, allowed: [ TypeFlag.Null, { type: TypeFlag.String, variant: [ ValueVariant.Empty, ValueVariant.Whitespace ] }] },
+                { name: 'isNilOrWhitespace', callback: JsTypeCommander.isNilOrWhitespace, allowed: [ TypeFlag.Undefined, TypeFlag.Null, { type: TypeFlag.String, variant: [ ValueVariant.Empty, ValueVariant.Whitespace ] }] }
             ]
         }, {
             description: 'Testing boolean type guard functions',
             functions: [
-                { name: 'isBoolean', callback: JsTypeCommander.isBoolean, allowed: "boolean" },
-                { name: 'isBooleanIfDef', callback: JsTypeCommander.isBooleanIfDef, allowed: ["undefined", "boolean"] },
-                { name: 'isBooleanOrNull', callback: JsTypeCommander.isBooleanOrNull, allowed: ["null", "boolean"] },
-                { name: 'isBooleanOrNil', callback: JsTypeCommander.isBooleanOrNil, allowed: ["undefined", "null", "boolean"] }
+                { name: 'isBoolean', callback: JsTypeCommander.isBoolean, allowed: TypeFlag.Boolean },
+                { name: 'isBooleanIfDef', callback: JsTypeCommander.isBooleanIfDef, allowed: [ TypeFlag.Undefined, TypeFlag.Boolean ] },
+                { name: 'isBooleanOrNull', callback: JsTypeCommander.isBooleanOrNull, allowed: [ TypeFlag.Null, TypeFlag.Boolean ] },
+                { name: 'isBooleanOrNil', callback: JsTypeCommander.isBooleanOrNil, allowed: [ TypeFlag.Undefined, TypeFlag.Null, TypeFlag.Boolean ] }
             ]
         }, {
             description: 'Testing number type guard functions',
             functions: [
-                { name: 'isNumber', callback: JsTypeCommander.isNumber, allowed: ["zero", "nonZero", "float"] },
-                { name: 'isNumberIfDef', callback: JsTypeCommander.isNumberIfDef, allowed: ["undefined", "zero", "nonZero", "float"] },
-                { name: 'isNumberOrNull', callback: JsTypeCommander.isNumberOrNull, allowed: ["null", "zero", "nonZero", "float"] },
-                { name: 'isNumberNaNorNull', callback: JsTypeCommander.isNumberOrNull, allowed: ["null", "zero", "nonZero", "float", 'NaN'] },
-                { name: 'isNumberOrNil', callback: JsTypeCommander.isNumberOrNil, allowed: ["undefined", "null", "zero", "nonZero", "float"] },
-                { name: 'isInfinite', callback: JsTypeCommander.isInfinite, allowed: "Infinity" }
+                { name: 'isNumber', callback: JsTypeCommander.isNumber, allowed: TypeFlag.FiniteNumber },
+                { name: 'isNumberIfDef', callback: JsTypeCommander.isNumberIfDef, allowed: [ TypeFlag.Undefined, TypeFlag.FiniteNumber ] },
+                { name: 'isNumberOrNull', callback: JsTypeCommander.isNumberOrNull, allowed: [ TypeFlag.Null, TypeFlag.FiniteNumber ] },
+                { name: 'isNumberNaNorNull', callback: JsTypeCommander.isNumberOrNull, allowed: [ TypeFlag.NaN, TypeFlag.Null, TypeFlag.FiniteNumber ] },
+                { name: 'isNumberOrNil', callback: JsTypeCommander.isNumberOrNil, allowed: [ TypeFlag.Undefined, TypeFlag.Null, TypeFlag.FiniteNumber ] },
+                { name: 'isInfinite', callback: JsTypeCommander.isInfinite, allowed: TypeFlag.Infinity }
             ]
         }, {
             description: 'Testing function type guard functions',
             functions: [
-                { name: 'isFunction', callback: JsTypeCommander.isBoolean, allowed: "function" },
-                { name: 'isFunctionIfDef', callback: JsTypeCommander.isBooleanIfDef, allowed: ["undefined", "function"] },
-                { name: 'isFunctionOrNull', callback: JsTypeCommander.isBooleanOrNull, allowed: ["null", "function"] },
-                { name: 'isFunctionOrNil', callback: JsTypeCommander.isBooleanOrNil, allowed: ["undefined", "null", "function"] }
+                { name: 'isFunction', callback: JsTypeCommander.isBoolean, allowed: TypeFlag.Function },
+                { name: 'isFunctionIfDef', callback: JsTypeCommander.isBooleanIfDef, allowed: [ TypeFlag.Undefined, TypeFlag.Function ] },
+                { name: 'isFunctionOrNull', callback: JsTypeCommander.isBooleanOrNull, allowed: [ TypeFlag.Null, TypeFlag.Function ] },
+                { name: 'isFunctionOrNil', callback: JsTypeCommander.isBooleanOrNil, allowed: [ TypeFlag.Undefined, TypeFlag.Null, TypeFlag.Function ] },
             ]
         }, {
             description: 'Testing object type guard functions',
             functions: [
-                { name: 'isObject', callback: JsTypeCommander.isObject, allowed: ["plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
-                { name: 'isPlainObject', callback: JsTypeCommander.isPlainObject, allowed: ["plainObject", "errorLike", "almostArrayLike", "ArrayLike"] },
-                { name: 'isObjectType', callback: JsTypeCommander.isObjectType, allowed: ["plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
+                { name: 'isObject', callback: JsTypeCommander.isObject, allowed: [ TypeFlag.Object, TypeFlag.Array, TypeFlag.Date, TypeFlag.Error, TypeFlag.Map, TypeFlag.Promise, TypeFlag.Regexp, TypeFlag.Set, TypeFlag.WeakMap, TypeFlag.WeakSet ] },
+                { name: 'isPlainObject', callback: JsTypeCommander.isPlainObject, allowed: { type: TypeFlag.Object, variant: ValueVariant.PlainObject } },
+                { name: 'isObjectType', callback: JsTypeCommander.isObjectType, allowed: [ TypeFlag.Object, TypeFlag.Array, TypeFlag.Date, TypeFlag.Error, TypeFlag.Map, TypeFlag.Promise, TypeFlag.Regexp, TypeFlag.Set, TypeFlag.WeakMap, TypeFlag.WeakSet ] },
                 { name: 'isNonArrayObject', callback: JsTypeCommander.isNonArrayObject, allowed: [
                     {
+
                         types: ["plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
                     }, {
                         arg: { display: 'true', getValue: () => true },
@@ -1761,7 +1553,7 @@ describe("Testing type guard functions", function() {
                             }
                             let expected: boolean = allowSet.types.filter(t => t == tga.type).length > 0;
                             it(description + ") should return " + expected, function() {
-                                let result: JsTypeCommander.TAnythingAtAll = typeGuardFunction.callback.apply(this, args);
+                                let result: JsTypeCommander.AnyNilable = typeGuardFunction.callback.apply(this, args);
                                 expect(result).to.a('boolean');
                                 expect(result).to.equal(expected);
                                 });

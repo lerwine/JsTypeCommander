@@ -1,6 +1,9 @@
 import { settings } from "cluster";
 
 export module JsTypeCommander {
+    /**
+     * Defines options for updating regular expressions used in the current module.
+     */
     export interface IJsTypeCommanderRegex {
         /**
          * Pattern which matches one or more consecutive whitespace characters.
@@ -61,6 +64,9 @@ export module JsTypeCommander {
         }
     };
 
+    /**
+     * Names of settings which can be used to reference regular expression patters used in the current module.
+     */
     export type PatternSettingsName = "onlyWhitespace"|"trimStart"|"trimEnd"|"lineSeparator"|"booleanText"|"firstLetterLc"|"abnormalWhitespace";
     
     /**
@@ -68,21 +74,39 @@ export module JsTypeCommander {
      * @description This is intended to represent any defined value at all when strictNullChecks is turned on.
      */
     export type TDefined = any|null;
-    
+
     /**
-     * Alias for a type that can be either defined or undefined.
+     * Alias for a type that includes null and undefined.
+     * @description This is intended for use when strictNullChecks is turned on.
+     */
+    export type Nilable<T> = T|null|undefined;
+
+    /**
+     * Alias for any type, including null and undefined.
      * @description This is intended to represent any value at all when strictNullChecks is turned on.
      */
-    export type TAnythingAtAll = any|null|undefined;
-    
+    export type AnyNilable = any|null|undefined;
+
+    /**
+     * Alias for a type that includes null and undefined.
+     * @description This is intended to include nulls in a type when strictNullChecks is turned on.
+     */
+    export type Nullable<T> = T|null;
+
+    /**
+     * Alias for any type or null.
+     * @description This is intended for use when strictNullChecks is turned on.
+     */
+    export type AnyNullable = any|null;
+
     /** Represents an object which can contained arbitrarily named properties. */
-    export interface IStringKeyedObject { [key: string]: TAnythingAtAll };
+    export interface IStringKeyedObject { [key: string]: AnyNilable };
     
     /**
      * Represents an object which contains both named properties and indexed elements.
      */
-    export interface ICompoundArrayObject extends IStringKeyedObject, ArrayLike<TAnythingAtAll> {
-        readonly [key: string]: TAnythingAtAll
+    export interface ICompoundArrayObject extends IStringKeyedObject, ArrayLike<AnyNilable> {
+        readonly [key: string]: AnyNilable
     }
     
     /**
@@ -188,7 +212,7 @@ export module JsTypeCommander {
          * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"object"</code> and the source value derrives from <code>Array</code>.
          * @description If the source value derrives from <code>Array</code> and this property is not defined, then {@link TypeGuardResultSpecs#whenArrayLike} will be next in line to determine the mapped value.
          */
-        whenArray?: MapFromValueCallback<TAnythingAtAll[], TResult>|TResult;
+        whenArray?: MapFromValueCallback<AnyNilable[], TResult>|TResult;
 
         /**
          * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"object"</code> and the source appears to implement the <code>ArrayLike</code> interface.
@@ -196,7 +220,7 @@ export module JsTypeCommander {
          * If the source value derrives from <code>Array</code> and {@link TypeGuardResultSpecs#whenArrayLike} is defined, then {@link TypeGuardResultSpecs#whenArrayLike} will determine the mapped value.
          * Otherwise, {@link TypeGuardResultSpecs#whenObject} will be next in line to determine the mapped value.
          */
-        whenArrayLike?: MapFromValueCallback<ArrayLike<TAnythingAtAll>, TResult>|TResult;
+        whenArrayLike?: MapFromValueCallback<ArrayLike<AnyNilable>, TResult>|TResult;
 
         /**
          * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"object"</code> and the source value does not derrive from <code>Array</code> and does not appear to implement the <code>ArrayLike</code> interface.
@@ -320,7 +344,7 @@ export module JsTypeCommander {
      * @param checkElements When checking whether an object is <code>ArrayLike</code> and this is set true, then the existance of each element index is checked, which makes it slower, but more accurate.
      * @returns {*} Value returned from the matching callback.
      */
-    export function mapByTypeValue<TSource, TResult>(target: TSource|null|undefined, callbacks: TypeGuardResultSpecs<TSource|null|undefined, TResult>, checkElements?: boolean): TResult {
+    export function mapByTypeValue<TSource, TResult>(target: Nilable<TSource>, callbacks: TypeGuardResultSpecs<Nilable<TSource>, TResult>, checkElements?: boolean): TResult {
         let selectedCallback: Function|TResult|undefined;
 
         switch (typeof(target)) {
@@ -331,7 +355,7 @@ export module JsTypeCommander {
                 selectedCallback = callbacks.whenFunction;
                 break;
             case "number":
-                let n: number = <number>(<TAnythingAtAll>target);
+                let n: number = <number>(<AnyNilable>target);
                 if (isNaN(n) && typeof(callbacks.whenNaN) != "undefined")
                     selectedCallback = callbacks.whenNaN;
                 else if ((n == Infinity || n == -Infinity) && typeof(callbacks.whenInfinity) != "undefined")
@@ -419,7 +443,7 @@ export module JsTypeCommander {
      * @returns {*} Mapped value according to whether the object is defined and not null and optionally by defined target object type.
      */
     export function mapByNotNil<TSource, TResult>(target: TSource|undefined, whenTrue: MapFromValueCallback<TSource, TResult>|TResult,
-            otherwise: MapFromValueCallback<TAnythingAtAll, TResult>|TResult, thisObj?: any) : TResult {
+            otherwise: MapFromValueCallback<AnyNilable, TResult>|TResult, thisObj?: any) : TResult {
         if (typeof(target) == "undefined" || (typeof(target) == "object" && target === null)) {
             if (typeof(otherwise) == "function")
                 return otherwise.call(thisObj, target);
@@ -471,7 +495,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is a string or null; otherwise false.
      */
-    export function isStringOrNull(obj?: TDefined): obj is string|null {
+    export function isStringOrNull(obj?: TDefined): obj is Nullable<string> {
         return mapByTypeValue<any, boolean>(obj, {
             whenNull: true,
             whenString: true,
@@ -484,7 +508,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is a string, null or undefined; otherwise false.
      */
-    export function isStringOrNil(obj?: TDefined): obj is string|null|undefined {
+    export function isStringOrNil(obj?: TDefined): obj is Nilable<string> {
         return mapByTypeValue<any, boolean>(obj, {
             whenNull: true,
             whenUndefined: true,
@@ -523,7 +547,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string or null; otherwise false.
      */
-    export function isEmptyStringOrNull(obj?: TDefined): obj is string|null {
+    export function isEmptyStringOrNull(obj?: TDefined): obj is Nullable<string> {
         return mapByTypeValue<any, boolean>(obj, {
             whenNull: true,
             whenString: (s) => s.length == 0,
@@ -536,7 +560,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string, null or undefined; otherwise false.
      */
-    export function isEmptyStringOrNil(obj?: TDefined): obj is string|null|undefined {
+    export function isEmptyStringOrNil(obj?: TDefined): obj is Nilable<string> {
         return mapByTypeValue<any, boolean>(obj, {
             whenUndefined: true,
             whenNull: true,
@@ -575,7 +599,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string, contains only whitespace characters, or is null; otherwise false.
      */
-    export function isNullOrWhitespace(obj?: TDefined): obj is string|null {
+    export function isNullOrWhitespace(obj?: TDefined): obj is Nullable<string> {
         return mapByTypeValue<any, boolean>(obj, {
             whenNull: true,
             whenString: (s) => s.length == 0 || patternOptions.regex.onlyWhitespace.test(s),
@@ -588,7 +612,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string, contains only whitespace characters, or is null or undefined; otherwise false.
      */
-    export function isNilOrWhitespace(obj?: TDefined): obj is string|null|undefined {
+    export function isNilOrWhitespace(obj?: TDefined): obj is Nilable<string> {
         return mapByTypeValue<any, boolean>(obj, {
             whenUndefined: true,
             whenNull: true,
@@ -604,8 +628,8 @@ export module JsTypeCommander {
      * @param {boolean} [ifWhitespace] Return default value if converted value is empty or only whitespace.
      * @returns {string|null|undefined} Value converted to a string or the default value.
      */
-    export function asString(obj?: TDefined, defaultValue?: string|null, ifWhitespace?: boolean): string|null|undefined {
-        let str: string|undefined|null = mapByTypeValue<any, string|undefined|null>(obj, {
+    export function asString(obj?: TDefined, defaultValue?: Nullable<string>, ifWhitespace?: boolean): Nilable<string> {
+        let str: Nilable<string> = mapByTypeValue<any, Nilable<string>>(obj, {
             whenUndefined: (s) => s,
             whenNull: (s) => s,
             whenString: (s) => s,
@@ -617,7 +641,7 @@ export module JsTypeCommander {
         });
         if (typeof(str) == "string" && (!ifWhitespace || str.trim().length > 0))
             return str;
-        return mapByTypeValue<any, string|undefined|null>(defaultValue, {
+        return mapByTypeValue<any, Nilable<string>>(defaultValue, {
             whenUndefined: (s) => str,
             whenNull: (s) => (typeof(str) == "string") ? str : s,
             whenString: (s) => s,
@@ -636,7 +660,7 @@ export module JsTypeCommander {
      * @param {boolean} [ifWhitespace] Return default value if converted value is empty or only whitespace.
      * @returns {string} Value converted to a string or the default value. If the default value is nil, then an empty string will be returned.
      */
-    export function toString(obj?: TDefined, defaultValue?: string|null, ifWhitespace?: boolean): string
+    export function toString(obj?: TDefined, defaultValue?: Nullable<string>, ifWhitespace?: boolean): string
     {
         let s = asString(obj, defaultValue, ifWhitespace);
         if (isString(s))
@@ -774,7 +798,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is boolean or null; otherwise false.
      */
-    export function isBooleanOrNull(obj?: TDefined): obj is boolean|null {
+    export function isBooleanOrNull(obj?: TDefined): obj is Nullable<boolean> {
         return mapByTypeValue<any, boolean>(obj, {
             whenNull: true,
             whenBoolean: true,
@@ -787,7 +811,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is boolean, null or undefined; otherwise false.
      */
-    export function isBooleanOrNil(obj?: TDefined): obj is boolean|null|undefined {
+    export function isBooleanOrNil(obj?: TDefined): obj is Nilable<boolean> {
         return mapByTypeValue<any, boolean>(obj, {
             whenUndefined: true,
             whenNull: true,
@@ -802,8 +826,8 @@ export module JsTypeCommander {
      * @param {boolean|null} [defaultValue] Default value if object could not be converted to a boolean.
      * @returns {boolean|null|undefined} Value converted to a boolean or the default value.
      */
-    export function asBoolean(obj?: TDefined, defaultValue?: boolean|null): boolean|null|undefined {
-        let bs: boolean|string|undefined|null = mapByTypeValue<any, boolean|string|undefined|null>(obj, {
+    export function asBoolean(obj?: TDefined, defaultValue?: Nullable<boolean>): Nilable<boolean> {
+        let bs: Nilable<boolean|string> = mapByTypeValue<any, Nilable<boolean|string>>(obj, {
             whenUndefined: (b) => b,
             whenNull: (b) => b,
             whenBoolean: (b) => b,
@@ -812,7 +836,7 @@ export module JsTypeCommander {
             whenNumber: (n) => n != 0,
             otherwise: (o) => {
                 try {
-                    return mapByTypeValue<any, boolean|string|undefined|null>(o.valueOf(), {
+                    return mapByTypeValue<any, Nilable<boolean|string>>(o.valueOf(), {
                         whenUndefined: (b) => o.toString(),
                         whenNull: (b) => o.toString(),
                         whenBoolean: (b) => b,
@@ -829,7 +853,7 @@ export module JsTypeCommander {
                 return o + "";
             }
         });
-        return mapByTypeValue<boolean|string|undefined|null, boolean|undefined|null>(bs, {
+        return mapByTypeValue<Nilable<boolean|string>, Nilable<boolean>>(bs, {
             whenBoolean: (b) => b,
             whenString: (s) => {
                 if ((s = s.trim()).length > 0) {
@@ -837,20 +861,20 @@ export module JsTypeCommander {
                     if (!isNil(m))
                         return isNil(m[2]);
                 }
-                return mapByTypeValue<any, boolean|undefined|null>(defaultValue, {
+                return mapByTypeValue<any, Nilable<boolean>>(defaultValue, {
                     whenUndefined: (o) => o,
                     whenNull: (o) => o,
                     whenBoolean: (b) => b,
                     otherwise: (o) =>  asBoolean(o)
                 });
             },
-            whenNull: (o) => mapByTypeValue<any, boolean|undefined|null>(defaultValue, {
+            whenNull: (o) => mapByTypeValue<any, Nilable<boolean>>(defaultValue, {
                 whenUndefined: (d) => o,
                 whenNull: (d) => d,
                 whenBoolean: (b) => b,
                 otherwise: (d) =>  asBoolean(d)
             }),
-            otherwise: (o) => mapByTypeValue<any, boolean|undefined|null>(defaultValue, {
+            otherwise: (o) => mapByTypeValue<any, Nilable<boolean>>(defaultValue, {
                 whenUndefined: (d) => d,
                 whenNull: (d) => d,
                 whenBoolean: (b) => b,
@@ -865,7 +889,7 @@ export module JsTypeCommander {
      * @param {boolean|null} [defaultValue] Default value if object could not be converted to a boolean.
      * @returns {boolean} Value converted to a boolean or the default value. If the default value is nil, then a false value will be returned.
      */
-    export function toBoolean(obj?: TDefined, defaultValue?: boolean): boolean
+    export function toBoolean(obj?: TDefined, defaultValue?: Nullable<boolean>): boolean
     {
         let b = asBoolean(obj, defaultValue);
         return isBoolean(b) && b;
@@ -908,7 +932,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is a finite number or null; otherwise false.
      */
-    export function isNumberOrNull(obj?: TDefined): obj is number|null {
+    export function isNumberOrNull(obj?: TDefined): obj is Nullable<number> {
         return mapByTypeValue<any, boolean>(obj, {
             whenNull: true,
             whenNumber: true,
@@ -923,7 +947,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is a number or null; otherwise false.
      */
-    export function isNumberNaNorNull(obj?: TDefined): obj is number|null {
+    export function isNumberNaNorNull(obj?: TDefined): obj is Nullable<number> {
         return mapByTypeValue<any, boolean>(obj, {
             whenNull: true,
             whenNumber: true,
@@ -938,7 +962,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is a finite number, null or undefined; otherwise false.
      */
-    export function isNumberOrNil(obj?: TDefined): obj is number|null|undefined {
+    export function isNumberOrNil(obj?: TDefined): obj is Nilable<number> {
         return mapByTypeValue<any, boolean>(obj, {
             whenUndefined: true,
             whenNull: true,
@@ -971,9 +995,9 @@ export module JsTypeCommander {
      * @param {number|null} [defaultValue] Default value if object could not be converted to a number.
      * @returns {number|null|undefined} Value converted to a number or the default value.
      */
-    export function asNumber(obj?: TDefined, defaultValue?: number|null): number|null|undefined
+    export function asNumber(obj?: TDefined, defaultValue?: Nullable<number>): Nilable<number>
     {
-        let ns: number|null|undefined = mapByTypeValue<any, number|null|undefined>(obj, {
+        let ns: Nilable<number> = mapByTypeValue<any, Nilable<number>>(obj, {
             whenUndefined: (b) => b,
             whenNull: (b) => b,
             whenBoolean: (b) => (b) ? 1 : 0,
@@ -983,7 +1007,7 @@ export module JsTypeCommander {
             whenNumber: (n) => n,
             otherwise: (o) => {
                 try {
-                    return mapByTypeValue<any, number|undefined|null>(o.valueOf(), {
+                    return mapByTypeValue<any, Nilable<number>>(o.valueOf(), {
                         whenUndefined: (b) => o.toString(),
                         whenNull: (b) => o.toString(),
                         whenBoolean: (b) => (b) ? 1 : 0,
@@ -1004,7 +1028,7 @@ export module JsTypeCommander {
     
         if (typeof(defaultValue) == "undefined" || typeof(ns) == "number" && !isNaN(ns) && !isInfinite(ns))
             return ns;
-        return mapByTypeValue<number|null|undefined,number|null|undefined>(asNumber(defaultValue), {
+        return mapByTypeValue<Nilable<number>,Nilable<number>>(asNumber(defaultValue), {
             whenUndefined: d => ns,
             whenInfinity: d => (typeof(ns) != "number" || isNaN(ns)) ? d : ns,
             whenNumber: d => d,
@@ -1018,7 +1042,7 @@ export module JsTypeCommander {
      * @param {number|null} [defaultValue] Default value if object could not be converted to a number.
      * @returns {number} Value converted to a number or the default value. If the default value is nil, then a zer0 value will be returned.
      */
-    export function toNumber(obj?: TDefined, defaultValue?: number|null): number
+    export function toNumber(obj?: TDefined, defaultValue?: Nullable<number>): number
     {
         let i = asNumber(obj, defaultValue);
         if (isNumber(i))
@@ -1045,7 +1069,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is function or null; otherwise false.
      */
-    export function isFunctionOrNull(obj?: TDefined) : obj is Function|null {
+    export function isFunctionOrNull(obj?: TDefined) : obj is Nullable<Function> {
         return mapByTypeValue<any, boolean>(obj, {
             whenNull: true,
             whenFunction: true,
@@ -1058,7 +1082,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is function, null or undefined; otherwise false.
      */
-    export function isFunctionOrNil(obj?: TDefined) : obj is Function|null|undefined {
+    export function isFunctionOrNil(obj?: TDefined) : obj is Nilable<Function> {
         return mapByTypeValue<any, boolean>(obj, {
             whenUndefined: true,
             whenNull: true,
@@ -1093,14 +1117,14 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if the value is null, or its type is "object"; otherwise false.
      */
-    export function isObjectTypeOrNull(obj?: TDefined): obj is object|null { return typeof(obj) == "object"; }
+    export function isObjectTypeOrNull(obj?: TDefined): obj is Nullable<object> { return typeof(obj) == "object"; }
     
     /**
      * Determines whether a value is undefined, null, or its type is "object".
      * @param {*} obj Object to test.
      * @returns {boolean} True if the value is undefined, null, or its type is "object"; otherwise false.
      */
-    export function isObjectTypeOrNil(obj?: TDefined): obj is object|null|undefined { return typeof(obj) == "undefined" || typeof(obj) == "object"; }
+    export function isObjectTypeOrNil(obj?: TDefined): obj is Nilable<object> { return typeof(obj) == "undefined" || typeof(obj) == "object"; }
     
     /**
      * Determines whether a value is an object and it is not null.
@@ -1127,7 +1151,7 @@ export module JsTypeCommander {
      * @description As a type guard, this behaves the same as isNonArrayObjectOrNull() and isPlainObjectOrNull().
      * The difference is that this always returns true if the type is "object", even if the value is an actual Array.
      */
-    export function isObjectOrNull(obj?: TDefined): obj is IStringKeyedObject|null { return typeof(obj) == "object"; }
+    export function isObjectOrNull(obj?: TDefined): obj is Nullable<IStringKeyedObject> { return typeof(obj) == "object"; }
     
     /**
      * Determines whether a value undefined, null, or it is an object.
@@ -1136,7 +1160,7 @@ export module JsTypeCommander {
      * @description As a type guard, this behaves the same as isNonArrayObjectOrNil() and isPlainObjectOrNil().
      * The difference is that this always returns true if the type is "object", even if the value is an actual Array.
      */
-    export function isObjectOrNil(obj?: TDefined): obj is IStringKeyedObject|null|undefined { return typeof(obj) == "undefined" || typeof(obj) == "object"; }
+    export function isObjectOrNil(obj?: TDefined): obj is Nilable<IStringKeyedObject> { return typeof(obj) == "undefined" || typeof(obj) == "object"; }
     
     /**
      * Determines whether a value is an object, but not an array.
@@ -1171,7 +1195,7 @@ export module JsTypeCommander {
      * @description As a type guard, this behaves the same as isObjectOrNull() and isPlainObjectOrNull().
      * The difference is that this returns false if the value is an actual Array. Also, it will return true even if the value was not constructed directly from Object.
      */
-    export function isNonArrayObjectOrNull(obj?: TDefined): obj is IStringKeyedObject|null { return typeof(obj) == "object" && (obj === null || !Array.isArray(obj)); }
+    export function isNonArrayObjectOrNull(obj?: TDefined): obj is Nullable<IStringKeyedObject> { return typeof(obj) == "object" && (obj === null || !Array.isArray(obj)); }
     
     /**
      * Determines whether a value is an object, null or undefined, and not an array.
@@ -1180,7 +1204,7 @@ export module JsTypeCommander {
      * @description As a type guard, this behaves the same as isObjectOrNil() and isPlainObjectOrNil().
      * The difference is that this returns false if the value is an actual Array. Also, it will return true even if the value was not constructed directly from Object.
      */
-    export function isNonArrayObjectOrNil(obj?: TDefined): obj is IStringKeyedObject|null|undefined {
+    export function isNonArrayObjectOrNil(obj?: TDefined): obj is Nilable<IStringKeyedObject> {
         return mapByTypeValue<any, boolean>(obj, {
             whenUndefined: true,
             whenNull: true,
@@ -1228,7 +1252,7 @@ export module JsTypeCommander {
      * @description As a type guard, this behaves the same as isObjectOrNull() and isNonArrayObjectOrNull().
      * The difference is that this returns false if the value is not constructed directly from Object.
      */
-    export function isPlainObjectOrNull(obj?: TDefined): obj is IStringKeyedObject|null {
+    export function isPlainObjectOrNull(obj?: TDefined): obj is Nullable<IStringKeyedObject> {
         if (typeof(obj) != "object")
             return false;
         if (obj === null)
@@ -1244,7 +1268,7 @@ export module JsTypeCommander {
      * @description As a type guard, this behaves the same as isObjectOrNil() and isNonArrayObjectOrNil().
      * The difference is that this returns false if the value is not constructed directly from Object.
      */
-    export function isPlainObjectOrNil(obj?: TDefined): obj is IStringKeyedObject|null|undefined {
+    export function isPlainObjectOrNil(obj?: TDefined): obj is Nilable<IStringKeyedObject> {
         let t = typeof(obj);
         if (t == "undefined")
             return true;
@@ -1261,35 +1285,35 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an array; otherwise false.
      */
-    export function isArray(obj?: TDefined): obj is TAnythingAtAll[] { return isObject(obj) && Array.isArray(obj); }
+    export function isArray(obj?: TDefined): obj is AnyNilable[] { return isObject(obj) && Array.isArray(obj); }
     
     /**
      * Determines whether a value is an array or undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an array or undefined; otherwise false.
      */
-    export function isArrayIfDef(obj?: TDefined): obj is TAnythingAtAll[]|undefined { return typeof(obj) == "undefined" || isArray(obj); }
+    export function isArrayIfDef(obj?: TDefined): obj is AnyNilable[]|undefined { return typeof(obj) == "undefined" || isArray(obj); }
     
     /**
      * Determines whether a value is an array or null.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an array or null; otherwise false.
      */
-    export function isArrayOrNull(obj?: TDefined): obj is TAnythingAtAll[]|null { return typeof(obj) == "object" && (obj === null || Array.isArray(obj)); }
+    export function isArrayOrNull(obj?: TDefined): obj is Nullable<AnyNilable[]> { return typeof(obj) == "object" && (obj === null || Array.isArray(obj)); }
     
     /**
      * Determines whether a value is an array, null or undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an array, null or undefined; otherwise false.
      */
-    export function isArrayOrNil(obj?: TDefined): obj is TAnythingAtAll[]|null { return typeof(obj) == "undefined" || (typeof(obj) == "object" && (obj === null || Array.isArray(obj))); }
+    export function isArrayOrNil(obj?: TDefined): obj is Nilable<AnyNilable[]> { return typeof(obj) == "undefined" || (typeof(obj) == "object" && (obj === null || Array.isArray(obj))); }
     
     /**
      * Determines whether a value is an empty array.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty array; otherwise false.
      */
-    export function isEmptyArray(obj?: TDefined): obj is TAnythingAtAll[] {
+    export function isEmptyArray(obj?: TDefined): obj is AnyNilable[] {
         return mapByTypeValue<any, boolean>(obj, {
             whenArray: (a) => a.length == 0,
             otherwise: false
@@ -1301,7 +1325,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty array or undefined; otherwise false.
      */
-    export function isEmptyArrayIfDef(obj?: TDefined): obj is TAnythingAtAll[]|undefined {
+    export function isEmptyArrayIfDef(obj?: TDefined): obj is AnyNilable[]|undefined {
         return mapByTypeValue<any, boolean>(obj, {
             whenUndefined: true,
             whenArray: (a) => a.length == 0,
@@ -1314,7 +1338,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty array or null; otherwise false.
      */
-    export function isEmptyArrayOrNull(obj?: TDefined): obj is TAnythingAtAll[]|null {
+    export function isEmptyArrayOrNull(obj?: TDefined): obj is Nullable<AnyNilable[]> {
         return mapByTypeValue<any, boolean>(obj, {
             whenNull: true,
             whenArray: (a) => a.length == 0,
@@ -1327,7 +1351,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty array, null or undefined; otherwise false.
      */
-    export function isEmptyArrayOrNil(obj?: TDefined): obj is TAnythingAtAll[]|null {
+    export function isEmptyArrayOrNil(obj?: TDefined): obj is Nilable<AnyNilable[]> {
         return mapByTypeValue<any, boolean>(obj, {
             whenUndefined: true,
             whenNull: true,
@@ -1343,7 +1367,7 @@ export module JsTypeCommander {
      * @returns {boolean} True if the object has properties which indiciates it behaves like an array; otherwise false.
      * @see {@link https://github.com/Microsoft/TypeScript/blob/530d7e9358ee95d2101a619e73356867b617cd95/lib/lib.es5.d.ts}
      */
-    export function isArrayLike(obj?: TDefined, checkElements?: boolean): obj is ArrayLike<TAnythingAtAll> {
+    export function isArrayLike(obj?: TDefined, checkElements?: boolean): obj is ArrayLike<AnyNilable> {
         if (!isObject(obj))
             return false;
         if (Array.isArray(obj))
@@ -1370,7 +1394,7 @@ export module JsTypeCommander {
      * but can result in false positives for non-array objects which have a numeric "length" property.
      * @returns {boolean} True if the object has properties which indiciates it behaves like an array; otherwise false.
      */
-    export function isArrayLikeIfDef(obj?: TDefined, simpleCheck?: boolean): obj is ArrayLike<TAnythingAtAll>|undefined {
+    export function isArrayLikeIfDef(obj?: TDefined, simpleCheck?: boolean): obj is ArrayLike<AnyNilable>|undefined {
         return mapByTypeValue<any, boolean>(obj, {
             whenUndefined: true,
             whenArrayLike: true,
@@ -1386,7 +1410,7 @@ export module JsTypeCommander {
      * but can result in false positives for non-array objects which have a numeric "length" property.
      * @returns {boolean} True if the object has properties which indiciates it behaves like an array; otherwise false.
      */
-    export function isArrayLikeOrNull(obj?: TDefined, simpleCheck?: boolean): obj is ArrayLike<TAnythingAtAll>|null {
+    export function isArrayLikeOrNull(obj?: TDefined, simpleCheck?: boolean): obj is Nullable<ArrayLike<AnyNilable>> {
         return mapByTypeValue<any, boolean>(obj, {
             whenNull: true,
             whenArrayLike: true,
@@ -1402,7 +1426,7 @@ export module JsTypeCommander {
      * but can result in false positives for non-array objects which have a numeric "length" property.
      * @returns {boolean} True if the object has properties which indiciates it behaves like an array; otherwise false.
      */
-    export function isArrayLikeOrNil(obj?: TDefined, simpleCheck?: boolean): obj is ArrayLike<TAnythingAtAll>|null|undefined {
+    export function isArrayLikeOrNil(obj?: TDefined, simpleCheck?: boolean): obj is Nilable<ArrayLike<AnyNilable>> {
         return mapByTypeValue<any, boolean>(obj, {
             whenUndefined: true,
             whenNull: true,
@@ -1422,12 +1446,12 @@ export module JsTypeCommander {
      * If the object is Array-like, an array is returned with values taken from each of its indexed values.
      * Otherwise, an array with a single element containing the value is returned.
      */
-    export function toArray(obj?: TDefined, checkElements?: boolean): TAnythingAtAll[] {
+    export function toArray(obj?: TDefined, checkElements?: boolean): AnyNilable[] {
         if (isArray(obj))
             return obj;
         
         if (isArrayLike(obj, checkElements)) {
-            let result: TAnythingAtAll[] = [];
+            let result: AnyNilable[] = [];
             for (var i = 0; i < obj.length; i++)
                 result.push(obj[i]);
             return result;
@@ -1444,7 +1468,7 @@ export module JsTypeCommander {
      * @param {AnyFunction} classConstructor Constructor function to look for.
      * @returns {boolean} True if the value is determined to inherit from the specified class; otherwise false.
      */
-    export function derivesFrom<T>(obj?: TDefined, classConstructor?: { new(...args: TAnythingAtAll[]): T; }) : obj is T {
+    export function derivesFrom<T>(obj?: TDefined, classConstructor?: { new(...args: AnyNilable[]): T; }) : obj is T {
         if (notDefined(obj))
             return notDefined(classConstructor);
         if (notDefined(classConstructor))
@@ -1515,7 +1539,7 @@ export module JsTypeCommander {
      * @param {AnyFunction} classConstructor Constructor function to look for.
      * @returns {boolean} True if the value is not defined or if it is determined to inherit from the specified class; otherwise false.
      */
-    export function derivesFromIfDef<T>(obj?: TDefined, classConstructor?: { new(...args: TAnythingAtAll[]): T; }) : obj is T|undefined {
+    export function derivesFromIfDef<T>(obj?: TDefined, classConstructor?: { new(...args: AnyNilable[]): T; }) : obj is T|undefined {
         return typeof(obj) == "undefined" || derivesFrom<T>(obj, classConstructor);
     }
     
@@ -1525,7 +1549,7 @@ export module JsTypeCommander {
      * @param {AnyFunction} classConstructor Constructor function to look for.
      * @returns {boolean} True if the value is null or if it is determined to inherit from the specified class; otherwise false.
      */
-    export function derivesFromOrNull<T>(obj?: TDefined, classConstructor?: { new(...args: TAnythingAtAll[]): T; }) : obj is T|null {
+    export function derivesFromOrNull<T>(obj?: TDefined, classConstructor?: { new(...args: AnyNilable[]): T; }) : obj is Nullable<T> {
         return mapByTypeValue<any, boolean>(obj, {
             whenUndefined: false,
             whenNull: true,
@@ -1539,7 +1563,7 @@ export module JsTypeCommander {
      * @param {AnyFunction} classConstructor Constructor function to look for.
      * @returns {boolean} True if the value is null, not defined or if it is determined to inherit from the specified class; otherwise false.
      */
-    export function derivesFromOrNil<T>(obj?: TDefined, classConstructor?: { new(...args: TAnythingAtAll[]): T; }) : obj is T|null {
+    export function derivesFromOrNil<T>(obj?: TDefined, classConstructor?: { new(...args: AnyNilable[]): T; }) : obj is Nilable<T> {
         return mapByTypeValue<any, boolean>(obj, {
             whenUndefined: true,
             whenNull: true,
@@ -1574,7 +1598,7 @@ export module JsTypeCommander {
      * @returns {ErrorLike|null|undefined} Object with properties similar to an error objecst. If the object is null or emtpy, then the object is returned.
      * @description This can be useful for serializing error objects when logging.
      */
-    export function asErrorLike(obj?: TDefined): ErrorLike|null|undefined {
+    export function asErrorLike(obj?: TDefined): Nilable<ErrorLike> {
         if (isNil(obj))
             return obj;
         if (isErrorLike(obj)) {
@@ -1629,7 +1653,7 @@ export module JsTypeCommander {
      * });
      */
     export interface RecursiveMapCallbackFn {
-        (current: TAnythingAtAll, key: number|string|undefined, source: TAnythingAtAll[]|IStringKeyedObject|undefined, target: TAnythingAtAll[]|IStringKeyedObject|undefined): TAnythingAtAll;
+        (current: AnyNilable, key: number|string|undefined, source: AnyNilable[]|IStringKeyedObject|undefined, target: AnyNilable[]|IStringKeyedObject|undefined): AnyNilable;
     }
     class limitingIterator implements MapIntoOptions {
         callbackfn: RecursiveMapCallbackFn;
@@ -1649,8 +1673,8 @@ export module JsTypeCommander {
             }
         }
     
-        iterateInto(maxDepth: number, current: TAnythingAtAll, key: number|string|undefined, source: TAnythingAtAll[]|IStringKeyedObject|undefined,
-                target: TAnythingAtAll[]|IStringKeyedObject|undefined): TAnythingAtAll {
+        iterateInto(maxDepth: number, current: AnyNilable, key: number|string|undefined, source: AnyNilable[]|IStringKeyedObject|undefined,
+                target: AnyNilable[]|IStringKeyedObject|undefined): AnyNilable {
             this.currentTotalItems++;
             target = (isNil(this.thisObj)) ? this.callbackfn(current, key, source, target) : this.callbackfn.call(this.thisObj, current, key);
             if (maxDepth < 1 || this.currentTotalItems >= this.totalMaxItems || !isObject(target) || !isObject(source))
