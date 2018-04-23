@@ -456,7 +456,7 @@ export module JsTypeCommander {
     }
     
     /**
-     * Determesin whether an object is undefined.
+     * Determines whether an object is undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is undefined; otherwise, false.
      */
@@ -474,7 +474,7 @@ export module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is null; otherwise false (not defined or not null).
      */
-    export function isNull(obj?: TDefined): obj is null|undefined { return typeof(obj) == "object" && obj === null; }
+    export function isNull(obj?: TDefined): obj is null { return typeof(obj) == "object" && obj === null; }
     
     /**
      * Determines whether a value is a string.
@@ -1464,7 +1464,7 @@ export module JsTypeCommander {
     
     /**
      * Searches the value's inherited prototype chain for a matching constructor function.
-     * @param value Value to test.
+     * @param obj Value to test.
      * @param {AnyFunction} classConstructor Constructor function to look for.
      * @returns {boolean} True if the value is determined to inherit from the specified class; otherwise false.
      */

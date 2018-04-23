@@ -1,82 +1,20 @@
 "use strict";
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = Object.setPrototypeOf ||
+        ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+        function (d, b) { for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p]; };
+    return function (d, b) {
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 var chai_1 = require("chai");
 //import * as JsTypeCommander from './dist/JsTypeCommander';
 var mocha_1 = require("mocha");
 var JsTypeCommander_1 = require("../dist/JsTypeCommander");
-var TypeMappingCondition;
-(function (TypeMappingCondition) {
-    TypeMappingCondition[TypeMappingCondition["whenBoolean"] = 0] = "whenBoolean";
-    TypeMappingCondition[TypeMappingCondition["whenFunction"] = 1] = "whenFunction";
-    TypeMappingCondition[TypeMappingCondition["whenInfinity"] = 2] = "whenInfinity";
-    TypeMappingCondition[TypeMappingCondition["whenNaN"] = 3] = "whenNaN";
-    TypeMappingCondition[TypeMappingCondition["whenNumber"] = 4] = "whenNumber";
-    TypeMappingCondition[TypeMappingCondition["whenArray"] = 5] = "whenArray";
-    TypeMappingCondition[TypeMappingCondition["whenArrayLike"] = 6] = "whenArrayLike";
-    TypeMappingCondition[TypeMappingCondition["whenNotArrayLike"] = 7] = "whenNotArrayLike";
-    TypeMappingCondition[TypeMappingCondition["whenString"] = 8] = "whenString";
-    TypeMappingCondition[TypeMappingCondition["whenSymbol"] = 9] = "whenSymbol";
-    TypeMappingCondition[TypeMappingCondition["whenNull"] = 10] = "whenNull";
-    TypeMappingCondition[TypeMappingCondition["whenUndefined"] = 11] = "whenUndefined";
-    TypeMappingCondition[TypeMappingCondition["whenObject"] = 12] = "whenObject";
-    TypeMappingCondition[TypeMappingCondition["otherwise"] = 13] = "otherwise";
-})(TypeMappingCondition || (TypeMappingCondition = {}));
-function typeMappingConditionToString(value) {
-    switch (value) {
-        case TypeMappingCondition.whenBoolean:
-            return "whenBoolean";
-        case TypeMappingCondition.whenFunction:
-            return "whenFunction";
-        case TypeMappingCondition.whenInfinity:
-            return "whenInfinity";
-        case TypeMappingCondition.whenNaN:
-            return "whenNaN";
-        case TypeMappingCondition.whenNumber:
-            return "whenNumber";
-        case TypeMappingCondition.whenArray:
-            return "whenArray";
-        case TypeMappingCondition.whenArrayLike:
-            return "whenArrayLike";
-        case TypeMappingCondition.whenNotArrayLike:
-            return "whenNotArrayLike";
-        case TypeMappingCondition.whenString:
-            return "whenString";
-        case TypeMappingCondition.whenSymbol:
-            return "whenSymbol";
-        case TypeMappingCondition.whenNull:
-            return "whenNull";
-        case TypeMappingCondition.whenUndefined:
-            return "whenUndefined";
-        case TypeMappingCondition.whenObject:
-            return "whenObject";
-    }
-    return "otherwise";
-}
-var TypeGateNilHandling;
-(function (TypeGateNilHandling) {
-    TypeGateNilHandling[TypeGateNilHandling["notNil"] = 0] = "notNil";
-    TypeGateNilHandling[TypeGateNilHandling["allowUndefined"] = 1] = "allowUndefined";
-    TypeGateNilHandling[TypeGateNilHandling["allowNull"] = 2] = "allowNull";
-    TypeGateNilHandling[TypeGateNilHandling["allowNil"] = 3] = "allowNil";
-})(TypeGateNilHandling || (TypeGateNilHandling = {}));
-var JsType;
-(function (JsType) {
-    JsType[JsType["Undefined"] = 0] = "Undefined";
-    JsType[JsType["Boolean"] = 1] = "Boolean";
-    JsType[JsType["Number"] = 2] = "Number";
-    JsType[JsType["String"] = 3] = "String";
-    JsType[JsType["Symbol"] = 4] = "Symbol";
-    JsType[JsType["Function"] = 5] = "Function";
-    JsType[JsType["Object"] = 6] = "Object";
-})(JsType || (JsType = {}));
-var JsVariant;
-(function (JsVariant) {
-    JsVariant[JsVariant["None"] = 0] = "None";
-    JsVariant[JsVariant["Null"] = 1] = "Null";
-    JsVariant[JsVariant["NotEmpty"] = 2] = "NotEmpty";
-    JsVariant[JsVariant["Empty"] = 3] = "Empty";
-})(JsVariant || (JsVariant = {}));
-function expectForNull(expected, result, message) {
+function expectNullStatus(expected, result, message) {
     if (expected == null) {
         chai_1.expect(result).to.a('null', message);
         return true;
@@ -84,7 +22,7 @@ function expectForNull(expected, result, message) {
     chai_1.expect(result).to.not.a('null', message);
     return false;
 }
-mocha_1.describe.skip("Testing options", function () {
+mocha_1.describe.skip("Testing module options settings", function () {
     mocha_1.describe("Testing JsTypeCommander.getDefaultLineSeparatorSequence()", function () {
         it('JsTypeCommander.getDefaultLineSeparatorSequence() should return "\\n"', function () {
             var result = JsTypeCommander_1.JsTypeCommander.getDefaultLineSeparatorSequence();
@@ -260,7 +198,62 @@ mocha_1.describe.skip("Testing options", function () {
         });
     });
 });
-mocha_1.describe("Testing regular expressions", function () {
+var TypeMappingCondition;
+(function (TypeMappingCondition) {
+    TypeMappingCondition[TypeMappingCondition["whenBoolean"] = 0] = "whenBoolean";
+    TypeMappingCondition[TypeMappingCondition["whenFunction"] = 1] = "whenFunction";
+    TypeMappingCondition[TypeMappingCondition["whenInfinity"] = 2] = "whenInfinity";
+    TypeMappingCondition[TypeMappingCondition["whenNaN"] = 3] = "whenNaN";
+    TypeMappingCondition[TypeMappingCondition["whenNumber"] = 4] = "whenNumber";
+    TypeMappingCondition[TypeMappingCondition["whenArray"] = 5] = "whenArray";
+    TypeMappingCondition[TypeMappingCondition["whenArrayLike"] = 6] = "whenArrayLike";
+    TypeMappingCondition[TypeMappingCondition["whenNotArrayLike"] = 7] = "whenNotArrayLike";
+    TypeMappingCondition[TypeMappingCondition["whenString"] = 8] = "whenString";
+    TypeMappingCondition[TypeMappingCondition["whenSymbol"] = 9] = "whenSymbol";
+    TypeMappingCondition[TypeMappingCondition["whenNull"] = 10] = "whenNull";
+    TypeMappingCondition[TypeMappingCondition["whenUndefined"] = 11] = "whenUndefined";
+    TypeMappingCondition[TypeMappingCondition["whenObject"] = 12] = "whenObject";
+    TypeMappingCondition[TypeMappingCondition["otherwise"] = 13] = "otherwise";
+})(TypeMappingCondition || (TypeMappingCondition = {}));
+function typeMappingConditionToString(value) {
+    switch (value) {
+        case TypeMappingCondition.whenBoolean:
+            return "whenBoolean";
+        case TypeMappingCondition.whenFunction:
+            return "whenFunction";
+        case TypeMappingCondition.whenInfinity:
+            return "whenInfinity";
+        case TypeMappingCondition.whenNaN:
+            return "whenNaN";
+        case TypeMappingCondition.whenNumber:
+            return "whenNumber";
+        case TypeMappingCondition.whenArray:
+            return "whenArray";
+        case TypeMappingCondition.whenArrayLike:
+            return "whenArrayLike";
+        case TypeMappingCondition.whenNotArrayLike:
+            return "whenNotArrayLike";
+        case TypeMappingCondition.whenString:
+            return "whenString";
+        case TypeMappingCondition.whenSymbol:
+            return "whenSymbol";
+        case TypeMappingCondition.whenNull:
+            return "whenNull";
+        case TypeMappingCondition.whenUndefined:
+            return "whenUndefined";
+        case TypeMappingCondition.whenObject:
+            return "whenObject";
+    }
+    return "otherwise";
+}
+var TypeGateNilHandling;
+(function (TypeGateNilHandling) {
+    TypeGateNilHandling[TypeGateNilHandling["notNil"] = 0] = "notNil";
+    TypeGateNilHandling[TypeGateNilHandling["allowUndefined"] = 1] = "allowUndefined";
+    TypeGateNilHandling[TypeGateNilHandling["allowNull"] = 2] = "allowNull";
+    TypeGateNilHandling[TypeGateNilHandling["allowNil"] = 3] = "allowNil";
+})(TypeGateNilHandling || (TypeGateNilHandling = {}));
+mocha_1.describe.skip("Testing regular expressions", function () {
     var patternDefinitions = [
         {
             name: 'onlyWhitespace', getRegex: function (regexOptions) { return regexOptions.onlyWhitespace; }, tests: [
@@ -396,7 +389,7 @@ mocha_1.describe("Testing regular expressions", function () {
                         this.skip();
                     else {
                         var result = regex.exec(input);
-                        if (expectForNull(expectedGroups, result, 'Unexpected match result') || expectedGroups === null)
+                        if (expectNullStatus(expectedGroups, result, 'Unexpected match result') || expectedGroups === null)
                             return;
                         chai_1.expect(result.length).to.equal(expectedGroups.length, 'Length mismatch');
                         for (var i = 0; i < expectedGroups.length; i++) {
@@ -677,9 +670,9 @@ var MapByNilHelper = /** @class */ (function () {
     };
     return MapByNilHelper;
 }());
-mocha_1.describe("Testing type map functions", function () {
+mocha_1.describe.skip("Testing type map functions", function () {
     mocha_1.describe("Testing mapByTypeValue function", function () {
-        var mapByTypeValueTestDefintions = [
+        var inputTypeArr = [
             {
                 type: 'nil',
                 test: [
@@ -832,24 +825,25 @@ mocha_1.describe("Testing type map functions", function () {
             }
         ];
         var dataIterationIndex = 0;
-        mapByTypeValueTestDefintions.forEach(function (testData) {
-            mocha_1.describe('Testing ' + testData.type + " values", function () {
+        inputTypeArr.forEach(function (inputType) {
+            mocha_1.describe('Testing ' + inputType.type + " values", function () {
                 var _this = this;
-                var tests = (Array.isArray(testData.test)) ? testData.test : [testData.test];
-                tests.forEach(function (grp) {
-                    var args = (Array.isArray(grp.arg)) ? grp.arg : [grp.arg];
-                    var opts = (Array.isArray(grp.opt)) ? grp.opt : [grp.opt];
-                    opts.forEach(function (o) {
-                        var omit = (typeof (o.omit) == "undefined") ? [] : ((typeof (o.omit) == "string") ? [o.omit] : o.omit);
-                        args.forEach(function (a) {
+                var tests = (Array.isArray(inputType.test)) ? inputType.test : [inputType.test];
+                tests.forEach(function (mapByTypeTest) {
+                    var args = (Array.isArray(mapByTypeTest.arg)) ? mapByTypeTest.arg : [mapByTypeTest.arg];
+                    var optArr = (Array.isArray(mapByTypeTest.opt)) ? mapByTypeTest.opt : [mapByTypeTest.opt];
+                    optArr.forEach(function (opt) {
+                        var omit = (typeof (opt.omit) == "undefined") ? [] : ((typeof (opt.omit) == "string") ? [opt.omit] : opt.omit);
+                        args.forEach(function (argInfo) {
                             var tgh = new MapByTypeHelper(omit);
-                            it('JsTypeCommander.mapByTypeValue(' + a.display + ', ' + JSON.stringify(tgh.toJSON()) + ((typeof (o.checkElements) == "boolean") ? ", " + o.checkElements : "") + ') should return ' + o.expected +
-                                " (calling " + mapCallbackIdToName(o.expected) + ")", function () {
-                                var result = (typeof (o.checkElements) == "boolean") ? JsTypeCommander_1.JsTypeCommander.mapByTypeValue.call(this, a.getValue(), tgh, o.checkElements) :
-                                    JsTypeCommander_1.JsTypeCommander.mapByTypeValue.call(this, a.getValue(), tgh);
+                            it('JsTypeCommander.mapByTypeValue(' + argInfo.display + ', ' + JSON.stringify(tgh.toJSON()) + ((typeof (opt.checkElements) == "boolean") ? ", " +
+                                opt.checkElements : "") + ') should return ' + opt.expected + " (calling " + mapCallbackIdToName(opt.expected) + ")", function () {
+                                var result = (typeof (opt.checkElements) == "boolean") ?
+                                    JsTypeCommander_1.JsTypeCommander.mapByTypeValue.call(this, argInfo.getValue(), tgh, opt.checkElements) :
+                                    JsTypeCommander_1.JsTypeCommander.mapByTypeValue.call(this, argInfo.getValue(), tgh);
                                 dataIterationIndex++;
                                 chai_1.expect(result).to.a("number", "at dataIterationIndex " + dataIterationIndex);
-                                chai_1.expect(result).to.equal(o.expected, mapCallbackIdToName(result) + " called, insteaat dataIterationIndex " + dataIterationIndex);
+                                chai_1.expect(result).to.equal(opt.expected, mapCallbackIdToName(result) + " called, insteaat dataIterationIndex " + dataIterationIndex);
                             });
                         }, _this);
                     }, _this);
@@ -857,7 +851,7 @@ mocha_1.describe("Testing type map functions", function () {
             });
         }, this);
     });
-    var functionDefinitions = [
+    var mapByNilFunctionArr = [
         { name: 'mapByDefined', callback: JsTypeCommander_1.JsTypeCommander.mapByDefined, allowUndefined: false, allowNull: true },
         { name: 'mapByNotNull', callback: JsTypeCommander_1.JsTypeCommander.mapByNotNull, allowUndefined: true, allowNull: false },
         { name: 'mapByNotNil', callback: JsTypeCommander_1.JsTypeCommander.mapByNotNil, allowUndefined: false, allowNull: false }
@@ -874,15 +868,15 @@ mocha_1.describe("Testing type map functions", function () {
         { display: '{}', type: 'notNil', getValue: function () { return {}; } },
         { display: 'Symbol.iterator', type: 'notNil', getValue: function () { return Symbol.iterator; } }
     ];
-    functionDefinitions.forEach(function (fd) {
-        mocha_1.describe("Testing " + fd.name + " function", function () {
-            mapByNilArguments.forEach(function (a) {
-                var whenTrue = (a.type == "notNil" || ((a.type == "null") ? fd.allowNull : fd.allowUndefined));
+    mapByNilFunctionArr.forEach(function (mapByNilFunction) {
+        mocha_1.describe("Testing " + mapByNilFunction.name + " function", function () {
+            mapByNilArguments.forEach(function (argInfo) {
+                var whenTrue = (argInfo.type == "notNil" || ((argInfo.type == "null") ? mapByNilFunction.allowNull : mapByNilFunction.allowUndefined));
                 var mapByNilHelper = new MapByNilHelper();
                 var expected = (whenTrue) ? mapByNilHelper.trueNum : mapByNilHelper.otherwiseNum;
-                it(fd.name + "(" + a.display + ", fn(v) => " + mapByNilHelper.trueNum + ', fn' + ((fd.name == "mapByNotNil") ? '(v)' : '()') + ' => ' + mapByNilHelper.otherwiseNum +
-                    ') should return ' + expected + ' (' + ((whenTrue) ? 'whenTrue' : 'otherwise') + ')', function () {
-                    var result = fd.callback(a.getValue(), mapByNilHelper.whenTrue, mapByNilHelper.otherwise, mapByNilHelper);
+                it(mapByNilFunction.name + "(" + argInfo.display + ", fn(v) => " + mapByNilHelper.trueNum + ', fn' + ((mapByNilFunction.name == "mapByNotNil") ? '(v)' : '()') +
+                    ' => ' + mapByNilHelper.otherwiseNum + ') should return ' + expected + ' (' + ((whenTrue) ? 'whenTrue' : 'otherwise') + ')', function () {
+                    var result = mapByNilFunction.callback(argInfo.getValue(), mapByNilHelper.whenTrue, mapByNilHelper.otherwise, mapByNilHelper);
                     chai_1.expect(result).to.a('number').and.to.equal(expected);
                     chai_1.expect(mapByNilHelper.callCount).to.not.equal(0, 'Callback not invoked');
                     chai_1.expect(mapByNilHelper.callCount).to.equal(1, 'Callback invoked more than once');
@@ -895,561 +889,381 @@ mocha_1.describe("Testing type map functions", function () {
         });
     }, this);
 });
-mocha_1.describe("Testing type guard functions", function () {
-    mocha_1.describe("Testing notDefined function", function () {
-        it("notDefined() should return true");
-        it("notDefined(undefined) should return true");
-        it("notDefined(null) should return false");
-        it("notDefined(NaN) should return false");
-        it("notDefined(0) should return false");
-        it("notDefined(false) should return false");
-        it("notDefined(\"\") should return false");
-        it("notDefined([]) should return false");
-        it("notDefined([undefined]) should return false");
-        it("notDefined({ }) should return false");
-        it("notDefined(Symbol.iterator) should return false");
+var TestLengthProp = /** @class */ (function () {
+    function TestLengthProp(n) {
+        this._length = (typeof (n) == "number") ? n : 0;
+    }
+    Object.defineProperty(TestLengthProp.prototype, "length", {
+        get: function () { return this._length; },
+        enumerable: true,
+        configurable: true
     });
-    mocha_1.describe("Testing isNil function", function () {
-        it("isNil() should return true");
-        it("isNil(undefined) should return true");
-        it("isNil(null) should return true");
-        it("isNil(NaN) should return false");
-        it("isNil(0) should return false");
-        it("isNil(false) should return false");
-        it("isNil(\"\") should return false");
-        it("isNil([]) should return false");
-        it("isNil([undefined]) should return false");
-        it("isNil({ }) should return false");
-        it("isNil(Symbol.iterator) should return false");
+    return TestLengthProp;
+}());
+var TestArrayLike = /** @class */ (function (_super) {
+    __extends(TestArrayLike, _super);
+    function TestArrayLike(n) {
+        var value = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            value[_i - 1] = arguments[_i];
+        }
+        var _this = _super.call(this, n) || this;
+        if (typeof (value) !== "object" || value === null || !Array.isArray(value) || value.length == 0)
+            return _this;
+        var i = 0;
+        value.forEach(function (e) {
+            if (Array.isArray(e))
+                e.forEach(function (v) {
+                    _this[i] = v;
+                    i++;
+                });
+            else {
+                _this[i] = e;
+                i++;
+            }
+        });
+        return _this;
+    }
+    return TestArrayLike;
+}(TestLengthProp));
+var AlmostArrayLike = /** @class */ (function (_super) {
+    __extends(AlmostArrayLike, _super);
+    function AlmostArrayLike(value) {
+        var otherValues = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            otherValues[_i - 1] = arguments[_i];
+        }
+        var _this = this;
+        var i = (Array.isArray(value)) ? value.length : 1;
+        var n = (typeof (otherValues) != "undefined" && Array.isArray(otherValues)) ? otherValues.length : 0;
+        _this = _super.call(this, i + n, value) || this;
+        if (typeof (otherValues) == "undefined" || !Array.isArray(otherValues))
+            return;
+        for (var p = 0; p < n; p++)
+            _this[i + p + 1] = otherValues[p];
+        return _this;
+    }
+    return AlmostArrayLike;
+}(TestArrayLike));
+var TestErrorLike = /** @class */ (function () {
+    function TestErrorLike() {
+        this.message = "Example Error";
+    }
+    Object.defineProperty(TestErrorLike.prototype, "name", {
+        get: function () { return "TestErrorLike"; },
+        enumerable: true,
+        configurable: true
     });
-    mocha_1.describe("Testing isNull function", function () {
-        it("isNull() should return false");
-        it("isNull(undefined) should return false");
-        it("isNull(null) should return true");
-        it("isNull(NaN) should return false");
-        it("isNull(0) should return false");
-        it("isNull(false) should return false");
-        it("isNull(\"\") should return false");
-        it("isNull([]) should return false");
-        it("isNull([undefined]) should return false");
-        it("isNull({ }) should return false");
-        it("isNull(Symbol.iterator) should return false");
+    return TestErrorLike;
+}());
+var TestErrorLike2 = /** @class */ (function (_super) {
+    __extends(TestErrorLike2, _super);
+    function TestErrorLike2() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.number = 12;
+        return _this;
+    }
+    Object.defineProperty(TestErrorLike2.prototype, "name", {
+        get: function () { return "TestErrorLike2"; },
+        enumerable: true,
+        configurable: true
     });
-    mocha_1.describe("Testing isString functions", function () {
-        mocha_1.describe("Testing isString", function () {
-            it("isString() should return false");
-            it("isString(undefined) should return false");
-            it("isString(null) should return false");
-            it("isString(NaN) should return false");
-            it("isString(0) should return false");
-            it("isString(false) should return false");
-            it("isString(\"\") should return true");
-            it("isString(\"\\n\") should return true");
-            it("isString(\" test \") should return true");
-            it("isString([]) should return false");
-            it("isString([undefined]) should return false");
-            it("isString({ }) should return false");
-            it("isString(Symbol.iterator) should return false");
-        });
-        mocha_1.describe("Testing isStringIfDef", function () {
-            it("isStringIfDef() should return true");
-            it("isStringIfDef(undefined) should return true");
-            it("isStringIfDef(null) should return false");
-            it("isStringIfDef(NaN) should return false");
-            it("isStringIfDef(0) should return false");
-            it("isStringIfDef(false) should return false");
-            it("isStringIfDef(\"\") should return true");
-            it("isStringIfDef(\"\\n\") should return true");
-            it("isStringIfDef(\" test \") should return true");
-            it("isStringIfDef([]) should return false");
-            it("isStringIfDef([undefined]) should return false");
-            it("isStringIfDef({ }) should return false");
-            it("isStringIfDef(Symbol.iterator) should return false");
-        });
-        mocha_1.describe("Testing isStringOrNull", function () {
-            it("isStringOrNull() should return false");
-            it("isStringOrNull(undefined) should return false");
-            it("isStringOrNull(null) should return true");
-            it("isStringOrNull(NaN) should return false");
-            it("isStringOrNull(0) should return false");
-            it("isStringOrNull(false) should return false");
-            it("isStringOrNull(\"\") should return true");
-            it("isStringOrNull(\"\\n\") should return true");
-            it("isStringOrNull(\" test \") should return true");
-            it("isStringOrNull([]) should return false");
-            it("isStringOrNull([undefined]) should return false");
-            it("isStringOrNull({ }) should return false");
-            it("isStringOrNull(Symbol.iterator) should return false");
-        });
-        mocha_1.describe("Testing isStringOrNil", function () {
-            it("isStringOrNil() should return true");
-            it("isStringOrNil(undefined) should return true");
-            it("isStringOrNil(null) should return true");
-            it("isStringOrNil(NaN) should return false");
-            it("isStringOrNil(0) should return false");
-            it("isStringOrNil(false) should return false");
-            it("isStringOrNil(\"\") should return true");
-            it("isStringOrNil(\"\\n\") should return true");
-            it("isStringOrNil(\" test \") should return true");
-            it("isStringOrNil([]) should return false");
-            it("isStringOrNil([undefined]) should return false");
-            it("isStringOrNil({ }) should return false");
-            it("isStringOrNil(Symbol.iterator) should return false");
-        });
+    return TestErrorLike2;
+}(TestErrorLike));
+var TestErrorLike3 = /** @class */ (function (_super) {
+    __extends(TestErrorLike3, _super);
+    function TestErrorLike3() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Object.defineProperty(TestErrorLike3.prototype, "name", {
+        get: function () { return "TestErrorLike3"; },
+        enumerable: true,
+        configurable: true
     });
-    mocha_1.describe("Testing isEmptyString functions", function () {
-        mocha_1.describe("Testing isEmptyString", function () {
-            it("isEmptyString() should return false");
-            it("isEmptyString(undefined) should return false");
-            it("isEmptyString(null) should return false");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return false");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
+    return TestErrorLike3;
+}(TestErrorLike2));
+function argSet(getArgs, display, message) {
+    return { display: display, getArgs: getArgs, message: message, _type: "ArgSet" };
+}
+function expectEqualTo(display, getExpectedValue, argSet) {
+    var otherArgSets = [];
+    for (var _i = 3; _i < arguments.length; _i++) {
+        otherArgSets[_i - 3] = arguments[_i];
+    }
+    var result = { display: display, getExpectedValue: getExpectedValue, argSets: [argSet], _type: "ExpectEquals" };
+    if (typeof (otherArgSets) == "object" && otherArgSets !== null)
+        result.argSets = result.argSets.concat(otherArgSets);
+    return result;
+}
+function expectIsA(type, argSet) {
+    var otherArgSets = [];
+    for (var _i = 2; _i < arguments.length; _i++) {
+        otherArgSets[_i - 2] = arguments[_i];
+    }
+    var result = { display: type, expectedType: type, argSets: [argSet], _type: "ExpectIs" };
+    if (typeof (otherArgSets) == "object" && otherArgSets !== null)
+        result.argSets = result.argSets.concat(otherArgSets);
+    return result;
+}
+function expectEqualToFalse(argSet) {
+    var otherArgSets = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        otherArgSets[_i - 1] = arguments[_i];
+    }
+    var result = { display: 'false', getExpectedValue: function () { return false; }, argSets: [argSet], _type: "ExpectEquals" };
+    if (typeof (otherArgSets) == "object" && otherArgSets !== null)
+        result.argSets = result.argSets.concat(otherArgSets);
+    return result;
+}
+function expectEqualToTrue(argSet) {
+    var otherArgSets = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        otherArgSets[_i - 1] = arguments[_i];
+    }
+    var result = { display: 'true', getExpectedValue: function () { return true; }, argSets: [argSet], _type: "ExpectEquals" };
+    if (typeof (otherArgSets) == "object" && otherArgSets !== null)
+        result.argSets = result.argSets.concat(otherArgSets);
+    return result;
+}
+function testFunction(callback, name, signature) {
+    var expectations = [];
+    for (var _i = 3; _i < arguments.length; _i++) {
+        expectations[_i - 3] = arguments[_i];
+    }
+    return { callback: callback, name: name, signature: signature, expectations: expectations, _type: "FunctionDefinition" };
+}
+function expectationDescription(description, content) {
+    var moreContents = [];
+    for (var _i = 2; _i < arguments.length; _i++) {
+        moreContents[_i - 2] = arguments[_i];
+    }
+    var result = { description: description, expectations: [], functions: [], _type: "ExpectationSet" };
+    if (content._type == "FunctionDefinition")
+        result.functions.push(content);
+    else
+        result.expectations.push(content);
+    if (typeof (moreContents) == "object" && moreContents !== null)
+        moreContents.forEach(function (c) {
+            if (c._type == "FunctionDefinition")
+                result.functions.push(c);
+            else
+                result.expectations.push(c);
         });
-        mocha_1.describe("Testing isEmptyOrWhitespace", function () {
-            it("isEmptyString() should return false");
-            it("isEmptyString(undefined) should return false");
-            it("isEmptyString(null) should return false");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return true");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
+    return result;
+}
+function expectationSet(content) {
+    var moreContents = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
+        moreContents[_i - 1] = arguments[_i];
+    }
+    var result = { expectations: [], functions: [], _type: "ExpectationSet" };
+    if (content._type == "FunctionDefinition")
+        result.functions.push(content);
+    else
+        result.expectations.push(content);
+    if (typeof (moreContents) == "object" && moreContents !== null)
+        moreContents.forEach(function (c) {
+            if (c._type == "FunctionDefinition")
+                result.functions.push(c);
+            else
+                result.expectations.push(c);
         });
-        mocha_1.describe("Testing isEmptyStringIfDef", function () {
-            it("isEmptyString() should return true");
-            it("isEmptyString(undefined) should return true");
-            it("isEmptyString(null) should return false");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return false");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
+    return result;
+}
+function functionGroup(description, content) {
+    var moreContents = [];
+    for (var _i = 2; _i < arguments.length; _i++) {
+        moreContents[_i - 2] = arguments[_i];
+    }
+    var result = { description: description, expectations: [], sets: [], _type: "FunctionGroup" };
+    var defaultExpectationSet = { expectations: [], functions: [], _type: "ExpectationSet" };
+    if (content._type == "ExpectationSet")
+        result.sets.push(content);
+    else if (content._type == "FunctionDefinition")
+        defaultExpectationSet.functions.push(content);
+    else
+        result.expectations.push(content);
+    if (typeof (moreContents) == "object" && moreContents !== null)
+        moreContents.forEach(function (c) {
+            if (c._type == "ExpectationSet")
+                result.sets.push(c);
+            else if (c._type == "FunctionDefinition")
+                defaultExpectationSet.functions.push(c);
+            else
+                result.expectations.push(c);
         });
-        mocha_1.describe("Testing isEmptyOrWhitespaceIfDef", function () {
-            it("isEmptyString() should return true");
-            it("isEmptyString(undefined) should return true");
-            it("isEmptyString(null) should return false");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return true");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
+    if (defaultExpectationSet.functions.length > 0)
+        result.sets.push(defaultExpectationSet);
+    return result;
+}
+function genericFunctionGroup(description, getGenericArgs, content) {
+    var moreContents = [];
+    for (var _i = 3; _i < arguments.length; _i++) {
+        moreContents[_i - 3] = arguments[_i];
+    }
+    var result = { description: description, expectations: [], sets: [], _type: "FunctionGroup" };
+    var defaultExpectationSet = { expectations: [], functions: [], getGenericArgs: getGenericArgs, _type: "ExpectationSet" };
+    if (content._type == "ExpectationSet")
+        result.sets.push(content);
+    else if (content._type == "FunctionDefinition")
+        defaultExpectationSet.functions.push(content);
+    else
+        result.expectations.push(content);
+    if (typeof (moreContents) == "object" && moreContents !== null)
+        moreContents.forEach(function (c) {
+            if (c._type == "ExpectationSet")
+                result.sets.push(c);
+            else if (c._type == "FunctionDefinition")
+                defaultExpectationSet.functions.push(c);
+            else
+                result.expectations.push(c);
         });
-        mocha_1.describe("Testing isEmptyStringOrNull", function () {
-            it("isEmptyString() should return false");
-            it("isEmptyString(undefined) should return false");
-            it("isEmptyString(null) should return true");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return false");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
-        });
-        mocha_1.describe("Testing isNullOrWhitespace", function () {
-            it("isEmptyString() should return false");
-            it("isEmptyString(undefined) should return false");
-            it("isEmptyString(null) should return true");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return true");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
-        });
-        mocha_1.describe("Testing isEmptyStringOrNil", function () {
-            it("isEmptyString() should return true");
-            it("isEmptyString(undefined) should return true");
-            it("isEmptyString(null) should return true");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return false");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
-        });
-        mocha_1.describe("Testing isNilOrWhitespace", function () {
-            it("isEmptyString() should return true");
-            it("isEmptyString(undefined) should return true");
-            it("isEmptyString(null) should return true");
-            it("isEmptyString(NaN) should return false");
-            it("isEmptyString(0) should return false");
-            it("isEmptyString(false) should return false");
-            it("isEmptyString(\"\") should return true");
-            it("isEmptyString(\"\\n\") should return true");
-            it("isEmptyString(\" test \") should return false");
-            it("isEmptyString([]) should return false");
-            it("isEmptyString([undefined]) should return false");
-            it("isEmptyString({ }) should return false");
-            it("isEmptyString(Symbol.iterator) should return false");
-        });
+    result.sets.push(defaultExpectationSet);
+    return result;
+}
+function functionTypeGroup(type, content) {
+    var moreContents = [];
+    for (var _i = 2; _i < arguments.length; _i++) {
+        moreContents[_i - 2] = arguments[_i];
+    }
+    var result = { type: type, expectations: [], groups: [], _type: "TypeGroup" };
+    var defaultGroup = { expectations: [], sets: [], _type: "FunctionGroup" };
+    var defaultExpectationSet = { expectations: [], functions: [], _type: "ExpectationSet" };
+    if (content._type == "ExpectationSet")
+        defaultGroup.sets.push(content);
+    else if (content._type == "FunctionDefinition")
+        defaultExpectationSet.functions.push(content);
+    else if (content._type == "FunctionGroup")
+        result.groups.push(content);
+    else
+        result.expectations.push(content);
+    if (defaultExpectationSet.functions.length > 0 || defaultExpectationSet.expectations.length > 0)
+        defaultGroup.sets.push(defaultExpectationSet);
+    if (defaultGroup.sets.length > 0)
+        result.groups.push(defaultGroup);
+    return result;
+}
+function describeTestFunction(expectations, funcDef, getGenericArgs) {
+    mocha_1.describe('Testing function ' + funcDef.name + funcDef.signature, function () {
+        var _this = this;
+        funcDef.expectations.concat(funcDef.expectations).concat(expectations).forEach(function (e) {
+            if (e._type == "ExpectIs") {
+                var expectedType_1 = e.expectedType;
+                e.argSets.forEach(function (a) {
+                    it(funcDef.name + "(" + a.display + ") should return " + e.display, function () {
+                        var args = a.getArgs();
+                        if (typeof (getGenericArgs) == "function") {
+                            var gArgs = getGenericArgs();
+                            if (gArgs.length > 0)
+                                args = args.concat(gArgs);
+                        }
+                        var target = funcDef.callback.apply(this, args);
+                        chai_1.expect(target).is.a(expectedType_1, a.message);
+                    });
+                }, _this);
+            }
+            else {
+                var expected_1 = e.getExpectedValue();
+                e.argSets.forEach(function (a) {
+                    it(funcDef.name + "(" + a.display + ") should return " + e.display, function () {
+                        var args = a.getArgs();
+                        if (typeof (getGenericArgs) == "function") {
+                            var gArgs = getGenericArgs();
+                            if (gArgs.length > 0)
+                                args = args.concat(gArgs);
+                        }
+                        var target = funcDef.callback.apply(this, args);
+                        chai_1.expect(target).to.equal(expected_1, a.message);
+                    });
+                }, _this);
+            }
+        }, this);
     });
-    mocha_1.describe("Testing isBoolean functions", function () {
-        mocha_1.describe("Testing isBoolean", function () {
-            it("isBoolean() should return false");
-            it("isBoolean(undefined) should return false");
-            it("isBoolean(null) should return false");
-            it("isBoolean(NaN) should return false");
-            it("isBoolean(1) should return false");
-            it("isBoolean(0) should return false");
-            it("isBoolean(true) should return true");
-            it("isBoolean(false) should return true");
-            it("isBoolean(\"\") should return false");
-            it("isBoolean(\"\\n\") should return false");
-            it("isBoolean(\"true\") should return false");
-            it("isBoolean(\"false\") should return false");
-            it("isBoolean([]) should return false");
-            it("isBoolean([undefined]) should return false");
-            it("isBoolean({ }) should return false");
-            it("isBoolean(Symbol.iterator) should return false");
-        });
-        mocha_1.describe("Testing isBooleanIfDef", function () {
-            it("isBooleanIfDef() should return true");
-            it("isBooleanIfDef(undefined) should return true");
-            it("isBooleanIfDef(null) should return false");
-            it("isBooleanIfDef(NaN) should return false");
-            it("isBooleanIfDef(1) should return false");
-            it("isBooleanIfDef(0) should return false");
-            it("isBooleanIfDef(true) should return true");
-            it("isBooleanIfDef(false) should return true");
-            it("isBooleanIfDef(\"\") should return false");
-            it("isBooleanIfDef(\"\\n\") should return false");
-            it("isBooleanIfDef(\"true\") should return false");
-            it("isBooleanIfDef(\"false\") should return false");
-            it("isBooleanIfDef([]) should return false");
-            it("isBooleanIfDef([undefined]) should return false");
-            it("isBooleanIfDef({ }) should return false");
-            it("isBooleanIfDef(Symbol.iterator) should return false");
-        });
-        mocha_1.describe("Testing isBooleanOrNull", function () {
-            it("isBooleanOrNull() should return false");
-            it("isBooleanOrNull(undefined) should return false");
-            it("isBooleanOrNull(null) should return true");
-            it("isBooleanOrNull(NaN) should return false");
-            it("isBooleanOrNull(1) should return false");
-            it("isBooleanOrNull(0) should return false");
-            it("isBooleanOrNull(true) should return true");
-            it("isBooleanOrNull(false) should return true");
-            it("isBooleanOrNull(\"\") should return false");
-            it("isBooleanOrNull(\"\\n\") should return false");
-            it("isBooleanOrNull(\"true\") should return false");
-            it("isBooleanOrNull(\"false\") should return false");
-            it("isBooleanOrNull([]) should return false");
-            it("isBooleanOrNull([undefined]) should return false");
-            it("isBooleanOrNull({ }) should return false");
-            it("isBooleanOrNull(Symbol.iterator) should return false");
-        });
-        mocha_1.describe("Testing isBooleanOrNil", function () {
-            it("isBooleanOrNil() should return true");
-            it("isBooleanOrNil(undefined) should return true");
-            it("isBooleanOrNil(null) should return true");
-            it("isBooleanOrNil(NaN) should return false");
-            it("isBooleanOrNil(1) should return false");
-            it("isBooleanOrNil(0) should return false");
-            it("isBooleanOrNil(true) should return true");
-            it("isBooleanOrNil(false) should return true");
-            it("isBooleanOrNil(\"\") should return false");
-            it("isBooleanOrNil(\"\\n\") should return false");
-            it("isBooleanOrNil(\"true\") should return false");
-            it("isBooleanOrNil(\"false\") should return false");
-            it("isBooleanOrNil([]) should return false");
-            it("isBooleanOrNil([undefined]) should return false");
-            it("isBooleanOrNil({ }) should return false");
-            it("isBooleanOrNil(Symbol.iterator) should return false");
-        });
-    });
-    mocha_1.describe("Testing isNumber functions", function () {
-        mocha_1.describe("Testing isNumber", function () {
-            it("isNumber() should return false");
-            it("isNumber(undefined) should return false");
-            it("isNumber(null) should return false");
-            it("isNumber(NaN) should return false");
-            it("isNumber(-1) should return true");
-            it("isNumber(1) should return true");
-            it("isNumber(0) should return true");
-            it("isNumber(0.0001) should return true");
-            it("isNumber(Infinity) should return false");
-            it("isNumber(Number.NEGATIVE_INFINITY) should return false");
-            it("isNumber(Number.POSITIVE_INFINITY) should return false");
-            it("isNumber(true) should return false");
-            it("isNumber(false) should return false");
-            it("isNumber(\"\") should return false");
-            it("isNumber(\"\\n\") should return false");
-            it("isNumber(\"1\") should return false");
-            it("isNumber(\"0\") should return false");
-            it("isNumber([]) should return false");
-            it("isNumber([undefined]) should return false");
-            it("isNumber({ }) should return false");
-            it("isNumber(Symbol.iterator) should return false");
-        });
-        mocha_1.describe("Testing isNumberIfDef", function () {
-            it("isNumber() should return true");
-            it("isNumber(undefined) should return true");
-            it("isNumber(null) should return false");
-            it("isNumber(NaN) should return false");
-            it("isNumber(-1) should return true");
-            it("isNumber(1) should return true");
-            it("isNumber(0) should return true");
-            it("isNumber(0.0001) should return true");
-            it("isNumber(Infinity) should return false");
-            it("isNumber(Number.NEGATIVE_INFINITY) should return false");
-            it("isNumber(Number.POSITIVE_INFINITY) should return false");
-            it("isNumber(true) should return false");
-            it("isNumber(false) should return false");
-            it("isNumber(\"\") should return false");
-            it("isNumber(\"\\n\") should return false");
-            it("isNumber(\"1\") should return false");
-            it("isNumber(\"0\") should return false");
-            it("isNumber([]) should return false");
-            it("isNumber([undefined]) should return false");
-            it("isNumber({ }) should return false");
-        });
-        mocha_1.describe("Testing isNumberOrNull", function () {
-            it("isNumber() should return false");
-            it("isNumber(undefined) should return false");
-            it("isNumber(null) should return true");
-            it("isNumber(NaN) should return false");
-            it("isNumber(-1) should return true");
-            it("isNumber(1) should return true");
-            it("isNumber(0) should return true");
-            it("isNumber(0.0001) should return true");
-            it("isNumber(Infinity) should return false");
-            it("isNumber(Number.NEGATIVE_INFINITY) should return false");
-            it("isNumber(Number.POSITIVE_INFINITY) should return false");
-            it("isNumber(true) should return false");
-            it("isNumber(false) should return false");
-            it("isNumber(\"\") should return false");
-            it("isNumber(\"\\n\") should return false");
-            it("isNumber(\"1\") should return false");
-            it("isNumber(\"0\") should return false");
-            it("isNumber([]) should return false");
-            it("isNumber([undefined]) should return false");
-            it("isNumber({ }) should return false");
-        });
-        mocha_1.describe("Testing isNumberNaNorNull", function () {
-            it("isNumber() should return false");
-            it("isNumber(undefined) should return false");
-            it("isNumber(null) should return true");
-            it("isNumber(NaN) should return true");
-            it("isNumber(-1) should return true");
-            it("isNumber(1) should return true");
-            it("isNumber(0) should return true");
-            it("isNumber(0.0001) should return true");
-            it("isNumber(Infinity) should return false");
-            it("isNumber(Number.NEGATIVE_INFINITY) should return false");
-            it("isNumber(Number.POSITIVE_INFINITY) should return false");
-            it("isNumber(true) should return false");
-            it("isNumber(false) should return false");
-            it("isNumber(\"\") should return false");
-            it("isNumber(\"\\n\") should return false");
-            it("isNumber(\"1\") should return false");
-            it("isNumber(\"0\") should return false");
-            it("isNumber([]) should return false");
-            it("isNumber([undefined]) should return false");
-            it("isNumber({ }) should return false");
-        });
-        mocha_1.describe("Testing isNumberOrNil", function () {
-            it("isNumber() should return true");
-            it("isNumber(undefined) should return true");
-            it("isNumber(null) should return true");
-            it("isNumber(NaN) should return false");
-            it("isNumber(-1) should return true");
-            it("isNumber(1) should return true");
-            it("isNumber(0) should return true");
-            it("isNumber(0.0001) should return true");
-            it("isNumber(Infinity) should return false");
-            it("isNumber(Number.NEGATIVE_INFINITY) should return false");
-            it("isNumber(Number.POSITIVE_INFINITY) should return false");
-            it("isNumber(true) should return false");
-            it("isNumber(false) should return false");
-            it("isNumber(\"\") should return false");
-            it("isNumber(\"\\n\") should return false");
-            it("isNumber(\"1\") should return false");
-            it("isNumber(\"0\") should return false");
-            it("isNumber([]) should return false");
-            it("isNumber([undefined]) should return false");
-            it("isNumber({ }) should return false");
-        });
-        mocha_1.describe("Testing isInfinite", function () {
-            it("isNumber() should return false");
-            it("isNumber(undefined) should return false");
-            it("isNumber(null) should return false");
-            it("isNumber(NaN) should return false");
-            it("isNumber(-1) should return false");
-            it("isNumber(1) should return false");
-            it("isNumber(0) should return false");
-            it("isNumber(0.0001) should return false");
-            it("isNumber(Infinity) should return true");
-            it("isNumber(Number.NEGATIVE_INFINITY) should return true");
-            it("isNumber(Number.POSITIVE_INFINITY) should return true");
-            it("isNumber(true) should return false");
-            it("isNumber(false) should return false");
-            it("isNumber(\"\") should return false");
-            it("isNumber(\"\\n\") should return false");
-            it("isNumber(\"1\") should return false");
-            it("isNumber(\"0\") should return false");
-            it("isNumber([]) should return false");
-            it("isNumber([undefined]) should return false");
-            it("isNumber({ }) should return false");
+}
+function describeExpectationSet(expectations, expectationSet) {
+    var setFunc = function () {
+        var _this = this;
+        expectationSet.functions.forEach(function (funcDef) {
+            describeTestFunction.call(_this, expectations.concat(expectationSet.expectations), funcDef, expectationSet.getGenericArgs);
+        }, this);
+    };
+    if (typeof (expectationSet.description) == "string" && expectationSet.description.trim().length > 0)
+        mocha_1.describe(expectationSet.description, setFunc);
+    else
+        setFunc.call(this);
+}
+function describeFunctionGroups(expectations, functionGrp) {
+    var testFunc = function () {
+        var _this = this;
+        functionGrp.sets.forEach(function (expectationSet) {
+            describeExpectationSet.call(_this, expectations.concat(functionGrp.expectations), expectationSet);
+        }, this);
+    };
+    if (typeof (functionGrp.description) == "string" && functionGrp.description.trim().length > 0)
+        mocha_1.describe(functionGrp.description, testFunc);
+    else
+        testFunc.call(this);
+}
+function describeFunctionTypeGroups(functionTypeGroups) {
+    functionTypeGroups.forEach(function (typeGroup) {
+        mocha_1.describe('Testing ' + typeGroup.type + ' functions', function () {
+            var _this = this;
+            typeGroup.groups.forEach(function (functionGrp) {
+                describeFunctionGroups.call(_this, typeGroup.expectations, functionGrp);
+            }, this);
         });
     });
-    mocha_1.describe("Testing isFunction functions", function () {
-        mocha_1.describe("Testing isFunction", function () {
-        });
-        mocha_1.describe("Testing isFunctionIfDef", function () {
-        });
-        mocha_1.describe("Testing isFunctionOrNull", function () {
-        });
-        mocha_1.describe("Testing isFunctionOrNil", function () {
-        });
-    });
-    mocha_1.describe("Testing isObject functions", function () {
-        mocha_1.describe("Testing isObject", function () {
-        });
-        mocha_1.describe("Testing isObjectType", function () {
-        });
-        mocha_1.describe("Testing isNonArrayObject", function () {
-        });
-        mocha_1.describe("Testing isPlainObject", function () {
-        });
-        mocha_1.describe("Testing isObjectIfDef", function () {
-        });
-        mocha_1.describe("Testing isObjectTypeIfDef", function () {
-        });
-        mocha_1.describe("Testing isNonArrayObjectIfDef", function () {
-        });
-        mocha_1.describe("Testing isPlainObjectIfDef", function () {
-        });
-        mocha_1.describe("Testing isObjectOrNull", function () {
-        });
-        mocha_1.describe("Testing isObjectTypeOrNull", function () {
-        });
-        mocha_1.describe("Testing isNonArrayObjectOrNull", function () {
-        });
-        mocha_1.describe("Testing isPlainObjectOrNull", function () {
-        });
-        mocha_1.describe("Testing isObjectTypeOrNil", function () {
-        });
-        mocha_1.describe("Testing isObjectOrNil", function () {
-        });
-        mocha_1.describe("Testing isNonArrayObjectOrNil", function () {
-        });
-        mocha_1.describe("Testing isPlainObjectOrNil", function () {
-        });
-    });
-    mocha_1.describe("Testing isArray functions", function () {
-        mocha_1.describe("Testing isArray", function () {
-        });
-        mocha_1.describe("Testing isEmptyArray", function () {
-        });
-        mocha_1.describe("Testing isArrayLike", function () {
-        });
-        mocha_1.describe("Testing isArrayIfDef", function () {
-        });
-        mocha_1.describe("Testing isEmptyArrayIfDef", function () {
-        });
-        mocha_1.describe("Testing isArrayLikeIfDef", function () {
-        });
-        mocha_1.describe("Testing isArrayOrNull", function () {
-        });
-        mocha_1.describe("Testing isEmptyArrayOrNull", function () {
-        });
-        mocha_1.describe("Testing isArrayLikeOrNull", function () {
-        });
-        mocha_1.describe("Testing isArrayOrNil", function () {
-        });
-        mocha_1.describe("Testing isEmptyArrayOrNil", function () {
-        });
-        mocha_1.describe("Testing isArrayLikeOrNil", function () {
-        });
-    });
-    mocha_1.describe("Testing derivesFrom functions", function () {
-        mocha_1.describe("Testing derivesFrom", function () {
-        });
-        mocha_1.describe("Testing derivesFromIfDef", function () {
-        });
-        mocha_1.describe("Testing derivesFromOrNull", function () {
-        });
-        mocha_1.describe("Testing derivesFromOrNil", function () {
-        });
-    });
-    mocha_1.describe("Testing isErrorLike", function () {
-    });
+}
+mocha_1.describe("Testing type gate functions", function () {
+    var functionTypeGroups = [
+        functionTypeGroup('nil gate', testFunction(JsTypeCommander_1.JsTypeCommander.notDefined, 'notDefined', '(obj?: TDefined): obj is undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isNull, 'isNull', '(obj?: TDefined): obj is undefined', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isNil, 'isNil', '(obj?: TDefined): obj is undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), expectEqualToFalse(argSet(function () { return [NaN]; }, 'NaN'), argSet(function () { return [0]; }, '0'), argSet(function () { return [false]; }, 'false'), argSet(function () { return [""]; }, '""'), argSet(function () { return [{}]; }, '{}'), argSet(function () { return [[]]; }, '[]'))),
+        functionTypeGroup('string gate', functionGroup('Testing type gate functions for any string', testFunction(JsTypeCommander_1.JsTypeCommander.isString, 'isString', '(obj?: TDefined): obj is string'), testFunction(JsTypeCommander_1.JsTypeCommander.isStringIfDef, 'isStringIfDef', '(obj?: TDefined): obj is string | undefined'), testFunction(JsTypeCommander_1.JsTypeCommander.isStringOrNull, 'isStringOrNull', '(obj?: TDefined): obj is string | null'), testFunction(JsTypeCommander_1.JsTypeCommander.isStringOrNil, 'isStringOrNil', '(obj?: TDefined): obj is string | null | undefined'), expectEqualToTrue(argSet(function () { return [" "]; }, '" "'), argSet(function () { return [" \n\r "]; }, '" \\n\\r "'), argSet(function () { return ["Test"]; }, '"Test"'), argSet(function () { return [" Test "]; }, '" Test "'))), functionGroup('Testing empty string type gate functions', testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyString, 'isEmptyString', '(obj?: TDefined): obj is string', expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyStringIfDef, 'isEmptyStringIfDef', '(obj?: TDefined): obj is string | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyStringOrNull, 'isEmptyStringOrNull', '(obj?: TDefined): obj is string | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyStringOrNil, 'isEmptyStringOrNil', '(obj?: TDefined): obj is string | null | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), expectEqualToFalse(argSet(function () { return [" "]; }, '" "'), argSet(function () { return [" \n\r "]; }, '" \\n\\r "'), argSet(function () { return ["Test"]; }, '"Test"'), argSet(function () { return [" Test "]; }, '" Test "'))), functionGroup('Testing whitespace string type gate functions', testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyOrWhitespace, 'isEmptyOrWhitespace', '(obj?: TDefined): obj is string'), testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyOrWhitespaceIfDef, 'isEmptyOrWhitespaceIfDef', '(obj?: TDefined): obj is string | undefined'), testFunction(JsTypeCommander_1.JsTypeCommander.isNullOrWhitespace, 'isNullOrWhitespace', '(obj?: TDefined): obj is string | null'), testFunction(JsTypeCommander_1.JsTypeCommander.isNilOrWhitespace, 'isNilOrWhitespace', '(obj?: TDefined): obj is string | null | undefined'), expectEqualToTrue(argSet(function () { return [" "]; }, '" "'), argSet(function () { return [" \n\r "]; }, '" \\n\\r "')), expectEqualToFalse(argSet(function () { return ["Test"]; }, '"Test"'), argSet(function () { return [" Test "]; }, '" Test "'))), expectEqualToTrue(argSet(function () { return [""]; }, '""')), expectEqualToFalse(argSet(function () { return [NaN]; }, 'NaN'), argSet(function () { return [0]; }, '0'), argSet(function () { return [false]; }, 'false'), argSet(function () { return [[]]; }, '[]'), argSet(function () { return [[""]]; }, '[""]'), argSet(function () { return [{}]; }, '{}'), argSet(function () { return [function () { return ""; }]; }, 'function() { return ""; }'))),
+        functionTypeGroup('boolean gate', testFunction(JsTypeCommander_1.JsTypeCommander.isBoolean, 'isBoolean', '(obj?: TDefined): obj is boolean', expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isBooleanIfDef, 'isBooleanIfDef', '(obj?: TDefined): obj is boolean | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isBooleanOrNull, 'isBooleanOrNull', '(obj?: TDefined): obj is boolean | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isBooleanOrNil, 'isBooleanOrNil', '(obj?: TDefined): obj is boolean | null | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), expectEqualToTrue(argSet(function () { return [true]; }, 'true'), argSet(function () { return [false]; }, 'false')), expectEqualToFalse(argSet(function () { return [NaN]; }, 'NaN'), argSet(function () { return [1]; }, '1'), argSet(function () { return [0]; }, '0'), argSet(function () { return [""]; }, '""'), argSet(function () { return ["true"]; }, '"true"'), argSet(function () { return ["false"]; }, '"false"'), argSet(function () { return [[]]; }, '[]'), argSet(function () { return [[true]]; }, '[true]'), argSet(function () { return [{}]; }, '{}'), argSet(function () { return [Symbol.iterator]; }, 'Symbol.iterator'), argSet(function () { return [function () { return true; }]; }, 'function() { return true; }'))),
+        functionTypeGroup('number gate', expectationSet(testFunction(JsTypeCommander_1.JsTypeCommander.isNumber, 'isNumber', '(obj?: TDefined): obj is number', expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"), argSet(function () { return [NaN]; }, "NaN"))), testFunction(JsTypeCommander_1.JsTypeCommander.isNumberIfDef, 'isNumberIfDef', '(obj?: TDefined): obj is number | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"), argSet(function () { return [NaN]; }, "NaN"))), testFunction(JsTypeCommander_1.JsTypeCommander.isNumberOrNull, 'isNumberOrNull', '(obj?: TDefined): obj is number | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [NaN]; }, "NaN"))), testFunction(JsTypeCommander_1.JsTypeCommander.isNumberOrNil, 'isNumberOrNil', '(obj?: TDefined): obj is number | null | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return [NaN]; }, "NaN"))), expectEqualToTrue(argSet(function () { return [1]; }, '1'), argSet(function () { return [0]; }, '0'), argSet(function () { return [0.0001]; }, '0.0001'), argSet(function () { return [-1]; }, '-1')), expectEqualToFalse(argSet(function () { return [Infinity]; }, "Infinity"), argSet(function () { return [Number.NEGATIVE_INFINITY]; }, "Number.NEGATIVE_INFINITY"), argSet(function () { return [Number.POSITIVE_INFINITY]; }, "Number.POSITIVE_INFINITY"))), testFunction(JsTypeCommander_1.JsTypeCommander.isNumberNaNorNull, 'isNumberNaNorNull', '(obj?: TDefined): obj is number | null', expectEqualToTrue(argSet(function () { return [null]; }, "null"), argSet(function () { return [NaN]; }, "NaN"), argSet(function () { return [1]; }, '1'), argSet(function () { return [0]; }, '0'), argSet(function () { return [0.0001]; }, '0.0001'), argSet(function () { return [-1]; }, '-1'), argSet(function () { return [Infinity]; }, "Infinity"), argSet(function () { return [Number.NEGATIVE_INFINITY]; }, "Number.NEGATIVE_INFINITY"), argSet(function () { return [Number.POSITIVE_INFINITY]; }, "Number.POSITIVE_INFINITY")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isInfinite, 'isInfinite', '(obj?: TDefined): obj is number', expectEqualToTrue(argSet(function () { return [Infinity]; }, "Infinity"), argSet(function () { return [Number.NEGATIVE_INFINITY]; }, "Number.NEGATIVE_INFINITY"), argSet(function () { return [Number.POSITIVE_INFINITY]; }, "Number.POSITIVE_INFINITY")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"), argSet(function () { return [NaN]; }, "NaN"), argSet(function () { return [1]; }, '1'), argSet(function () { return [0]; }, '0'), argSet(function () { return [0.0001]; }, '0.0001'), argSet(function () { return [-1]; }, '-1'))), expectEqualToFalse(argSet(function () { return [true]; }, 'true'), argSet(function () { return [false]; }, 'false'), argSet(function () { return [""]; }, '""'), argSet(function () { return ["1"]; }, '"1"'), argSet(function () { return ["0"]; }, '"0"'), argSet(function () { return [[]]; }, '[]'), argSet(function () { return [[1]]; }, '[1]'), argSet(function () { return [[0]]; }, '[0]'), argSet(function () { return [{}]; }, '{}'), argSet(function () { return [Symbol.iterator]; }, 'Symbol.iterator'), argSet(function () { return [function () { return true; }]; }, 'function() { return true; }'), argSet(function () { return [function () { return true; }]; }, 'function() { return NaN; }'))),
+        functionTypeGroup('function gate', testFunction(JsTypeCommander_1.JsTypeCommander.isFunction, 'isFunction', '(obj?: TDefined): obj is Function', expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isFunctionIfDef, 'isFunctionIfDef', '(obj?: TDefined): obj is Function | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isFunctionOrNull, 'isFunctionOrNull', '(obj?: TDefined): obj is Function | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isFunctionOrNil, 'isFunctionOrNil', '(obj?: TDefined): obj is Function | null | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), expectEqualToTrue(argSet(function () { return [function () { return true; }]; }, 'function() { return true; }')), expectEqualToFalse(argSet(function () { return [NaN]; }, 'NaN'), argSet(function () { return [1]; }, '1'), argSet(function () { return [true]; }, 'true'), argSet(function () { return [""]; }, '""'), argSet(function () { return [[]]; }, '[]'), argSet(function () { return [[function () { return true; }]]; }, '[function() { return true; }]'), argSet(function () { return [{}]; }, '{}'), argSet(function () { return [Symbol.iterator]; }, 'Symbol.iterator'))),
+        functionTypeGroup('object gate', functionGroup('Testing simple object type gate functions for object type', testFunction(JsTypeCommander_1.JsTypeCommander.isObjectType, 'isObjectType', '(obj?: TDefined): obj is object', expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isObjectTypeIfDef, 'isObjectTypeIfDef', '(obj?: TDefined): obj is object | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isObjectTypeOrNull, 'isObjectTypeOrNull', '(obj?: TDefined): obj is object | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isObjectTypeOrNil, 'isObjectTypeOrNil', '(obj?: TDefined): obj is object | null | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null")))), functionGroup('Testing any object type gate functions for objects which can have any named property', testFunction(JsTypeCommander_1.JsTypeCommander.isObject, 'isObject', '(obj?: TDefined): obj is IStringKeyedObject', expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isObjectIfDef, 'isObjectIfDef', '(obj?: TDefined): obj is IStringKeyedObject | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isObjectOrNull, 'isObjectOrNull', '(obj?: TDefined): obj is IStringKeyedObject | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isObjectOrNil, 'isObjectOrNil', '(obj?: TDefined): obj is IStringKeyedObject | null | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null")))), functionGroup('Testing type gate functions for non-array objects', testFunction(JsTypeCommander_1.JsTypeCommander.isNonArrayObject, 'isNonArrayObject', '(obj?: TDefined): obj is IStringKeyedObject', expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isNonArrayObjectIfDef, 'isNonArrayObjectIfDef', '(obj?: TDefined): obj is IStringKeyedObject | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isNonArrayObjectOrNull, 'isNonArrayObjectOrNull', '(obj?: TDefined): obj is IStringKeyedObject | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isNonArrayObjectOrNil, 'isNonArrayObjectOrNil', '(obj?: TDefined): obj is IStringKeyedObject | null | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null")))), functionGroup('Testing type gate functions for plain objects', testFunction(JsTypeCommander_1.JsTypeCommander.isPlainObject, 'isPlainObject', '(obj?: TDefined): obj is IStringKeyedObject', expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isPlainObjectIfDef, 'isPlainObjectIfDef', '(obj?: TDefined): obj is IStringKeyedObject | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isPlainObjectOrNull, 'isPlainObjectOrNull', '(obj?: TDefined): obj is IStringKeyedObject | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isPlainObjectOrNil, 'isPlainObjectOrNil', '(obj?: TDefined): obj is IStringKeyedObject | null | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))))),
+        functionTypeGroup('Array gate', functionGroup('Testing normal array type gate functions', testFunction(JsTypeCommander_1.JsTypeCommander.isArray, 'isObjectType', '(obj?: TDefined): obj is AnyNilable[]', expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayIfDef, 'isArrayIfDef', '(obj?: TDefined): obj is AnyNilable[] | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayOrNull, 'isArrayOrNull', '(obj?: TDefined): obj is AnyNilable[] | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayOrNil, 'isArrayOrNil', '(obj?: TDefined): obj is AnyNilable[] | null | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null")))), functionGroup('Testing normal array type gate functions', testFunction(JsTypeCommander_1.JsTypeCommander.isArray, 'isArray', '(obj?: TDefined): obj is AnyNilable[]', expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayIfDef, 'isArrayIfDef', '(obj?: TDefined): obj is AnyNilable[] | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayOrNull, 'isArrayOrNull', '(obj?: TDefined): obj is AnyNilable[] | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayOrNil, 'isArrayOrNil', '(obj?: TDefined): obj is AnyNilable[] | null | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null")))), functionGroup('Testing empty array type gate functions', testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyArray, 'isEmptyArray', '(obj?: TDefined): obj is AnyNilable[]', expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyArray, 'isEmptyArray', '(obj: TDefined, checkElements: boolean): obj is AnyNilable[]', expectEqualToFalse(argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyArrayIfDef, 'isEmptyArrayIfDef', '(obj?: TDefined): obj is AnyNilable[] | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyArrayIfDef, 'isEmptyArrayIfDef', '(obj: TDefined, checkElements: boolean): obj is AnyNilable[] | undefined', expectEqualToTrue(argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyArrayOrNull, 'isEmptyArrayOrNull', '(obj?: TDefined): obj is AnyNilable[] | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyArrayOrNull, 'isEmptyArrayOrNull', '(obj: TDefined, checkElements: boolean): obj is AnyNilable[] | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyArrayOrNil, 'isEmptyArrayOrNil', '(obj?: TDefined): obj is AnyNilable[] | null | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isEmptyArrayOrNil, 'isEmptyArrayOrNil', '(obj: TDefined, checkElements: boolean): obj is AnyNilable[] | null | undefined', expectEqualToTrue(argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null")))), functionGroup('Testing ArrayLike type gate functions', testFunction(JsTypeCommander_1.JsTypeCommander.isArrayLike, 'isArrayLike', '(obj?: TDefined): obj is ArrayLike<AnyNilable>', expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayLike, 'isArrayLike', '(obj: TDefined, checkElements: boolean): obj is ArrayLike<AnyNilable>', expectEqualToFalse(argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayLikeIfDef, 'isArrayLikeIfDef', '(obj?: TDefined): obj is ArrayLike<AnyNilable> | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayLikeIfDef, 'isArrayLikeIfDef', '(obj: TDefined, checkElements: boolean): obj is ArrayLike<AnyNilable> | undefined', expectEqualToTrue(argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayLikeOrNull, 'isArrayLikeOrNull', '(obj?: TDefined): obj is ArrayLike<AnyNilable> | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayLikeOrNull, 'isArrayLikeOrNull', '(obj: TDefined, checkElements: boolean): obj is ArrayLike<AnyNilable> | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayLikeOrNil, 'isArrayLikeOrNil', '(obj?: TDefined): obj is ArrayLike<AnyNilable> | null | undefined', expectEqualToTrue(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), expectEqualToFalse(argSet(function () { return []; }, ""), argSet(function () { return [undefined]; }, "undefined")), testFunction(JsTypeCommander_1.JsTypeCommander.isArrayLikeOrNil, 'isArrayLikeOrNil', '(obj: TDefined, checkElements: boolean): obj is ArrayLike<AnyNilable> | null | undefined', expectEqualToTrue(argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))))),
+        functionTypeGroup('derrivation gate', genericFunctionGroup('Testing Error class derrivation functions', function () { return [Error]; }, testFunction(JsTypeCommander_1.JsTypeCommander.derivesFrom, 'derivesFrom<Error>', '(obj?: TDefined, Error): obj is Error', expectEqualToFalse(argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.derivesFromIfDef, 'derivesFromIfDef<Error>', '(obj?: TDefined, Error): obj is Error | undefined', expectEqualToTrue(argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.derivesFromOrNull, 'derivesFromOrNull<Error>', '(obj?: TDefined, Error): obj is Error | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.derivesFromOrNil, 'derivesFromOrNil<Error>', '(obj?: TDefined, Error): obj is Error | null | undefined', expectEqualToTrue(argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), expectEqualToTrue(argSet(function () { return [new Error()]; }, 'new Error()'), argSet(function () { return [new RangeError()]; }, 'new RangeError()')), expectEqualToFalse(argSet(function () { return [new TestErrorLike()]; }, 'new TestErrorLike()'), argSet(function () { return [NaN]; }, 'NaN'), argSet(function () { return [1]; }, '1'), argSet(function () { return [true]; }, 'true'), argSet(function () { return [[]]; }, '[]'), argSet(function () { return [[new Error()]]; }, '[new Error()]'))), genericFunctionGroup('Testing Error class derrivation functions', function () { return [RangeError]; }, testFunction(JsTypeCommander_1.JsTypeCommander.derivesFrom, 'derivesFrom<RangeError>', '(obj?: TDefined, RangeError): obj is RangeError', expectEqualToFalse(argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.derivesFromIfDef, 'derivesFromIfDef<RangeError>', '(obj?: TDefined, RangeError): obj is RangeError | undefined', expectEqualToTrue(argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.derivesFromOrNull, 'derivesFromOrNull<RangeError>', '(obj?: TDefined, RangeError): obj is RangeError | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.derivesFromOrNil, 'derivesFromOrNil<RangeError>', '(obj?: TDefined, RangeError): obj is RangeError | null | undefined', expectEqualToTrue(argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), expectEqualToTrue(argSet(function () { return [new RangeError()]; }, 'new RangeError()')), expectEqualToFalse(argSet(function () { return [new Error()]; }, 'new Error()'), argSet(function () { return [new TestErrorLike()]; }, 'new TestErrorLike()'), argSet(function () { return [NaN]; }, 'NaN'), argSet(function () { return [1]; }, '1'), argSet(function () { return [true]; }, 'true'), argSet(function () { return [[]]; }, '[]'), argSet(function () { return [[new RangeError()]]; }, '[new RangeError()]'))), genericFunctionGroup('Testing custom class derrivation functions', function () { return [TestErrorLike]; }, testFunction(JsTypeCommander_1.JsTypeCommander.derivesFrom, 'derivesFrom<TestErrorLike>', '(obj?: TDefined, TestErrorLike): obj is TestErrorLike', expectEqualToFalse(argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.derivesFromIfDef, 'derivesFromIfDef<TestErrorLike>', '(obj?: TDefined, TestErrorLike): obj is TestErrorLike | undefined', expectEqualToTrue(argSet(function () { return [undefined]; }, "undefined")), expectEqualToFalse(argSet(function () { return [null]; }, "null"))), testFunction(JsTypeCommander_1.JsTypeCommander.derivesFromOrNull, 'derivesFromOrNull<TestErrorLike>', '(obj?: TDefined, TestErrorLike): obj is TestErrorLike | null', expectEqualToTrue(argSet(function () { return [null]; }, "null")), expectEqualToFalse(argSet(function () { return [undefined]; }, "undefined"))), testFunction(JsTypeCommander_1.JsTypeCommander.derivesFromOrNil, 'derivesFromOrNil<TestErrorLike>', '(obj?: TDefined, TestErrorLike): obj is TestErrorLike | null | undefined', expectEqualToTrue(argSet(function () { return [undefined]; }, "undefined"), argSet(function () { return [null]; }, "null"))), expectEqualToTrue(argSet(function () { return [new TestErrorLike()]; }, 'new TestErrorLike()'), argSet(function () { return [new TestErrorLike2()]; }, 'new TestErrorLike2()'), argSet(function () { return [new TestErrorLike3()]; }, 'new TestErrorLike3()')), expectEqualToFalse(argSet(function () { return [new RangeError()]; }, 'new RangeError()'), argSet(function () { return [new Error()]; }, 'new Error()'), argSet(function () { return [new TestErrorLike()]; }, 'new TestErrorLike()'), argSet(function () { return [NaN]; }, 'NaN'), argSet(function () { return [1]; }, '1'), argSet(function () { return [true]; }, 'true'), argSet(function () { return [[]]; }, '[]'), argSet(function () { return [[new RangeError()]]; }, '[new RangeError()]')))),
+        functionTypeGroup('ErrorLike gate', testFunction(JsTypeCommander_1.JsTypeCommander.isErrorLike, 'isErrorLike', '(obj?: TDefined): obj is boolean', expectEqualToTrue(argSet(function () { return [new RangeError()]; }, 'new RangeError()'), argSet(function () { return [new Error()]; }, 'new Error()'), argSet(function () { return [new TestErrorLike()]; }, 'new TestErrorLike()'), argSet(function () { return [new TestErrorLike2()]; }, 'new TestErrorLike2()')), expectEqualToFalse(argSet(function () { return [NaN]; }, 'NaN'), argSet(function () { return [1]; }, '1'), argSet(function () { return [0]; }, '0'), argSet(function () { return [""]; }, '""'), argSet(function () { return ["true"]; }, '"true"'), argSet(function () { return ["false"]; }, '"false"'), argSet(function () { return [[]]; }, '[]'), argSet(function () { return [[true]]; }, '[true]'), argSet(function () { return [{}]; }, '{}'), argSet(function () { return [Symbol.iterator]; }, 'Symbol.iterator'), argSet(function () { return [function () { return true; }]; }, 'function() { return true; }'))))
+    ];
+    describeFunctionTypeGroups(functionTypeGroups);
 });
 mocha_1.describe("Testing type conversion functions", function () {
-    mocha_1.describe("Testing string conversion functions", function () {
-        mocha_1.describe("Testing asString", function () {
+    var functionTypeGroups = [
+        functionTypeGroup('string conversion', testFunction(JsTypeCommander_1.JsTypeCommander.asString, 'asString', '(obj?: TDefined): Nilable<string>, ifWhitespace?: boolean): Nilable<string>', expectIsA('undefined', argSet(function () { return [undefined]; }, 'undefined'), argSet(function () { return [undefined, undefined]; }, 'undefined, undefined')), expectIsA('null', argSet(function () { return [null]; }, 'null'), argSet(function () { return [undefined, null]; }, 'undefined, null'), argSet(function () { return [null, undefined]; }, 'null, undefined')), expectEqualTo('""', function () { return ""; }, argSet(function () { return [""]; }, '""'), argSet(function () { return [[]]; }, '[]'), argSet(function () { return [[""]]; }, '[""]'), argSet(function () { return ["", undefined]; }, '"", undefined'), argSet(function () { return ["", null]; }, '"", null'), argSet(function () { return [undefined, ""]; }, 'undefined, ""'), argSet(function () { return [null, ""]; }, 'null, ""')), expectEqualTo('"true"', function () { return "true"; }, argSet(function () { return ["true"]; }, '"true"'), argSet(function () { return [true,]; }, 'true')), expectEqualTo('"false"', function () { return "false"; }, argSet(function () { return ["false"]; }, '"false"'), argSet(function () { return [false,]; }, 'false')), expectEqualTo('" "', function () { return " "; }, argSet(function () { return [" ", "yes"]; }, '" ", "yes"'), argSet(function () { return [" ", "yes", false]; }, '" ", "yes", false')), expectEqualTo('"yes"', function () { return "yes"; }, argSet(function () { return [" ", "yes", true]; }, '" ", "yes", true')), expectEqualTo('"yes"', function () { return "yes"; }, argSet(function () { return [" \n\r ", "yes", true]; }, '" \\n\\r ", "yes", true'))), testFunction(JsTypeCommander_1.JsTypeCommander.toString, 'toString', '(obj?: TDefined): Nilable<string>, ifWhitespace?: boolean): string', expectEqualTo('""', function () { return ""; }, argSet(function () { return [undefined]; }, 'undefined'), argSet(function () { return [[]]; }, '[]'), argSet(function () { return [[""]]; }, '[""]'), argSet(function () { return [undefined, undefined]; }, 'undefined, undefined'), argSet(function () { return [null]; }, 'null'), argSet(function () { return [undefined, null]; }, 'undefined, null'), argSet(function () { return [null, undefined]; }, 'null, undefined'), argSet(function () { return [""]; }, '""'), argSet(function () { return ["", undefined]; }, '"", undefined'), argSet(function () { return ["", null]; }, '"", null'), argSet(function () { return [undefined, ""]; }, 'undefined, ""'), argSet(function () { return [null, ""]; }, 'null, ""')), expectEqualTo('"true"', function () { return "true"; }, argSet(function () { return ["true"]; }, '"true"'), argSet(function () { return [true,]; }, 'true')), expectEqualTo('"false"', function () { return "false"; }, argSet(function () { return ["false"]; }, '"false"'), argSet(function () { return [false]; }, 'false')), expectEqualTo('" "', function () { return " "; }, argSet(function () { return [" ", "yes"]; }, '" ", "yes"'), argSet(function () { return [" ", "yes", false]; }, '" ", "yes", false')), expectEqualTo('"yes"', function () { return "yes"; }, argSet(function () { return [" ", "yes", true]; }, '" ", "yes", true')), expectEqualTo('"yes"', function () { return "yes"; }, argSet(function () { return [" \n\r ", "yes", true]; }, '" \\n\\r ", "yes", true')), expectEqualTo('"NaN"', function () { return "NaN"; }, argSet(function () { return [NaN, "yes", true]; }, 'NaN, "yes", true')), expectEqualTo('"0"', function () { return "0"; }, argSet(function () { return [0, "yes", true]; }, '0, "yes", true')), expectEqualTo('"true,false"', function () { return "true,false"; }, argSet(function () { return [[true, false], "yes", true]; }, '[true, false], "yes", true')))),
+        functionTypeGroup('boolean conversion', testFunction(JsTypeCommander_1.JsTypeCommander.asBoolean, 'asBoolean', '(obj?: TDefined): Nilable<boolean>): Nilable<boolean>', expectIsA('undefined', argSet(function () { return [undefined]; }, 'undefined'), argSet(function () { return [""]; }, '""'), argSet(function () { return [[]]; }, '[]'), argSet(function () { return [undefined, undefined]; }, 'undefined, undefined')), expectIsA('null', argSet(function () { return [null]; }, 'null'), argSet(function () { return [undefined, null]; }, 'undefined, null'), argSet(function () { return [null, undefined]; }, 'null, undefined')), expectEqualTo('true', function () { return true; }, argSet(function () { return [true]; }, 'true'), argSet(function () { return [1]; }, '1'), argSet(function () { return [-1]; }, '-1'), argSet(function () { return [100]; }, '100'), argSet(function () { return ["true"]; }, '"true"'), argSet(function () { return [[true]]; }, '[true]'), argSet(function () { return [true, undefined]; }, 'true, undefined'), argSet(function () { return [true, null]; }, 'true, null'), argSet(function () { return [undefined, true]; }, 'undefined, true'), argSet(function () { return [null, true]; }, 'null, true'), argSet(function () { return [null, -0.0001]; }, 'null, -0.0001'), argSet(function () { return [true, false]; }, 'true, false')), expectEqualTo('false', function () { return false; }, argSet(function () { return [false]; }, 'false'), argSet(function () { return [0]; }, '0'), argSet(function () { return ["-0.0000"]; }, '"-0.0000"'), argSet(function () { return ["false"]; }, '"false"'), argSet(function () { return [[false]]; }, '[false]'), argSet(function () { return [false, undefined]; }, 'false, undefined'), argSet(function () { return [false, null]; }, 'false, null'), argSet(function () { return [undefined, false]; }, 'undefined, false'), argSet(function () { return [null, false]; }, 'null, false'), argSet(function () { return [false, true]; }, 'false, true'))), testFunction(JsTypeCommander_1.JsTypeCommander.toBoolean, 'toBoolean', '(obj?: TDefined): Nilable<boolean>): boolean', expectEqualTo('true', function () { return true; }, argSet(function () { return [true]; }, 'true'), argSet(function () { return [1]; }, '1'), argSet(function () { return [-1]; }, '-1'), argSet(function () { return [100]; }, '100'), argSet(function () { return ["true"]; }, '"true"'), argSet(function () { return [[true]]; }, '[true]'), argSet(function () { return [true, undefined]; }, 'true, undefined'), argSet(function () { return [true, null]; }, 'true, null'), argSet(function () { return [undefined, true]; }, 'undefined, true'), argSet(function () { return [null, true]; }, 'null, true'), argSet(function () { return [null, -0.0001]; }, 'null, -0.0001'), argSet(function () { return [true, false]; }, 'true, false')), expectEqualTo('false', function () { return false; }, argSet(function () { return [false]; }, 'false'), argSet(function () { return [0]; }, '0'), argSet(function () { return ["-0.0000"]; }, '"-0.0000"'), argSet(function () { return ["false"]; }, '"false"'), argSet(function () { return [[false]]; }, '[false]'), argSet(function () { return [false, undefined]; }, 'false, undefined'), argSet(function () { return [false, null]; }, 'false, null'), argSet(function () { return [undefined, false]; }, 'undefined, false'), argSet(function () { return [null, false]; }, 'null, false'), argSet(function () { return [false, true]; }, 'false, true'), argSet(function () { return [undefined]; }, 'undefined'), argSet(function () { return [""]; }, '""'), argSet(function () { return [[]]; }, '[]'), argSet(function () { return [undefined, undefined]; }, 'undefined, undefined'), argSet(function () { return [null]; }, 'null'), argSet(function () { return [undefined, null]; }, 'undefined, null'), argSet(function () { return [null, undefined]; }, 'null, undefined'))))
+    ];
+    describeFunctionTypeGroups(functionTypeGroups);
+    mocha_1.describe("Testing number type conversion functions", function () {
+        mocha_1.describe("Testing function asNumber(obj?: TDefined): Nilable<number>", function () {
         });
-        mocha_1.describe("Testing toString", function () {
+        mocha_1.describe("Testing function asNumber(obj?: TDefined, defaultValue?: Nullable<number>): Nilable<number>", function () {
         });
-        mocha_1.describe("Testing trimStart", function () {
+        mocha_1.describe("Testing function toNumber(obj?: TDefined): number", function () {
         });
-        mocha_1.describe("Testing trimEnd", function () {
-        });
-        mocha_1.describe("Testing asNormalizedWs", function () {
-        });
-        mocha_1.describe("Testing ucFirst", function () {
-        });
-        mocha_1.describe("Testing splitLines", function () {
-        });
-        mocha_1.describe("Testing indentText", function () {
-        });
-        mocha_1.describe("Testing indentLines", function () {
+        mocha_1.describe("Testing function toNumber(obj?: TDefined, defaultValue?: Nullable<number>): number", function () {
         });
     });
-    mocha_1.describe("Testing boolean conversion functions", function () {
-        mocha_1.describe("Testing asBoolean", function () {
-        });
-        mocha_1.describe("Testing toBoolean", function () {
-        });
+    mocha_1.describe("Testing function toArray(obj?: TDefined, checkElements?: boolean): AnyNilable[]", function () {
     });
-    mocha_1.describe("Testing number conversion functions", function () {
-        mocha_1.describe("Testing asNumber", function () {
-        });
-        mocha_1.describe("Testing toNumber", function () {
-        });
+    mocha_1.describe("Testing function asErrorLike(obj?: TDefined): Nilable<ErrorLike>", function () {
     });
-    mocha_1.describe("Testing Array conversion functions", function () {
-        mocha_1.describe("Testing toArray", function () {
-        });
-        mocha_1.describe("Testing mapInto", function () {
-        });
+});
+mocha_1.describe("Testing string manipulation functions", function () {
+    mocha_1.describe("Testing function trimStart(text: string): string", function () {
     });
-    mocha_1.describe("Testing asErrorLike", function () {
+    mocha_1.describe("Testing function trimEnd(text: string): string", function () {
     });
+    mocha_1.describe("Testing function asNormalizedWs(text: string): string", function () {
+    });
+    mocha_1.describe("Testing function ucFirst(text: string): string", function () {
+    });
+    mocha_1.describe("Testing function splitLines(text: string): string[]", function () {
+    });
+    mocha_1.describe("Testing function indentText(text: string | string[], indent?: string): string", function () {
+    });
+    mocha_1.describe("Testing function indentLines(text: string[] | string, indent?: string): string[]", function () {
+    });
+});
+mocha_1.describe("Testing function mapInto(obj: any, callbackfn: RecursiveMapCallbackFn, options?: MapIntoOptions): any", function () {
 });

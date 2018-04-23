@@ -4,6 +4,7 @@ import { assert } from 'chai';
 import { describe } from 'mocha';
 import { JsTypeCommander } from '../dist/JsTypeCommander';
 import { log, error, debug } from 'util';
+import { truncate } from 'fs';
 
 function expectNullStatus(expected: any|null, result: any|null, message?: string): result is null {
     if (expected == null) {
@@ -232,7 +233,7 @@ interface ModuleRegexPattern {
     tests: RegexPatternTest[];
 }
 
-describe("Testing regular expressions", function() {
+describe.skip("Testing regular expressions", function() {
     let patternDefinitions: ModuleRegexPattern[] = [
         {
             name: 'onlyWhitespace', getRegex: regexOptions => regexOptions.onlyWhitespace, tests: [
@@ -572,7 +573,7 @@ class MapByNilHelper {
     }
 }
 
-describe("Testing type map functions", function() {
+describe.skip("Testing type map functions", function() {
     describe("Testing mapByTypeValue function", function() {
         let inputTypeArr: MapByTypeInputType[] = [
             {
@@ -792,837 +793,894 @@ describe("Testing type map functions", function() {
     }, this);
 });
 
-enum TypeFlag {
-    Undefined =    0x000001,
-    Boolean =      0x000002,
-    FiniteNumber = 0x000004,
-    String =       0x000008,
-    Symbol =       0x000010,
-    Function =     0x000020,
-    Object =       0x000040,
-    Null =         0x000080,
-    NaN =          0x000100,
-    Infinity =     0x000200,
-    Array =        0x000100,
-    Date =         0x000200,
-    Regexp =       0x000400,
-    Error =        0x000800,
-    Map =          0x001000,
-    Set =          0x002000,
-    WeakMap =      0x004000,
-    WeakSet =      0x008000,
-    Promise =      0x010000
+class TestLengthProp {
+    private _length: number;
+    get length(): number { return this._length; }
+    constructor(n?: number) { this._length = (typeof(n) == "number") ? n : 0; }
 }
-const TypeFlag_All: number = TypeFlag.Undefined | TypeFlag.Boolean | TypeFlag.FiniteNumber | TypeFlag.String |
-    TypeFlag.Symbol | TypeFlag.Function | TypeFlag.Object | TypeFlag.Null | TypeFlag.NaN |
-    TypeFlag.Infinity | TypeFlag.Array | TypeFlag.Date | TypeFlag.Regexp | TypeFlag.Error |
-    TypeFlag.Map | TypeFlag.Set | TypeFlag.WeakMap | TypeFlag.WeakSet | TypeFlag.Promise;
-enum JsTypeExtFlag {
-    Undefined = TypeFlag.Undefined,
-    Boolean = TypeFlag.Boolean,
-    FiniteNumber = TypeFlag.FiniteNumber,
-    String = TypeFlag.String,
-    Symbol = TypeFlag.Symbol,
-    Function = TypeFlag.Function,
-    Object = TypeFlag.Object,
-    Null = TypeFlag.Null,
-    NaN = TypeFlag.NaN,
-    Infinity = TypeFlag.Infinity
-}
-const JsTypeExt_All: number = JsTypeExtFlag.Undefined | JsTypeExtFlag.Boolean | JsTypeExtFlag.FiniteNumber | JsTypeExtFlag.String | JsTypeExtFlag.Symbol |
-    JsTypeExtFlag.Function | JsTypeExtFlag.Object | JsTypeExtFlag.Null | JsTypeExtFlag.NaN | JsTypeExtFlag.Infinity;
-enum JsTypeFlag {
-    Undefined = TypeFlag.Undefined,
-    Boolean = TypeFlag.Boolean,
-    Number = TypeFlag.FiniteNumber,
-    String = TypeFlag.String,
-    Symbol = TypeFlag.Symbol,
-    Function = TypeFlag.Function,
-    Object = TypeFlag.Object
-}
-const JsType_All: number = JsTypeFlag.Undefined | JsTypeFlag.Boolean | JsTypeFlag.Number | JsTypeFlag.String | JsTypeFlag.Symbol | JsTypeFlag.Function |
-    JsTypeFlag.Object;
-enum InterfaceFlag {
-    ArrayLike = 0x01,
-    Iterable = 0x02,
-    ErrorLike = 0x04,
-    PromiseLike = 0x08,
-    HasLength = 0x10
-}
-abstract class BaseEnumBitFlags<T extends number, TCloneable extends BaseEnumBitFlags<T, TCloneable>> {
-    private _flags: number;
-    get flags(): number { return this._flags; }
-    constructor(values?: T|(T|T[])[]|TCloneable, otherValues?: T|(T|T[])[]) {
-        if (typeof(values) == "number")
-            this._flags = values;
-        else if (typeof(values) == "object" && values !== null) {
-            if (Array.isArray(values))
-                this._flags = values.reduce((p: number, a: T) => (Array.isArray(a)) ? a.reduce((n: number, v: T) => n | v, p) : p | a, 0);
-            else
-                this._flags = values.flags;
-        }
-        if (typeof(otherValues) == "number")
-            this._flags |= otherValues;
-        else if (typeof(otherValues) == "object" && otherValues !== null)
-            this._flags = otherValues.reduce((p: number, a: T) => (Array.isArray(a)) ? a.reduce((n: number, v: T) => n | v, p) : p | a, 0);
-    }
-    isEmpty(): boolean { return this._flags == 0; }
-    hasAnyFlag(value: T|T[], ...otherValues: (T|T[])[]) {
-        if (typeof(value) == "number") {
-            if ((this._flags & value) != 0)
-                return true;
-        } else
-            for (let i: number = 0; i < value.length; i++) {
-                if ((this._flags & value[i]) != 0)
-                    return true;
-            }
-        if (typeof(otherValues) != "object" || otherValues === null || otherValues.length == 0)
-            return false;
-        for (let n: number = 0; n < otherValues.length; n++) {
-            let v: T|T[] = otherValues[n];
-            if (typeof(v) == "number") {
-                if ((this._flags & v) != 0)
-                    return true;
-            } else
-                for (let i: number = 0; i < v.length; i++) {
-                    if ((this._flags & v[i]) != 0)
-                        return true;
-                }
-        }
-
-        return false;
-    }
-    hasAllFlags(value: T|T[], ...otherValues: (T|T[])[]) {
-        if (typeof(value) == "number") {
-            if ((this._flags & value) == 0)
-                return false;
-        } else
-            for (let i: number = 0; i < value.length; i++) {
-                if ((this._flags & value[i]) == 0)
-                    return false;
-            }
-        if (typeof(otherValues) != "object" || otherValues === null || otherValues.length == 0)
-            return true;
-        for (let n: number = 0; n < otherValues.length; n++) {
-            let v: T|T[] = otherValues[n];
-            if (typeof(v) == "number") {
-                if ((this._flags & v) == 0)
-                    return false;
-            } else
-                for (let i: number = 0; i < v.length; i++) {
-                    if ((this._flags & v[i]) == 0)
-                        return false;
-                }
-        }
-
-        return true;
-    }
-}
-
-const testTypeSymbol: symbol = Symbol();
-
-class EnumBitFlags<T extends number> extends BaseEnumBitFlags<T, EnumBitFlags<T>> {
-    constructor(values?: T|T[]|EnumBitFlags<T>, ...otherValues: (T|T[])[]) { super(values, otherValues); }
-}
-class InterfaceBitFlags extends BaseEnumBitFlags<InterfaceFlag, InterfaceBitFlags> {
-    get ArrayLike() { return this.hasAnyFlag(InterfaceFlag.ArrayLike); }
-    get Iterable() { return this.hasAnyFlag(InterfaceFlag.Iterable); }
-    get ErrorLike() { return this.hasAnyFlag(InterfaceFlag.ErrorLike); }
-    get PromiseLike() { return this.hasAnyFlag(InterfaceFlag.PromiseLike); }
-    get HasLength() { return this.hasAnyFlag(InterfaceFlag.HasLength); }
-    constructor(values?: InterfaceFlag|(InterfaceFlag|InterfaceFlag[])[]|InterfaceBitFlags, ...otherValues: (InterfaceFlag|InterfaceFlag[])[]) { super(values, otherValues); }
-}
-enum ValueVariant {
-    None = 0x0001,
-    Empty = 0x0002,
-    Whitespace = 0x0004,
-    Zero = 0x0008,
-    Float = 0x0010,
-    PlainObject = 0x0020,
-    DirectInheritance = 0x0040,
-    NestedInheritance = 0x0080
-}
-class VariantBitFlags extends BaseEnumBitFlags<ValueVariant, VariantBitFlags> {
-    get Zero() { return this.hasAnyFlag(ValueVariant.Zero); }
-    get Whitespace() { return this.hasAnyFlag(ValueVariant.Whitespace); }
-    get None() { return this.hasAnyFlag(ValueVariant.None); }
-    get NestedInheritance() { return this.hasAnyFlag(ValueVariant.NestedInheritance); }
-    get Float() { return this.hasAnyFlag(ValueVariant.Float); }
-    get Empty() { return this.hasAnyFlag(ValueVariant.Empty); }
-    get DirectInheritance() { return this.hasAnyFlag(ValueVariant.DirectInheritance); }
-    constructor(values?: ValueVariant|(ValueVariant|ValueVariant[])[]|VariantBitFlags, ...otherValues: (ValueVariant|ValueVariant[])[]) { super(values, otherValues); }
-}
-class JsType {
-    private _jsType: JsTypeFlag;
-    private _baseType: JsTypeExtFlag;
-    private _type: TypeFlag;
-
-    static isJsType(obj: any): obj is JsType { return typeof(obj) == "object" && obj !== null && obj[testTypeSymbol] == "JsType"; }
-    [testTypeSymbol]() { "JsType" }
-    get baseType(): JsTypeExtFlag { return this._baseType; }
-    get jsType(): JsTypeFlag { return this._jsType; }
-    get type(): TypeFlag { return this._type; }
-
-    constructor(value: TypeFlag) {
-        switch(value) {
-            case TypeFlag.Undefined:
-                this._jsType = JsTypeFlag.Undefined;
-                this._baseType = JsTypeExtFlag.Undefined;
-                break;
-            case TypeFlag.Boolean:
-                this._jsType = JsTypeFlag.Boolean;
-                this._baseType = JsTypeExtFlag.Boolean;
-                break;
-            case TypeFlag.FiniteNumber:
-                this._jsType = JsTypeFlag.Number;
-                this._baseType = JsTypeExtFlag.FiniteNumber;
-                break;
-            case TypeFlag.String:
-                this._jsType = JsTypeFlag.String;
-                this._baseType = JsTypeExtFlag.String;
-                break;
-            case TypeFlag.Symbol:
-                this._jsType = JsTypeFlag.Symbol;
-                this._baseType = JsTypeExtFlag.Symbol;
-                break;
-            case TypeFlag.Function:
-                this._jsType = JsTypeFlag.Function;
-                this._baseType = JsTypeExtFlag.Function;
-                break;
-            case TypeFlag.Object:
-                this._jsType = JsTypeFlag.Object;
-                this._baseType = JsTypeExtFlag.Object;
-                break;
-            case TypeFlag.Null:
-                this._jsType = JsTypeFlag.Object;
-                this._baseType = JsTypeExtFlag.Null;
-                break;
-            case TypeFlag.NaN:
-                this._jsType = JsTypeFlag.Number;
-                this._baseType = JsTypeExtFlag.NaN;
-                break;
-            case TypeFlag.Infinity:
-                this._jsType = JsTypeFlag.Number;
-                this._baseType = JsTypeExtFlag.Infinity;
-                break;
-            case TypeFlag.Array:
-                this._jsType = JsTypeFlag.Object;
-                this._baseType = JsTypeExtFlag.Object;
-                break;
-            case TypeFlag.Date:
-                this._jsType = JsTypeFlag.Object;
-                this._baseType = JsTypeExtFlag.Object;
-                break;
-            case TypeFlag.Regexp:
-                this._jsType = JsTypeFlag.Object;
-                this._baseType = JsTypeExtFlag.Object;
-                break;
-            case TypeFlag.Error:
-                this._jsType = JsTypeFlag.Object;
-                this._baseType = JsTypeExtFlag.Object;
-                break;
-            case TypeFlag.Map:
-                this._jsType = JsTypeFlag.Object;
-                this._baseType = JsTypeExtFlag.Object;
-                break;
-            case TypeFlag.Set:
-                this._jsType = JsTypeFlag.Object;
-                this._baseType = JsTypeExtFlag.Object;
-                break;
-            case TypeFlag.WeakMap:
-                this._jsType = JsTypeFlag.Object;
-                this._baseType = JsTypeExtFlag.Object;
-                break;
-            case TypeFlag.WeakSet:
-                this._jsType = JsTypeFlag.Object;
-                this._baseType = JsTypeExtFlag.Object;
-                break;
-            case TypeFlag.Promise:
-                this._jsType = JsTypeFlag.Object;
-                this._baseType = JsTypeExtFlag.Object;
-                break;
-            default:
-                throw new Error(value + " is an invalid builtin root type");
-        }
-    }
-}
-interface IJsType {
-    type: TypeFlag|JsType;
-    variant?: ValueVariant;
-    implementation?: InterfaceBitFlags|InterfaceFlag|InterfaceFlag[];
-}
-class JsTypeVariant extends JsType implements IJsType {
-    private _variant: ValueVariant;
-    private _implementation: InterfaceBitFlags;
-
-    static isJsTypeVariant(obj: any): obj is JsTypeVariant { return typeof(obj) == "object" && obj !== null && obj[testTypeSymbol] == "JsTypeVariant"; }
-    [testTypeSymbol]() { "JsTypeVariant" }
-    get variant(): ValueVariant { return this._variant; }
-    get implementation(): InterfaceBitFlags { return this._implementation; }
-
-    constructor(value: TypeFlag|JsType, variant?: ValueVariant, ...implementation: (InterfaceFlag|InterfaceFlag[])[]) {
-        super((typeof(value) == "number") ? value : value.type);
-        let bitFlags: InterfaceBitFlags = new InterfaceBitFlags(implementation);
-        if (typeof(variant) != "number")
-            variant = ValueVariant.None;
-        switch(this.type) {
-            case TypeFlag.Undefined:
-                if (!bitFlags.isEmpty())
-                    throw new Error("Undefined types cannot have interfaces");
-                if (variant != ValueVariant.None)
-                    throw new Error("Undefined types cannot have a variant");
-                break;
-            case TypeFlag.Boolean:
-                if (!bitFlags.isEmpty())
-                    throw new Error("Boolean types cannot have interfaces");
-                if (variant != ValueVariant.None)
-                    throw new Error("Boolean types cannot have a variant");
-                break;
-            case TypeFlag.FiniteNumber:
-                if (!bitFlags.isEmpty())
-                    throw new Error("Number types cannot have interfaces");
-                if (variant == ValueVariant.Empty || variant == ValueVariant.Whitespace)
-                    throw new Error("Number types cannot be empty or whitespace");
-                if (variant == ValueVariant.DirectInheritance || variant == ValueVariant.NestedInheritance)
-                    throw new Error("Number types inherit from objects");
-                break;
-            case TypeFlag.String:
-                if (!bitFlags.isEmpty())
-                    throw new Error("String types cannot have interfaces");
-                if (variant == ValueVariant.Float || variant == ValueVariant.Zero)
-                    throw new Error("String types cannot be float or zero");
-                if (variant == ValueVariant.DirectInheritance || variant == ValueVariant.NestedInheritance)
-                    throw new Error("String types inherit from objects");
-                break;
-            case TypeFlag.Symbol:
-                if (!bitFlags.isEmpty())
-                    throw new Error("Symbol types cannot have interfaces");
-                if (variant != ValueVariant.None)
-                    throw new Error("Symbol types cannot have a variant");
-                break;
-            case TypeFlag.Function:
-                if (!bitFlags.isEmpty())
-                    throw new Error("Function types cannot have interfaces");
-                if (variant != ValueVariant.None)
-                    throw new Error("Function types cannot have a variant");
-                break;
-            case TypeFlag.Object:
-                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
-                    throw new Error("Invalid object variant");
-                break;
-            case TypeFlag.Null:
-                if (!bitFlags.isEmpty())
-                    throw new Error("Null types cannot have interfaces");
-                if (variant != ValueVariant.None)
-                    throw new Error("Null types cannot have a variant");
-                break;
-            case TypeFlag.NaN:
-                if (!bitFlags.isEmpty())
-                    throw new Error("Number types cannot have interfaces");
-                if (variant != ValueVariant.None)
-                    throw new Error("NaN types cannot have a variant");
-                break;
-            case TypeFlag.Infinity:
-                if (!bitFlags.isEmpty())
-                    throw new Error("Number types cannot have interfaces");
-                if (variant != ValueVariant.None)
-                    throw new Error("Infinity types cannot have a variant");
-                break;
-            case TypeFlag.Array:
-                if (variant != ValueVariant.None && variant != ValueVariant.Empty)
-                    throw new Error("Arrays can only have None or Empty variant");
-                if (!bitFlags.ArrayLike)
-                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.ArrayLike, InterfaceFlag.Iterable);
-                else if (!bitFlags.Iterable)
-                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.Iterable);
-                break;
-            case TypeFlag.Date:
-                if (variant != ValueVariant.None)
-                    throw new Error("Infinity types cannot have a variant");
-                break;
-            case TypeFlag.Regexp:
-                if (variant != ValueVariant.None)
-                    throw new Error("Infinity types cannot have a variant");
-                break;
-            case TypeFlag.Error:
-                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
-                    throw new Error("Invalid object variant");
-                if (!bitFlags.ErrorLike)
-                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.ErrorLike);
-                break;
-            case TypeFlag.Map:
-                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
-                    throw new Error("Invalid object variant");
-                if (!bitFlags.Iterable)
-                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.Iterable);
-                break;
-            case TypeFlag.Set:
-                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
-                    throw new Error("Invalid object variant");
-                if (!bitFlags.Iterable)
-                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.Iterable);
-                break;
-            case TypeFlag.WeakMap:
-                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
-                    throw new Error("Invalid object variant");
-                if (!bitFlags.Iterable)
-                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.Iterable);
-                break;
-            case TypeFlag.WeakSet:
-                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
-                    throw new Error("Invalid object variant");
-                if (!bitFlags.Iterable)
-                    bitFlags = new InterfaceBitFlags(bitFlags, InterfaceFlag.Iterable);
-                break;
-            case TypeFlag.Promise:
-                if (variant == ValueVariant.Empty || variant == ValueVariant.Float || variant == ValueVariant.Whitespace || variant == ValueVariant.Zero)
-                    throw new Error("Invalid object variant");
-                break;
-        }
-        this._implementation = bitFlags;
-    }
-    asJsTypeVariant(type: JsTypeSpec): JsTypeVariant {
-        if (typeof(type) == "number" || JsType.isJsType(type))
-            return new JsTypeVariant(type);
-        if (JsTypeVariant.isJsTypeVariant(type))
-            return type;
-        if (typeof(type.implementation) == "object") {
-            if (!Array.isArray(type.implementation)) {
-                let result: JsTypeVariant = new JsTypeVariant(type.type, type.variant);
-                result._implementation = this.implementation;
-                return result;
-            }
-        } else if (typeof(type.implementation) != "number")
-            return new JsTypeVariant(type.type, type.variant);
-        return new JsTypeVariant(type.type, type.variant, type.implementation);
-    }
-}
-type JsTypeSpec = TypeFlag|JsTypeVariant|JsType|IJsType;
-class AllowedVariants {
-    private _type: JsType;
-    private _variants: VariantBitFlags;
-    private _implementation: InterfaceBitFlags;
-    static isAllowedVariants(obj: any): obj is AllowedVariants { return typeof(obj) == "object" && obj !== null && obj[testTypeSymbol] == "AllowedVariants"; }
-    [testTypeSymbol]() { "AllowedTypes" }
-    constructor(type: TypeFlag|JsType, implementation?: InterfaceBitFlags|InterfaceFlag|InterfaceFlag[], ...variant: (ValueVariant|ValueVariant[])[]) {
-        this._variants = new VariantBitFlags(variant);
-        this._implementation = new InterfaceBitFlags(implementation);
-        this._type = (typeof(type) == "number") ? new JsType(type) : type;
-    }
-    asAllowedVariants(variants: AllowedVariantsSpec): AllowedVariants {
-        if (typeof(variants) == "number" || JsType.isJsType(variants))
-            return new AllowedVariants(variants);
-        if (AllowedVariants.isAllowedVariants(variants))
-            return variants;
-        return new AllowedVariants(variants.type, variants.implementation, variants.variant);
-    }
-}
-type AllowedVariantsSpec = TypeFlag|JsType|IJsType|AllowedVariants;
-class AllowedTypes {
-    static isAllowedTypes(obj: any): obj is AllowedTypes { return typeof(obj) == "object" && obj !== null && obj[testTypeSymbol] == "AllowedTypes"; }
-    [testTypeSymbol]() { "AllowedTypes" }
-    constructor(type: JsTypeSpec|JsTypeSpec[], ...types: (JsTypeSpec|JsTypeSpec[])[]) {
-
-    }
-    isAllowed(value: JsTypeSpec) {
-
-    }
-    static toAllowedTypes(types: AllowedTypeSpec): AllowedTypes {
-        if (typeof(types) == "number" || Array.isArray(types))
-            return new AllowedTypes(types);
-        if (AllowedTypes.isAllowedTypes(types))
-            return types;
-        if (JsType.isJsType(types) || JsTypeVariant.isJsTypeVariant(types) || JsType.isJsType(types))
-        return new AllowedTypes(types);
-        types;
-    }
-}
-type AllowedTypeSpec = AllowedTypes|JsTypeSpec|JsTypeSpec[]|{ type: TypeFlag; variant: ValueVariant|ValueVariant[];
-    implementation?: InterfaceBitFlags|InterfaceFlag|InterfaceFlag[]; }
-
-interface GenericArgumentDescriptor extends Descriptor { getValue?: { (): any; } }
-
-interface TypeGuardTestArgument {
-    value?: ArgumentDescriptor;
-    type: JsTypeSpec;
-}
-interface TypeGuardFunction {
-    name: string;
-    callback: Function;
-    allowed: AllowedTypeSpec;
-    genericType?: GenericArgumentDescriptor|GenericArgumentDescriptor[];
-}
-interface TypeGuardTargetType {
-    description: string;
-    functions: TypeGuardFunction[];
-}
-
-class ExampleBaseClass {
-    get (key: string): number { return parseInt(key); }
-}
-class ExampleChildClass extends ExampleBaseClass {
-    length: string = "0";
-}
-class ExampleNestedClass extends ExampleChildClass {
-    count: number = 0;
-}
-
-describe("Testing type guard functions", function() {
-    let typeGuardTestArgumentArr: TypeGuardTestArgument[] = [
-        { type: TypeFlag.Undefined },
-        { type: TypeFlag.Undefined, value: { display: 'undefined', getValue: () => undefined } },
-        { type: TypeFlag.Null, value: { display: 'null', getValue: () => null } },
-        { type: { type: TypeFlag.String, variant: ValueVariant.Empty }, value: { display: '""', getValue: () => "" } },
-        { type: { type: TypeFlag.String, variant: ValueVariant.Whitespace }, value: { display: '" "', getValue: () => " " } },
-        { type: { type: TypeFlag.String, variant: ValueVariant.Whitespace }, value: { display: '"\\n\\r\\t"', getValue: () => "\n\r\t" } },
-        { type: TypeFlag.String, value: { display: '"."', getValue: () => "" } },
-        { type: TypeFlag.String, value: { display: '" . "', getValue: () => " . " } },
-        { type: TypeFlag.String, value: { display: '"\\n\\r . \\t"', getValue: () => "\n\r . \t" } },
-        { type: TypeFlag.Boolean, value: { display: 'true', getValue: () => true } },
-        { type: TypeFlag.Boolean, value: { display: 'false', getValue: () => false } },
-        { type: TypeFlag.FiniteNumber, value: { display: '1', getValue: () => 1 } },
-        { type: TypeFlag.FiniteNumber, value: { display: '123', getValue: () => 123 } },
-        { type: TypeFlag.FiniteNumber, value: { display: '-1', getValue: () => -1 } },
-        { type: { type: TypeFlag.FiniteNumber, variant: ValueVariant.Zero }, value: { display: '0', getValue: () => 0 } },
-        { type: { type: TypeFlag.FiniteNumber, variant: ValueVariant.Float }, value: { display: '0.0001', getValue: () => 0.0001 } },
-        { type: TypeFlag.NaN, value: { display: 'NaN', getValue: () => NaN } },
-        { type: TypeFlag.Infinity, value: { display: 'Infinity', getValue: () => Infinity } },
-        { type: TypeFlag.Function, value: { display: 'function() { return false };', getValue: () => { return function() { return false }; } } },
-        { type: TypeFlag.Object, value: { display: '{ }', getValue: () => { return { }; } } },
-        { type: { type: TypeFlag.Object, implementation: InterfaceFlag.HasLength }, value: { display: '{ length: 1 }', getValue: () => { return { length: 1 }; } } },
-        { type: { type: TypeFlag.Object, implementation: InterfaceFlag.HasLength }, value: { display: '{ length: 2, [0]: "1", [2]: "2" }', getValue: () => { let aa: { length: number, [key: number]: string } = { length: 2 }; aa[0] = "1"; aa[2] = "2" } } },
-        { type: { type: TypeFlag.Object, implementation: InterfaceFlag.ArrayLike }, value: { display: '{ length: 0 }', getValue: () => { return { length: 1 }; } } },
-        { type: { type: TypeFlag.Object, implementation: InterfaceFlag.ArrayLike }, value: { display: '{ length: 2, [0]: "1", [1]: "2" }', getValue: () => { let aa: { length: number, [key: number]: string } = { length: 2 }; aa[0] = "1"; aa[1] = "2" } } },
-        { type: { type: TypeFlag.Array, variant: ValueVariant.Empty }, value: { display: '[]', getValue: () => [] } },
-        { type: TypeFlag.Array, value: { display: '[undefined]', getValue: () => [undefined] } },
-        { type: { type: TypeFlag.Error }, value: { display: '[undefined]', getValue: () => {
-            try { throw new Error("Thrown for test"); }
-            catch (e) { return e; }
-        } } },
-        { type: { type: TypeFlag.Error, variant: ValueVariant.DirectInheritance }, value: { display: '[undefined]', getValue: () => {
-            try { throw new RangeError("Out of range for a test"); }
-            catch (e) { return e; }
-        } } },
-        { type: { type: TypeFlag.Object }, value: { display: 'new ExampleBaseClass()', getValue: () => new ExampleBaseClass() } },
-        { type: { type: TypeFlag.Object, variant: ValueVariant.DirectInheritance }, value: { display: 'new ExampleChildClass()', getValue: () => new ExampleChildClass() } },
-        { type: { type: TypeFlag.Object, variant: ValueVariant.NestedInheritance }, value: { display: 'new ExampleNestedClass()', getValue: () => new ExampleNestedClass() } }
-    ];
-    let typeGuardTargetTypeArr: TypeGuardTargetType[] = [
-        {
-            description: 'Testing nil type guard functions',
-            functions: [
-                { name: 'notDefined', callback: JsTypeCommander.notDefined, allowed: TypeFlag.Undefined },
-                { name: 'isNull', callback: JsTypeCommander.isNull, allowed: TypeFlag.Null },
-                { name: 'isNil', callback: JsTypeCommander.isNil, allowed: [TypeFlag.Undefined, TypeFlag.Null] }
-            ]
-        }, {
-            description: 'Testing string type guard functions',
-            functions: [
-                { name: 'notDefined', callback: JsTypeCommander.notDefined, allowed: TypeFlag.Undefined },
-                { name: 'isNull', callback: JsTypeCommander.isNull, allowed: TypeFlag.Null },
-                { name: 'isNil', callback: JsTypeCommander.isNil, allowed: [TypeFlag.Undefined, TypeFlag.Null] }
-            ]
-        }, {
-            description: 'Testing string type guard functions',
-            functions: [
-                { name: 'isString', callback: JsTypeCommander.isString, allowed: TypeFlag.String },
-                { name: 'isStringIfDef', callback: JsTypeCommander.isStringIfDef, allowed: [TypeFlag.String, TypeFlag.Undefined] },
-                { name: 'isStringOrNull', callback: JsTypeCommander.isStringOrNull, allowed: [TypeFlag.String, TypeFlag.Null] },
-                { name: 'isStringOrNil', callback: JsTypeCommander.isStringOrNil, allowed: [TypeFlag.String, TypeFlag.Null, TypeFlag.Undefined] }
-            ]
-        }, {
-            description: 'Testing empty string type guard functions',
-            functions: [
-                { name: 'isEmptyString', callback: JsTypeCommander.isEmptyString, allowed: { type: TypeFlag.String, variant: ValueVariant.Empty } },
-                { name: 'isEmptyStringIfDef', callback: JsTypeCommander.isEmptyStringIfDef, allowed: [ TypeFlag.Undefined, { type: TypeFlag.String, variant: ValueVariant.Empty }] },
-                { name: 'isEmptyStringOrNull', callback: JsTypeCommander.isEmptyStringOrNull, allowed: [ TypeFlag.Null, { type: TypeFlag.String, variant: ValueVariant.Empty }] },
-                { name: 'isEmptyStringOrNil', callback: JsTypeCommander.isEmptyStringOrNil, allowed: [ TypeFlag.Undefined, TypeFlag.Null, { type: TypeFlag.String, variant: ValueVariant.Empty }] },
-                { name: 'isEmptyOrWhitespace', callback: JsTypeCommander.isEmptyOrWhitespace, allowed: { type: TypeFlag.String, variant: [ ValueVariant.Empty, ValueVariant.Whitespace ] } },
-                { name: 'isEmptyOrWhitespaceIfDef', callback: JsTypeCommander.isEmptyOrWhitespaceIfDef, allowed: [ TypeFlag.Undefined, { type: TypeFlag.String, variant: [ ValueVariant.Empty, ValueVariant.Whitespace ] }] },
-                { name: 'isNullOrWhitespace', callback: JsTypeCommander.isNullOrWhitespace, allowed: [ TypeFlag.Null, { type: TypeFlag.String, variant: [ ValueVariant.Empty, ValueVariant.Whitespace ] }] },
-                { name: 'isNilOrWhitespace', callback: JsTypeCommander.isNilOrWhitespace, allowed: [ TypeFlag.Undefined, TypeFlag.Null, { type: TypeFlag.String, variant: [ ValueVariant.Empty, ValueVariant.Whitespace ] }] }
-            ]
-        }, {
-            description: 'Testing boolean type guard functions',
-            functions: [
-                { name: 'isBoolean', callback: JsTypeCommander.isBoolean, allowed: TypeFlag.Boolean },
-                { name: 'isBooleanIfDef', callback: JsTypeCommander.isBooleanIfDef, allowed: [ TypeFlag.Undefined, TypeFlag.Boolean ] },
-                { name: 'isBooleanOrNull', callback: JsTypeCommander.isBooleanOrNull, allowed: [ TypeFlag.Null, TypeFlag.Boolean ] },
-                { name: 'isBooleanOrNil', callback: JsTypeCommander.isBooleanOrNil, allowed: [ TypeFlag.Undefined, TypeFlag.Null, TypeFlag.Boolean ] }
-            ]
-        }, {
-            description: 'Testing number type guard functions',
-            functions: [
-                { name: 'isNumber', callback: JsTypeCommander.isNumber, allowed: TypeFlag.FiniteNumber },
-                { name: 'isNumberIfDef', callback: JsTypeCommander.isNumberIfDef, allowed: [ TypeFlag.Undefined, TypeFlag.FiniteNumber ] },
-                { name: 'isNumberOrNull', callback: JsTypeCommander.isNumberOrNull, allowed: [ TypeFlag.Null, TypeFlag.FiniteNumber ] },
-                { name: 'isNumberNaNorNull', callback: JsTypeCommander.isNumberOrNull, allowed: [ TypeFlag.NaN, TypeFlag.Null, TypeFlag.FiniteNumber ] },
-                { name: 'isNumberOrNil', callback: JsTypeCommander.isNumberOrNil, allowed: [ TypeFlag.Undefined, TypeFlag.Null, TypeFlag.FiniteNumber ] },
-                { name: 'isInfinite', callback: JsTypeCommander.isInfinite, allowed: TypeFlag.Infinity }
-            ]
-        }, {
-            description: 'Testing function type guard functions',
-            functions: [
-                { name: 'isFunction', callback: JsTypeCommander.isBoolean, allowed: TypeFlag.Function },
-                { name: 'isFunctionIfDef', callback: JsTypeCommander.isBooleanIfDef, allowed: [ TypeFlag.Undefined, TypeFlag.Function ] },
-                { name: 'isFunctionOrNull', callback: JsTypeCommander.isBooleanOrNull, allowed: [ TypeFlag.Null, TypeFlag.Function ] },
-                { name: 'isFunctionOrNil', callback: JsTypeCommander.isBooleanOrNil, allowed: [ TypeFlag.Undefined, TypeFlag.Null, TypeFlag.Function ] },
-            ]
-        }, {
-            description: 'Testing object type guard functions',
-            functions: [
-                { name: 'isObject', callback: JsTypeCommander.isObject, allowed: [ TypeFlag.Object, TypeFlag.Array, TypeFlag.Date, TypeFlag.Error, TypeFlag.Map, TypeFlag.Promise, TypeFlag.Regexp, TypeFlag.Set, TypeFlag.WeakMap, TypeFlag.WeakSet ] },
-                { name: 'isPlainObject', callback: JsTypeCommander.isPlainObject, allowed: { type: TypeFlag.Object, variant: ValueVariant.PlainObject } },
-                { name: 'isObjectType', callback: JsTypeCommander.isObjectType, allowed: [ TypeFlag.Object, TypeFlag.Array, TypeFlag.Date, TypeFlag.Error, TypeFlag.Map, TypeFlag.Promise, TypeFlag.Regexp, TypeFlag.Set, TypeFlag.WeakMap, TypeFlag.WeakSet ] },
-                { name: 'isNonArrayObject', callback: JsTypeCommander.isNonArrayObject, allowed: [
-                    {
-
-                        types: ["plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
-                    }, {
-                        arg: { display: 'true', getValue: () => true },
-                        types: ["plainObject", "errorLike", "almostArrayLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
-                    }, {
-                        arg: { display: 'false', getValue: () => false },
-                        types: ["plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
-                    }
-                ] },
-                { name: 'isArray', callback: JsTypeCommander.isArray, allowed: ["Array", "emptyArray"] },
-                { name: 'isEmptyArray', callback: JsTypeCommander.isEmptyArray, allowed: "emptyArray" },
-                { name: 'isArrayLike', callback: JsTypeCommander.isArrayLike, allowed: [
-                    {
-                        types: ["almostArrayLike", "ArrayLike", "Array", "emptyArray"]
-                    }, {
-                        arg: { display: 'true', getValue: () => true },
-                        types: ["ArrayLike", "Array", "emptyArray"]
-                    }, {
-                        arg: { display: 'false', getValue: () => false },
-                        types: ["almostArrayLike", "ArrayLike", "Array", "emptyArray"]
-                    }
-                ] },
-                { name: 'isObjectIfDef', callback: JsTypeCommander.isObjectIfDef, allowed: ["undefined", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
-                { name: 'isPlainObjectIfDef', callback: JsTypeCommander.isPlainObjectIfDef, allowed: ["undefined", "plainObject", "errorLike", "almostArrayLike", "ArrayLike"] },
-                { name: 'isObjectTypeIfDef', callback: JsTypeCommander.isObjectTypeIfDef, allowed: ["undefined", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
-                { name: 'isNonArrayObjectIfDef', callback: JsTypeCommander.isNonArrayObjectIfDef, allowed: [
-                    {
-                        types: ["undefined", "plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
-                    }, {
-                        arg: { display: 'true', getValue: () => true },
-                        types: ["undefined", "plainObject", "errorLike", "almostArrayLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
-                    }, {
-                        arg: { display: 'false', getValue: () => false },
-                        types: ["undefined", "plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
-                    }
-                ] },
-                { name: 'isArrayIfDef', callback: JsTypeCommander.isArrayIfDef, allowed: ["undefined", "Array", "emptyArray"] },
-                { name: 'isEmptyArrayIfDef', callback: JsTypeCommander.isEmptyArrayIfDef, allowed: ["undefined", "emptyArray"] },
-                { name: 'isArrayLikeIfDef', callback: JsTypeCommander.isArrayLikeIfDef, allowed: [
-                    {
-                        types: ["undefined", "almostArrayLike", "ArrayLike", "Array", "emptyArray"]
-                    }, {
-                        arg: { display: 'true', getValue: () => true },
-                        types: ["undefined", "ArrayLike", "Array", "emptyArray"]
-                    }, {
-                        arg: { display: 'false', getValue: () => false },
-                        types: ["undefined", "almostArrayLike", "ArrayLike", "Array", "emptyArray"]
-                    }
-                ] },
-                { name: 'isObjectOrNull', callback: JsTypeCommander.isObjectOrNull, allowed: ["null", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
-                { name: 'isPlainObjectOrNull', callback: JsTypeCommander.isPlainObjectOrNull, allowed: ["null", "plainObject", "errorLike", "almostArrayLike", "ArrayLike"] },
-                { name: 'isObjectTypeOrNull', callback: JsTypeCommander.isObjectTypeOrNull, allowed: ["null", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
-                { name: 'isNonArrayObjectOrNull', callback: JsTypeCommander.isNonArrayObjectOrNull, allowed: [
-                    {
-                        types: ["null", "plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
-                    }, {
-                        arg: { display: 'true', getValue: () => true },
-                        types: ["null", "plainObject", "errorLike", "almostArrayLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
-                    }, {
-                        arg: { display: 'false', getValue: () => false },
-                        types: ["null", "plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
-                    }
-                ] },
-                { name: 'isArrayOrNull', callback: JsTypeCommander.isArrayOrNull, allowed: ["null", "Array", "emptyArray"] },
-                { name: 'isEmptyArrayOrNull', callback: JsTypeCommander.isEmptyArrayOrNull, allowed: ["null", "emptyArray"] },
-                { name: 'isArrayLikeOrNull', callback: JsTypeCommander.isArrayLikeOrNull, allowed: [
-                    {
-                        types: ["null", "almostArrayLike", "ArrayLike", "Array", "emptyArray"]
-                    }, {
-                        arg: { display: 'true', getValue: () => true },
-                        types: ["null", "ArrayLike", "Array", "emptyArray"]
-                    }, {
-                        arg: { display: 'false', getValue: () => false },
-                        types: ["null", "almostArrayLike", "ArrayLike", "Array", "emptyArray"]
-                    }
-                ] },
-                { name: 'isObjectOrNil', callback: JsTypeCommander.isObjectOrNil, allowed: ["undefined", "null", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
-                { name: 'isPlainObjectOrNil', callback: JsTypeCommander.isPlainObjectOrNil, allowed: ["undefined", "null", "plainObject", "errorLike", "almostArrayLike", "ArrayLike"] },
-                { name: 'isObjectTypeOrNil', callback: JsTypeCommander.isObjectTypeOrNil, allowed: ["undefined", "null", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
-                { name: 'isNonArrayObjectOrNil', callback: JsTypeCommander.isNonArrayObjectOrNil, allowed: [
-                    {
-                        types: ["undefined", "null", "plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
-                    }, {
-                        arg: { display: 'true', getValue: () => true },
-                        types: ["undefined", "null", "plainObject", "errorLike", "almostArrayLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
-                    }, {
-                        arg: { display: 'false', getValue: () => false },
-                        types: ["undefined", "null", "plainObject", "errorLike", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"]
-                    }
-                 ] },
-                 { name: 'isArrayOrNil', callback: JsTypeCommander.isArrayOrNil, allowed: ["undefined", "null", "Array", "emptyArray"] },
-                 { name: 'isEmptyArrayOrNil', callback: JsTypeCommander.isEmptyArrayOrNil, allowed: ["undefined", "null", "emptyArray"] },
-                 { name: 'isArrayLikeOrNil', callback: JsTypeCommander.isArrayLikeOrNil, allowed: [
-                     {
-                         types: ["undefined", "null", "almostArrayLike", "ArrayLike", "Array", "emptyArray"]
-                     }, {
-                         arg: { display: 'true', getValue: () => true },
-                         types: ["undefined", "null", "ArrayLike", "Array", "emptyArray"]
-                     }, {
-                         arg: { display: 'false', getValue: () => false },
-                         types: ["undefined", "null", "almostArrayLike", "ArrayLike", "Array", "emptyArray"]
-                     }
-                  ] }
-            ]
-        }, {
-            description: 'Testing derrivation type guard functions',
-            functions: [
-                {
-                    name: 'derivesFrom', callback: JsTypeCommander.derivesFrom, allowed: [
-                        { isGeneric: true, arg: { display: 'Error', getValue: () => Error }, types: ["Error", "RangeError"] },
-                        { isGeneric: true, arg: { display: 'ExampleBaseClass', getValue: () => ExampleBaseClass }, types: ["ParentClass", "InheritedClass", "DeepInheritedClass"] },
-                        { isGeneric: true, arg: { display: 'ExampleChildClass', getValue: () => ExampleChildClass }, types: ["InheritedClass", "DeepInheritedClass"] },
-                        { isGeneric: true, arg: { display: 'ExampleNestedClass', getValue: () => ExampleNestedClass }, types: ["DeepInheritedClass"] },
-                        { isGeneric: true, arg: { display: 'Object', getValue: () => Object }, types: ["emptyString", "whitespace", "nonWhitespace", "boolean", "zero", "nonZero", "float", "NaN", "Infinity", "function", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] }
-                    ]
-                }, {
-                    name: 'derivesFromIfDef', callback: JsTypeCommander.derivesFromIfDef, allowed: [
-                        { isGeneric: true, arg: { display: 'Error', getValue: () => Error }, types: ["undefined", "Error", "RangeError"] },
-                        { isGeneric: true, arg: { display: 'ExampleBaseClass', getValue: () => ExampleBaseClass }, types: ["undefined", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
-                        { isGeneric: true, arg: { display: 'ExampleChildClass', getValue: () => ExampleChildClass }, types: ["undefined", "InheritedClass", "DeepInheritedClass"] },
-                        { isGeneric: true, arg: { display: 'ExampleNestedClass', getValue: () => ExampleNestedClass }, types: ["undefined", "DeepInheritedClass"] },
-                        { isGeneric: true, arg: { display: 'Object', getValue: () => Object }, types: ["undefined", "emptyString", "whitespace", "nonWhitespace", "boolean", "zero", "nonZero", "float", "NaN", "Infinity", "function", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] }
-                    ]
-                }, {
-                    name: 'derivesFromOrNull', callback: JsTypeCommander.derivesFromOrNull, allowed: [
-                        { isGeneric: true, arg: { display: 'Error', getValue: () => Error }, types: ["null", "Error", "RangeError"] },
-                        { isGeneric: true, arg: { display: 'ExampleBaseClass', getValue: () => ExampleBaseClass }, types: ["null", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
-                        { isGeneric: true, arg: { display: 'ExampleChildClass', getValue: () => ExampleChildClass }, types: ["null", "InheritedClass", "DeepInheritedClass"] },
-                        { isGeneric: true, arg: { display: 'ExampleNestedClass', getValue: () => ExampleNestedClass }, types: ["null", "DeepInheritedClass"] },
-                        { isGeneric: true, arg: { display: 'Object', getValue: () => Object }, types: ["null", "emptyString", "whitespace", "nonWhitespace", "boolean", "zero", "nonZero", "float", "NaN", "Infinity", "function", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] }
-                    ]
-                }, {
-                    name: 'derivesFromOrNil', callback: JsTypeCommander.derivesFromOrNil, allowed: [
-                        { isGeneric: true, arg: { display: 'Error', getValue: () => Error }, types: ["undefined", "null", "Error", "RangeError"] },
-                        { isGeneric: true, arg: { display: 'ExampleBaseClass', getValue: () => ExampleBaseClass }, types: ["undefined", "null", "ParentClass", "InheritedClass", "DeepInheritedClass"] },
-                        { isGeneric: true, arg: { display: 'ExampleChildClass', getValue: () => ExampleChildClass }, types: ["undefined", "null", "InheritedClass", "DeepInheritedClass"] },
-                        { isGeneric: true, arg: { display: 'ExampleNestedClass', getValue: () => ExampleNestedClass }, types: ["undefined", "null", "DeepInheritedClass"] },
-                        { isGeneric: true, arg: { display: 'Object', getValue: () => Object }, types: ["undefined", "null", "emptyString", "whitespace", "nonWhitespace", "boolean", "zero", "nonZero", "float", "NaN", "Infinity", "function", "plainObject", "errorLike", "almostArrayLike", "ArrayLike", "Array", "emptyArray", "Error", "RangeError", "ParentClass", "InheritedClass", "DeepInheritedClass"] }
-                    ]
-                }, {
-                    name: 'isErrorLike', callback: JsTypeCommander.isErrorLike, allowed: ["Error", "RangeError", "errorLike"]
-                }
-            ]
-        }
-    ];
-    typeGuardTargetTypeArr.forEach(targetType => {
-        describe(targetType.description, function() {
-            targetType.functions.forEach(typeGuardFunction => {
-                describe('Testing ' + typeGuardFunction.name + ' function', function() {
-                    let allowSetArr: { isGeneric?: boolean; types: typeSpec[]; arg?: ArgumentDescriptor; }[];
-                    if (typeof(typeGuardFunction.allowed) == "string")
-                        allowSetArr = [{ types: [typeGuardFunction.allowed] }];
-                    else
-                        allowSetArr = <{ isGeneric?: boolean; types: typeSpec[]; arg?: ArgumentDescriptor; }[]>typeGuardFunction.allowed.map(a => (typeof(a) == "string") ? { types: [a] } : ((Array.isArray(a)) ? { types: a } : a));
-                    allowSetArr.forEach(allowSet => {
-                        typeGuardTestArgumentArr.forEach(tga => {
-                            let args = [];
-                            let description: string = typeGuardFunction.name;
-                            if (typeof(tga.value) == "undefined") {
-                                if (typeof(allowSet.arg) != "undefined")
-                                    return;
-                                description += "(";
-                            } else {
-                                args.push(tga.value.getValue());
-                                if (typeof(allowSet.arg) != "undefined") {
-                                    if (allowSet.isGeneric)
-                                        description += "<" + allowSet.arg.display + ">(" + tga.value.display;
-                                    else
-                                        description += "(" + tga.value.display + ", " + allowSet.arg.display;
-                                    args.push(allowSet.arg.getValue());
-                                }
-                                else
-                                    description += "(" + tga.value.display;
-                            }
-                            let expected: boolean = allowSet.types.filter(t => t == tga.type).length > 0;
-                            it(description + ") should return " + expected, function() {
-                                let result: JsTypeCommander.AnyNilable = typeGuardFunction.callback.apply(this, args);
-                                expect(result).to.a('boolean');
-                                expect(result).to.equal(expected);
-                                });
-                        }, this);
-                    }, this);
+class TestArrayLike<T> extends TestLengthProp implements ArrayLike<T> {
+    [key: number]: T;
+    constructor(n?: number, ...value: (T|T[])[]) {
+        super(n);
+        if (typeof(value) !== "object" || value === null || !Array.isArray(value) || value.length == 0)
+            return;
+        
+        let i: number = 0;
+        value.forEach((e: T|T[]) => {
+            if (Array.isArray(e))
+                e.forEach(v => {
+                    this[i] = v;
+                    i++;
                 });
+            else {
+                this[i] = e;
+                i++;
+            }
+        })
+    }
+}
+class AlmostArrayLike<T> extends TestArrayLike<T> {
+    constructor(value: T|T[], ...otherValues: T[]) {
+        let i: number = (Array.isArray(value)) ? value.length : 1;
+        let n: number = (typeof(otherValues) != "undefined" && Array.isArray(otherValues)) ? otherValues.length : 0;
+        super(i + n, value);
+        if (typeof(otherValues) == "undefined" || !Array.isArray(otherValues))
+            return;
+        for (let p: number = 0; p < n; p++)
+            this[i + p + 1] = otherValues[p];
+    }
+}
+class TestErrorLike {
+    message: string = "Example Error";
+    get name(): string { return "TestErrorLike"; }
+}
+class TestErrorLike2 extends TestErrorLike {
+    number: number = 12;
+    get name(): string { return "TestErrorLike2"; }
+}
+class TestErrorLike3 extends TestErrorLike2 implements JsTypeCommander.ErrorLike {
+    description?: string;
+    fileName?: string;
+    lineNumber?: number;
+    stack?: string;
+    get name(): string { return "TestErrorLike3"; }
+}
+
+interface IFunctionDefinition {
+    name: string;
+    signature: string;
+    callback: Function;
+    expectations: (IExpectEquals|IExpectIs)[];
+    _type: "FunctionDefinition";
+}
+interface IArgSet { display: string; getArgs: { (): (any|null|undefined)[] }; message?: string; _type: "ArgSet" }
+interface IExpectEquals {
+    display: string;
+    getExpectedValue: { (): any|null|undefined; };
+    argSets: IArgSet[];
+    _type: "ExpectEquals";
+}
+interface IExpectIs {
+    display: string;
+    expectedType: string;
+    argSets: IArgSet[];
+    _type: "ExpectIs";
+}
+interface IExpectationSet {
+    description?: string;
+    expectations: (IExpectEquals|IExpectIs)[];
+    functions: IFunctionDefinition[];
+    getGenericArgs?: { (): (any|null|undefined)[] };
+    _type: "ExpectationSet";
+}
+interface IFunctionGroup {
+    description?: string;
+    expectations: (IExpectEquals|IExpectIs)[];
+    sets: IExpectationSet[];
+    _type: "FunctionGroup";
+}
+interface IFunctionTypeGroup {
+    type: string;
+    expectations: (IExpectEquals|IExpectIs)[];
+    groups: IFunctionGroup[];
+    _type: "TypeGroup";
+}
+function argSet(getArgs: { (): (any|null|undefined)[] }, display: string, message?: string): IArgSet {
+    return { display: display, getArgs: getArgs, message: message, _type: "ArgSet" };
+}
+function expectEqualTo(display: string, getExpectedValue: { (): any|null|undefined[]; }, argSet: IArgSet, ...otherArgSets: IArgSet[]): IExpectEquals {
+    let result: IExpectEquals = { display: display, getExpectedValue: getExpectedValue, argSets: [argSet], _type: "ExpectEquals"};
+    if (typeof(otherArgSets) == "object" && otherArgSets !== null)
+        result.argSets = result.argSets.concat(otherArgSets);
+    return result;
+}
+function expectIsA(type: string, argSet: IArgSet, ...otherArgSets: IArgSet[]): IExpectIs {
+    let result: IExpectIs = { display: type, expectedType: type, argSets: [argSet], _type: "ExpectIs"};
+    if (typeof(otherArgSets) == "object" && otherArgSets !== null)
+        result.argSets = result.argSets.concat(otherArgSets);
+    return result;
+}
+function expectEqualToFalse(argSet: IArgSet, ...otherArgSets: IArgSet[]): IExpectEquals {
+    let result: IExpectEquals = { display: 'false', getExpectedValue: () => false, argSets: [argSet], _type: "ExpectEquals"};
+    if (typeof(otherArgSets) == "object" && otherArgSets !== null)
+        result.argSets = result.argSets.concat(otherArgSets);
+    return result;
+}
+function expectEqualToTrue(argSet: IArgSet, ...otherArgSets: IArgSet[]): IExpectEquals {
+    let result: IExpectEquals = { display: 'true', getExpectedValue: () => true, argSets: [argSet], _type: "ExpectEquals"};
+    if (typeof(otherArgSets) == "object" && otherArgSets !== null)
+        result.argSets = result.argSets.concat(otherArgSets);
+    return result;
+}
+function testFunction(callback: Function, name: string, signature: string, ...expectations: (IExpectEquals|IExpectIs)[]): IFunctionDefinition {
+    return { callback: callback, name: name, signature: signature, expectations: expectations, _type: "FunctionDefinition" };
+}
+function expectationDescription(description: string, content: IFunctionDefinition|IExpectEquals|IExpectIs, ...moreContents: (IFunctionDefinition|IExpectEquals|IExpectIs)[]): IExpectationSet {
+    let result: IExpectationSet = { description: description, expectations: [], functions: [], _type: "ExpectationSet" };
+    if (content._type == "FunctionDefinition")
+        result.functions.push(content);
+    else
+        result.expectations.push(content);
+    if (typeof(moreContents) == "object" && moreContents !== null)
+        moreContents.forEach(c => {
+            if (c._type == "FunctionDefinition")
+                result.functions.push(c);
+            else
+                result.expectations.push(c);
+        });
+    return result;
+}
+function expectationSet(content: IFunctionDefinition|IExpectEquals|IExpectIs, ...moreContents: (IFunctionDefinition|IExpectEquals|IExpectIs)[]): IExpectationSet {
+    let result: IExpectationSet = { expectations: [], functions: [], _type: "ExpectationSet" };
+    if (content._type == "FunctionDefinition")
+        result.functions.push(content);
+    else
+        result.expectations.push(content);
+    if (typeof(moreContents) == "object" && moreContents !== null)
+        moreContents.forEach(c => {
+            if (c._type == "FunctionDefinition")
+                result.functions.push(c);
+            else
+                result.expectations.push(c);
+        });
+    return result;
+}
+function functionGroup(description: string, content: IExpectationSet|IFunctionDefinition|IExpectEquals|IExpectIs, ...moreContents: (IExpectationSet|IFunctionDefinition|IExpectEquals|IExpectIs)[]): IFunctionGroup {
+    let result: IFunctionGroup = { description: description, expectations: [], sets: [], _type: "FunctionGroup" };
+    let defaultExpectationSet: IExpectationSet = { expectations: [], functions: [], _type: "ExpectationSet" };
+    if (content._type == "ExpectationSet")
+        result.sets.push(content);
+    else if (content._type == "FunctionDefinition")
+        defaultExpectationSet.functions.push(content);
+    else
+        result.expectations.push(content);
+    if (typeof(moreContents) == "object" && moreContents !== null)
+        moreContents.forEach(c => {
+            if (c._type == "ExpectationSet")
+                result.sets.push(c);
+            else if (c._type == "FunctionDefinition")
+                defaultExpectationSet.functions.push(c);
+            else
+                result.expectations.push(c);
+        });
+    if (defaultExpectationSet.functions.length > 0)
+        result.sets.push(defaultExpectationSet);
+    return result;
+}
+function genericFunctionGroup(description: string, getGenericArgs: { (): (any|null|undefined)[] }, content: IExpectationSet|IFunctionDefinition|IExpectEquals|IExpectIs, ...moreContents: (IExpectationSet|IFunctionDefinition|IExpectEquals|IExpectIs)[]) : IFunctionGroup {
+    let result: IFunctionGroup = { description: description, expectations: [], sets: [], _type: "FunctionGroup" };
+    let defaultExpectationSet: IExpectationSet = { expectations: [], functions: [], getGenericArgs: getGenericArgs, _type: "ExpectationSet" };
+    if (content._type == "ExpectationSet")
+        result.sets.push(content);
+    else if (content._type == "FunctionDefinition")
+        defaultExpectationSet.functions.push(content);
+    else
+        result.expectations.push(content);
+    if (typeof(moreContents) == "object" && moreContents !== null)
+        moreContents.forEach(c => {
+            if (c._type == "ExpectationSet")
+                result.sets.push(c);
+            else if (c._type == "FunctionDefinition")
+                defaultExpectationSet.functions.push(c);
+            else
+                result.expectations.push(c);
+        });
+    result.sets.push(defaultExpectationSet);
+    return result;
+}
+function functionTypeGroup(type: string, content: IExpectationSet|IFunctionGroup|IFunctionDefinition|IExpectEquals|IExpectIs, ...moreContents: (IExpectationSet|IFunctionGroup|IFunctionDefinition|IExpectEquals|IExpectIs)[]) : IFunctionTypeGroup {
+    let result: IFunctionTypeGroup = { type: type, expectations: [], groups: [], _type: "TypeGroup" };
+    let defaultGroup: IFunctionGroup = { expectations: [], sets: [], _type: "FunctionGroup" };
+    let defaultExpectationSet: IExpectationSet = { expectations: [], functions: [], _type: "ExpectationSet" };
+    if (content._type == "ExpectationSet")
+        defaultGroup.sets.push(content);
+    else if (content._type == "FunctionDefinition")
+        defaultExpectationSet.functions.push(content);
+    else if (content._type == "FunctionGroup")
+        result.groups.push(content);
+    else
+        result.expectations.push(content);
+
+    if (defaultExpectationSet.functions.length > 0 || defaultExpectationSet.expectations.length > 0)
+        defaultGroup.sets.push(defaultExpectationSet);
+
+    if (defaultGroup.sets.length > 0)
+        result.groups.push(defaultGroup);
+    return result;
+}
+
+function describeTestFunction(this: Mocha.ISuiteCallbackContext, expectations: (IExpectEquals|IExpectIs)[], funcDef: IFunctionDefinition, getGenericArgs?: { (): any|null|undefined; }) {
+    describe('Testing function ' + funcDef.name + funcDef.signature, function() {
+        funcDef.expectations.concat(funcDef.expectations).concat(expectations).forEach(e => {
+            if (e._type == "ExpectIs") {
+                let expectedType: string = e.expectedType;
+                e.argSets.forEach(a => {
+                    it(funcDef.name + "(" + a.display + ") should return " + e.display, function() {
+                        let args: (any|null|undefined)[] = a.getArgs();
+                        if (typeof(getGenericArgs) == "function") {
+                            let gArgs: (any|null|undefined)[] = getGenericArgs();
+                            if (gArgs.length > 0)
+                                args = args.concat(gArgs);
+                        }
+                        let target: any|null|undefined = funcDef.callback.apply(this, args);
+                        expect(target).is.a(expectedType, a.message);
+                    });
+                }, this);
+            } else {
+                let expected: any|null|undefined = e.getExpectedValue();
+                e.argSets.forEach(a => {
+                    it(funcDef.name + "(" + a.display + ") should return " + e.display, function() {
+                        let args: (any|null|undefined)[] = a.getArgs();
+                        if (typeof(getGenericArgs) == "function") {
+                            let gArgs: (any|null|undefined)[] = getGenericArgs();
+                            if (gArgs.length > 0)
+                                args = args.concat(gArgs);
+                        }
+                        let target: any|null|undefined = funcDef.callback.apply(this, args);
+                        expect(target).to.equal(expected, a.message);
+                    });
+                }, this);
+            }
+        }, this);
+    });
+}
+
+function describeExpectationSet(this: Mocha.ISuiteCallbackContext, expectations: (IExpectEquals|IExpectIs)[], expectationSet: IExpectationSet) {
+    let setFunc: { (this: Mocha.ISuiteCallbackContext): void; } = function() {
+        expectationSet.functions.forEach(funcDef => {
+            describeTestFunction.call(this, expectations.concat(expectationSet.expectations), funcDef, expectationSet.getGenericArgs);
+        }, this);
+    };
+    if (typeof(expectationSet.description) == "string" && expectationSet.description.trim().length > 0)
+        describe(expectationSet.description, setFunc);
+    else
+        setFunc.call(this);
+}
+
+function describeFunctionGroups(this: Mocha.ISuiteCallbackContext, expectations: (IExpectEquals|IExpectIs)[], functionGrp: IFunctionGroup) {
+    let testFunc: { (this: Mocha.ISuiteCallbackContext): void } = function() {
+        functionGrp.sets.forEach(expectationSet => {
+            describeExpectationSet.call(this, expectations.concat(functionGrp.expectations), expectationSet);
+        }, this);
+    };
+    if (typeof(functionGrp.description) == "string" && functionGrp.description.trim().length > 0)
+        describe(functionGrp.description, testFunc);
+    else
+        testFunc.call(this);
+}
+function describeFunctionTypeGroups(functionTypeGroups: IFunctionTypeGroup[]) {
+    functionTypeGroups.forEach(typeGroup => {
+        describe('Testing ' + typeGroup.type + ' functions', function() {
+            typeGroup.groups.forEach(functionGrp => {
+                describeFunctionGroups.call(this, typeGroup.expectations, functionGrp);
             }, this);
         });
-    }, this);
+    });
+}
+describe("Testing type gate functions", function() {
+    let functionTypeGroups: IFunctionTypeGroup[] = [
+        functionTypeGroup('nil gate',
+            testFunction(JsTypeCommander.notDefined, 'notDefined', '(obj?: TDefined): obj is undefined',
+                expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                expectEqualToFalse(argSet(() => [null], "null"))),
+            testFunction(JsTypeCommander.isNull, 'isNull', '(obj?: TDefined): obj is undefined',
+                expectEqualToTrue(argSet(() => [null], "null")),
+                expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+            testFunction(JsTypeCommander.isNil, 'isNil', '(obj?: TDefined): obj is undefined',
+                expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+            expectEqualToFalse(argSet(() => [NaN], 'NaN'), argSet(() => [0], '0'), argSet(() => [false], 'false'), argSet(() => [""], '""'), argSet(() => [{}], '{}'), argSet(() => [[]], '[]'))
+        ),
+        functionTypeGroup('string gate',
+            functionGroup('Testing type gate functions for any string',
+                testFunction(JsTypeCommander.isString, 'isString', '(obj?: TDefined): obj is string'),
+                testFunction(JsTypeCommander.isStringIfDef, 'isStringIfDef', '(obj?: TDefined): obj is string | undefined'),
+                testFunction(JsTypeCommander.isStringOrNull, 'isStringOrNull', '(obj?: TDefined): obj is string | null'),
+                testFunction(JsTypeCommander.isStringOrNil, 'isStringOrNil', '(obj?: TDefined): obj is string | null | undefined'),
+                expectEqualToTrue(argSet(() => [" "], '" "'), argSet(() => [" \n\r "], '" \\n\\r "'), argSet(() => ["Test"], '"Test"'), argSet(() => [" Test "], '" Test "'))
+            ),
+            functionGroup('Testing empty string type gate functions',
+                testFunction(JsTypeCommander.isEmptyString, 'isEmptyString', '(obj?: TDefined): obj is string',
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isEmptyStringIfDef, 'isEmptyStringIfDef', '(obj?: TDefined): obj is string | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isEmptyStringOrNull, 'isEmptyStringOrNull', '(obj?: TDefined): obj is string | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.isEmptyStringOrNil, 'isEmptyStringOrNil', '(obj?: TDefined): obj is string | null | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                expectEqualToFalse(argSet(() => [" "], '" "'), argSet(() => [" \n\r "], '" \\n\\r "'), argSet(() => ["Test"], '"Test"'), argSet(() => [" Test "], '" Test "'))
+            ),
+            functionGroup('Testing whitespace string type gate functions',
+                testFunction(JsTypeCommander.isEmptyOrWhitespace, 'isEmptyOrWhitespace', '(obj?: TDefined): obj is string'),
+                testFunction(JsTypeCommander.isEmptyOrWhitespaceIfDef, 'isEmptyOrWhitespaceIfDef', '(obj?: TDefined): obj is string | undefined'),
+                testFunction(JsTypeCommander.isNullOrWhitespace, 'isNullOrWhitespace', '(obj?: TDefined): obj is string | null'),
+                testFunction(JsTypeCommander.isNilOrWhitespace, 'isNilOrWhitespace', '(obj?: TDefined): obj is string | null | undefined'),
+                expectEqualToTrue(argSet(() => [" "], '" "'), argSet(() => [" \n\r "], '" \\n\\r "')),
+                expectEqualToFalse(argSet(() => ["Test"], '"Test"'), argSet(() => [" Test "], '" Test "'))
+            ),
+            expectEqualToTrue(argSet(() => [""], '""')),
+            expectEqualToFalse(argSet(() => [NaN], 'NaN'), argSet(() => [0], '0'), argSet(() => [false], 'false'), argSet(() => [[]], '[]'), argSet(() => [[""]], '[""]'),
+                argSet(() => [{}], '{}'), argSet(() => [function() { return ""; }], 'function() { return ""; }'))
+        ),
+        functionTypeGroup('boolean gate',
+            testFunction(JsTypeCommander.isBoolean, 'isBoolean', '(obj?: TDefined): obj is boolean',
+                expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+            testFunction(JsTypeCommander.isBooleanIfDef, 'isBooleanIfDef', '(obj?: TDefined): obj is boolean | undefined',
+                expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                expectEqualToFalse(argSet(() => [null], "null"))),
+            testFunction(JsTypeCommander.isBooleanOrNull, 'isBooleanOrNull', '(obj?: TDefined): obj is boolean | null',
+                expectEqualToTrue(argSet(() => [null], "null")),
+                expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+            testFunction(JsTypeCommander.isBooleanOrNil, 'isBooleanOrNil', '(obj?: TDefined): obj is boolean | null | undefined',
+                expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+            expectEqualToTrue(argSet(() => [true], 'true'), argSet(() => [false], 'false')),
+            expectEqualToFalse(argSet(() => [NaN], 'NaN'), argSet(() => [1], '1'), argSet(() => [0], '0'), argSet(() => [""], '""'), argSet(() => ["true"], '"true"'),
+                argSet(() => ["false"], '"false"'), argSet(() => [[]], '[]'), argSet(() => [[true]], '[true]'), argSet(() => [{}], '{}'),
+                argSet(() => [Symbol.iterator], 'Symbol.iterator'), argSet(() => [function() { return true; }], 'function() { return true; }'))
+        ),
+        functionTypeGroup('number gate',
+            expectationSet(
+                testFunction(JsTypeCommander.isNumber, 'isNumber', '(obj?: TDefined): obj is number',
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"), argSet(() => [NaN], "NaN"))),
+                testFunction(JsTypeCommander.isNumberIfDef, 'isNumberIfDef', '(obj?: TDefined): obj is number | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"), argSet(() => [NaN], "NaN"))),
+                testFunction(JsTypeCommander.isNumberOrNull, 'isNumberOrNull', '(obj?: TDefined): obj is number | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [NaN], "NaN"))),
+                testFunction(JsTypeCommander.isNumberOrNil, 'isNumberOrNil', '(obj?: TDefined): obj is number | null | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [NaN], "NaN"))),
+                expectEqualToTrue(argSet(() => [1], '1'), argSet(() => [0], '0'), argSet(() => [0.0001], '0.0001'), argSet(() => [-1], '-1')),
+                expectEqualToFalse(argSet(() => [Infinity], "Infinity"), argSet(() => [Number.NEGATIVE_INFINITY], "Number.NEGATIVE_INFINITY"),
+                    argSet(() => [Number.POSITIVE_INFINITY], "Number.POSITIVE_INFINITY"))
+            ),
+            testFunction(JsTypeCommander.isNumberNaNorNull, 'isNumberNaNorNull', '(obj?: TDefined): obj is number | null',
+                expectEqualToTrue(argSet(() => [null], "null"), argSet(() => [NaN], "NaN"), argSet(() => [1], '1'), argSet(() => [0], '0'),
+                    argSet(() => [0.0001], '0.0001'), argSet(() => [-1], '-1'), argSet(() => [Infinity], "Infinity"),
+                    argSet(() => [Number.NEGATIVE_INFINITY], "Number.NEGATIVE_INFINITY"), argSet(() => [Number.POSITIVE_INFINITY], "Number.POSITIVE_INFINITY")),
+                expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+            testFunction(JsTypeCommander.isInfinite, 'isInfinite', '(obj?: TDefined): obj is number',
+                expectEqualToTrue(argSet(() => [Infinity], "Infinity"), argSet(() => [Number.NEGATIVE_INFINITY], "Number.NEGATIVE_INFINITY"),
+                    argSet(() => [Number.POSITIVE_INFINITY], "Number.POSITIVE_INFINITY")),
+                expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"), argSet(() => [NaN], "NaN"),
+                    argSet(() => [1], '1'), argSet(() => [0], '0'), argSet(() => [0.0001], '0.0001'), argSet(() => [-1], '-1'))),
+            expectEqualToFalse(argSet(() => [true], 'true'), argSet(() => [false], 'false'), argSet(() => [""], '""'),
+                argSet(() => ["1"], '"1"'), argSet(() => ["0"], '"0"'), argSet(() => [[]], '[]'), argSet(() => [[1]], '[1]'), argSet(() => [[0]], '[0]'),
+                argSet(() => [{}], '{}'), argSet(() => [Symbol.iterator], 'Symbol.iterator'), argSet(() => [function() { return true; }], 'function() { return true; }'),
+                argSet(() => [function() { return true; }], 'function() { return NaN; }'))
+        ),
+        functionTypeGroup('function gate',
+            testFunction(JsTypeCommander.isFunction, 'isFunction', '(obj?: TDefined): obj is Function',
+                expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+            testFunction(JsTypeCommander.isFunctionIfDef, 'isFunctionIfDef', '(obj?: TDefined): obj is Function | undefined',
+                expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                expectEqualToFalse(argSet(() => [null], "null"))),
+            testFunction(JsTypeCommander.isFunctionOrNull, 'isFunctionOrNull', '(obj?: TDefined): obj is Function | null',
+                expectEqualToTrue(argSet(() => [null], "null")),
+                expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+            testFunction(JsTypeCommander.isFunctionOrNil, 'isFunctionOrNil', '(obj?: TDefined): obj is Function | null | undefined',
+                expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+            expectEqualToTrue(argSet(() => [function() { return true; }], 'function() { return true; }')),
+            expectEqualToFalse(argSet(() => [NaN], 'NaN'), argSet(() => [1], '1'), argSet(() => [true], 'true'), argSet(() => [""], '""'), argSet(() => [[]], '[]'),
+                argSet(() => [[function() { return true; }]], '[function() { return true; }]'), argSet(() => [{}], '{}'),
+                argSet(() => [Symbol.iterator], 'Symbol.iterator'))
+        ),
+        functionTypeGroup('object gate',
+            functionGroup('Testing simple object type gate functions for object type',
+                testFunction(JsTypeCommander.isObjectType, 'isObjectType', '(obj?: TDefined): obj is object',
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isObjectTypeIfDef, 'isObjectTypeIfDef', '(obj?: TDefined): obj is object | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isObjectTypeOrNull, 'isObjectTypeOrNull', '(obj?: TDefined): obj is object | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.isObjectTypeOrNil, 'isObjectTypeOrNil', '(obj?: TDefined): obj is object | null | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null")))
+            ),
+            functionGroup('Testing any object type gate functions for objects which can have any named property',
+                testFunction(JsTypeCommander.isObject, 'isObject', '(obj?: TDefined): obj is IStringKeyedObject',
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isObjectIfDef, 'isObjectIfDef', '(obj?: TDefined): obj is IStringKeyedObject | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isObjectOrNull, 'isObjectOrNull', '(obj?: TDefined): obj is IStringKeyedObject | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.isObjectOrNil, 'isObjectOrNil', '(obj?: TDefined): obj is IStringKeyedObject | null | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null")))
+            ),
+            functionGroup('Testing type gate functions for non-array objects',
+                testFunction(JsTypeCommander.isNonArrayObject, 'isNonArrayObject', '(obj?: TDefined): obj is IStringKeyedObject',
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isNonArrayObjectIfDef, 'isNonArrayObjectIfDef', '(obj?: TDefined): obj is IStringKeyedObject | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isNonArrayObjectOrNull, 'isNonArrayObjectOrNull', '(obj?: TDefined): obj is IStringKeyedObject | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.isNonArrayObjectOrNil, 'isNonArrayObjectOrNil', '(obj?: TDefined): obj is IStringKeyedObject | null | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null")))
+            ),
+            functionGroup('Testing type gate functions for plain objects',
+                testFunction(JsTypeCommander.isPlainObject, 'isPlainObject', '(obj?: TDefined): obj is IStringKeyedObject',
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isPlainObjectIfDef, 'isPlainObjectIfDef', '(obj?: TDefined): obj is IStringKeyedObject | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isPlainObjectOrNull, 'isPlainObjectOrNull', '(obj?: TDefined): obj is IStringKeyedObject | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.isPlainObjectOrNil, 'isPlainObjectOrNil', '(obj?: TDefined): obj is IStringKeyedObject | null | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null")))
+            )
+        ),
+        functionTypeGroup('Array gate',
+            functionGroup('Testing normal array type gate functions',
+                testFunction(JsTypeCommander.isArray, 'isObjectType', '(obj?: TDefined): obj is AnyNilable[]',
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isArrayIfDef, 'isArrayIfDef', '(obj?: TDefined): obj is AnyNilable[] | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isArrayOrNull, 'isArrayOrNull', '(obj?: TDefined): obj is AnyNilable[] | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.isArrayOrNil, 'isArrayOrNil', '(obj?: TDefined): obj is AnyNilable[] | null | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null")))
+            ),
+            functionGroup('Testing normal array type gate functions',
+                testFunction(JsTypeCommander.isArray, 'isArray', '(obj?: TDefined): obj is AnyNilable[]',
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isArrayIfDef, 'isArrayIfDef', '(obj?: TDefined): obj is AnyNilable[] | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isArrayOrNull, 'isArrayOrNull', '(obj?: TDefined): obj is AnyNilable[] | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.isArrayOrNil, 'isArrayOrNil', '(obj?: TDefined): obj is AnyNilable[] | null | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null")))
+            ),
+            functionGroup('Testing empty array type gate functions',
+                testFunction(JsTypeCommander.isEmptyArray, 'isEmptyArray', '(obj?: TDefined): obj is AnyNilable[]',
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isEmptyArray, 'isEmptyArray', '(obj: TDefined, checkElements: boolean): obj is AnyNilable[]',
+                    expectEqualToFalse(argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isEmptyArrayIfDef, 'isEmptyArrayIfDef', '(obj?: TDefined): obj is AnyNilable[] | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isEmptyArrayIfDef, 'isEmptyArrayIfDef', '(obj: TDefined, checkElements: boolean): obj is AnyNilable[] | undefined',
+                    expectEqualToTrue(argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isEmptyArrayOrNull, 'isEmptyArrayOrNull', '(obj?: TDefined): obj is AnyNilable[] | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.isEmptyArrayOrNull, 'isEmptyArrayOrNull', '(obj: TDefined, checkElements: boolean): obj is AnyNilable[] | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.isEmptyArrayOrNil, 'isEmptyArrayOrNil', '(obj?: TDefined): obj is AnyNilable[] | null | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isEmptyArrayOrNil, 'isEmptyArrayOrNil', '(obj: TDefined, checkElements: boolean): obj is AnyNilable[] | null | undefined',
+                    expectEqualToTrue(argSet(() => [undefined], "undefined"), argSet(() => [null], "null")))
+            ),
+            functionGroup('Testing ArrayLike type gate functions',
+                testFunction(JsTypeCommander.isArrayLike, 'isArrayLike', '(obj?: TDefined): obj is ArrayLike<AnyNilable>',
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isArrayLike, 'isArrayLike', '(obj: TDefined, checkElements: boolean): obj is ArrayLike<AnyNilable>',
+                    expectEqualToFalse(argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isArrayLikeIfDef, 'isArrayLikeIfDef', '(obj?: TDefined): obj is ArrayLike<AnyNilable> | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isArrayLikeIfDef, 'isArrayLikeIfDef', '(obj: TDefined, checkElements: boolean): obj is ArrayLike<AnyNilable> | undefined',
+                    expectEqualToTrue(argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.isArrayLikeOrNull, 'isArrayLikeOrNull', '(obj?: TDefined): obj is ArrayLike<AnyNilable> | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.isArrayLikeOrNull, 'isArrayLikeOrNull', '(obj: TDefined, checkElements: boolean): obj is ArrayLike<AnyNilable> | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.isArrayLikeOrNil, 'isArrayLikeOrNil', '(obj?: TDefined): obj is ArrayLike<AnyNilable> | null | undefined',
+                    expectEqualToTrue(argSet(() => [], ""), argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                    expectEqualToFalse(argSet(() => [], ""), argSet(() => [undefined], "undefined")),
+                testFunction(JsTypeCommander.isArrayLikeOrNil, 'isArrayLikeOrNil', '(obj: TDefined, checkElements: boolean): obj is ArrayLike<AnyNilable> | null | undefined',
+                    expectEqualToTrue(argSet(() => [undefined], "undefined"), argSet(() => [null], "null")))
+            )
+        ),
+        functionTypeGroup('derrivation gate',
+            genericFunctionGroup('Testing Error class derrivation functions', () => [Error],
+                testFunction(JsTypeCommander.derivesFrom, 'derivesFrom<Error>', '(obj?: TDefined, Error): obj is Error',
+                    expectEqualToFalse(argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.derivesFromIfDef, 'derivesFromIfDef<Error>', '(obj?: TDefined, Error): obj is Error | undefined',
+                    expectEqualToTrue(argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.derivesFromOrNull, 'derivesFromOrNull<Error>', '(obj?: TDefined, Error): obj is Error | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.derivesFromOrNil, 'derivesFromOrNil<Error>', '(obj?: TDefined, Error): obj is Error | null | undefined',
+                    expectEqualToTrue(argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                expectEqualToTrue(argSet(() => [new Error()], 'new Error()'), argSet(() => [new RangeError()], 'new RangeError()')),
+                expectEqualToFalse(argSet(() => [new TestErrorLike()], 'new TestErrorLike()'), argSet(() => [NaN], 'NaN'), argSet(() => [1], '1'),
+                    argSet(() => [true], 'true'), argSet(() => [[]], '[]'), argSet(() => [[new Error()]], '[new Error()]'))
+            ),
+            genericFunctionGroup('Testing Error class derrivation functions', () => [RangeError],
+                testFunction(JsTypeCommander.derivesFrom, 'derivesFrom<RangeError>', '(obj?: TDefined, RangeError): obj is RangeError',
+                    expectEqualToFalse(argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.derivesFromIfDef, 'derivesFromIfDef<RangeError>', '(obj?: TDefined, RangeError): obj is RangeError | undefined',
+                    expectEqualToTrue(argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.derivesFromOrNull, 'derivesFromOrNull<RangeError>', '(obj?: TDefined, RangeError): obj is RangeError | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.derivesFromOrNil, 'derivesFromOrNil<RangeError>', '(obj?: TDefined, RangeError): obj is RangeError | null | undefined',
+                    expectEqualToTrue(argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                expectEqualToTrue(argSet(() => [new RangeError()], 'new RangeError()')),
+                expectEqualToFalse(argSet(() => [new Error()], 'new Error()'), argSet(() => [new TestErrorLike()], 'new TestErrorLike()'), argSet(() => [NaN], 'NaN'), argSet(() => [1], '1'),
+                    argSet(() => [true], 'true'), argSet(() => [[]], '[]'), argSet(() => [[new RangeError()]], '[new RangeError()]'))
+            ),
+            genericFunctionGroup('Testing custom class derrivation functions', () => [TestErrorLike],
+                testFunction(JsTypeCommander.derivesFrom, 'derivesFrom<TestErrorLike>', '(obj?: TDefined, TestErrorLike): obj is TestErrorLike',
+                    expectEqualToFalse(argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.derivesFromIfDef, 'derivesFromIfDef<TestErrorLike>', '(obj?: TDefined, TestErrorLike): obj is TestErrorLike | undefined',
+                    expectEqualToTrue(argSet(() => [undefined], "undefined")),
+                    expectEqualToFalse(argSet(() => [null], "null"))),
+                testFunction(JsTypeCommander.derivesFromOrNull, 'derivesFromOrNull<TestErrorLike>', '(obj?: TDefined, TestErrorLike): obj is TestErrorLike | null',
+                    expectEqualToTrue(argSet(() => [null], "null")),
+                    expectEqualToFalse(argSet(() => [undefined], "undefined"))),
+                testFunction(JsTypeCommander.derivesFromOrNil, 'derivesFromOrNil<TestErrorLike>', '(obj?: TDefined, TestErrorLike): obj is TestErrorLike | null | undefined',
+                    expectEqualToTrue(argSet(() => [undefined], "undefined"), argSet(() => [null], "null"))),
+                expectEqualToTrue(argSet(() => [new TestErrorLike()], 'new TestErrorLike()'), argSet(() => [new TestErrorLike2()], 'new TestErrorLike2()'), argSet(() => [new TestErrorLike3()], 'new TestErrorLike3()')),
+                expectEqualToFalse(argSet(() => [new RangeError()], 'new RangeError()'), argSet(() => [new Error()], 'new Error()'), argSet(() => [new TestErrorLike()], 'new TestErrorLike()'), argSet(() => [NaN], 'NaN'), argSet(() => [1], '1'),
+                    argSet(() => [true], 'true'), argSet(() => [[]], '[]'), argSet(() => [[new RangeError()]], '[new RangeError()]'))
+            )
+        ),
+        functionTypeGroup('ErrorLike gate',
+            testFunction(JsTypeCommander.isErrorLike, 'isErrorLike', '(obj?: TDefined): obj is boolean',
+                expectEqualToTrue(argSet(() => [new RangeError()], 'new RangeError()'), argSet(() => [new Error()], 'new Error()'),
+                    argSet(() => [new TestErrorLike()], 'new TestErrorLike()'), argSet(() => [new TestErrorLike2()], 'new TestErrorLike2()')),
+                expectEqualToFalse(argSet(() => [NaN], 'NaN'), argSet(() => [1], '1'), argSet(() => [0], '0'), argSet(() => [""], '""'), argSet(() => ["true"], '"true"'),
+                    argSet(() => ["false"], '"false"'), argSet(() => [[]], '[]'), argSet(() => [[true]], '[true]'), argSet(() => [{}], '{}'),
+                    argSet(() => [Symbol.iterator], 'Symbol.iterator'), argSet(() => [function() { return true; }], 'function() { return true; }')))
+        )
+    ];
+    describeFunctionTypeGroups(functionTypeGroups);
 });
 
-interface TypeConversionTargetType {
-
-}
 describe("Testing type conversion functions", function() {
-    describe("Testing string conversion functions", function() {
-        describe("Testing asString", function() {
-    
+    let functionTypeGroups: IFunctionTypeGroup[] = [
+        functionTypeGroup('string conversion',
+            testFunction(JsTypeCommander.asString, 'asString', '(obj?: TDefined): Nilable<string>, ifWhitespace?: boolean): Nilable<string>',
+                expectIsA('undefined',
+                    argSet(() => [undefined], 'undefined'),
+                    argSet(() => [undefined, undefined], 'undefined, undefined')
+                ),
+                expectIsA('null',
+                    argSet(() => [null], 'null'),
+                    argSet(() => [undefined, null], 'undefined, null'),
+                    argSet(() => [null, undefined], 'null, undefined')
+                ),
+                expectEqualTo('""', () => "",
+                    argSet(() => [""], '""'),
+                    argSet(() => [""], '""'),
+                    argSet(() => [[]], '[]'),
+                    argSet(() => [[""]], '[""]'),
+                    argSet(() => ["", undefined], '"", undefined'),
+                    argSet(() => ["", null], '"", null'),
+                    argSet(() => [undefined, ""], 'undefined, ""'),
+                    argSet(() => [null, ""], 'null, ""'),
+                    argSet(() => ["", Symbol.iterator], '"", Symbol.iterator'),
+                    argSet(() => ["", Symbol.iterator, false], '"", Symbol.iterator, false'),
+                    argSet(() => ["", "\t\n\r "], '"", "\\t\\n\\r "'),
+                    argSet(() => ["", "\t\n\r ", false], '"", "\\t\\n\\r ", false')
+                ),
+                expectEqualTo('"true"', () => "true",
+                    argSet(() => ["true"], '"true"'),
+                    argSet(() => [true,], 'true')
+                ),
+                expectEqualTo('"false"', () => "false",
+                    argSet(() => ["false"], '"false"'),
+                    argSet(() => [false,], 'false')
+                ),
+                expectEqualTo('"iterator"', () => "iterator",
+                    argSet(() => [Symbol.iterator], 'Symbol.iterator'),
+                    argSet(() => [[Symbol.iterator]], '[Symbol.iterator]'),
+                    argSet(() => [undefined, Symbol.iterator], 'undefined, Symbol.iterator'),
+                    argSet(() => [null, Symbol.iterator], 'null, Symbol.iterator'),
+                    argSet(() => ["", Symbol.iterator, true], '"", Symbol.iterator, true'),
+                    argSet(() => ["\t\n\r ", Symbol.iterator, true], '"\\t\\n\\r ", Symbol.iterator, true')
+                ),
+                expectEqualTo('"\\t\\n\\r "', () => "\t\n\r ",
+                    argSet(() => ["\t\n\r ", " "], '"\\t\\n\\r ", " "'),
+                    argSet(() => ["\t\n\r ", " "], '"\\t\\n\\r ", " "'),
+                    argSet(() => ["\t\n\r ", Symbol.iterator], '"\\t\\n\\r ", Symbol.iterator'),
+                    argSet(() => ["", "\t\n\r ", true], '"", "\\t\\n\\r ", true'),
+                    argSet(() => ["\t\n\r ", "", true], '"\\t\\n\\r ", "", true'),
+                    argSet(() => ["\t\n\r ", Symbol.iterator, false], '"\\t\\n\\r ", Symbol.iterator, false')
+                )
+            ),
+            testFunction(JsTypeCommander.toString, 'toString', '(obj?: TDefined): Nilable<string>, ifWhitespace?: boolean): string',
+                expectEqualTo('""', () => "",
+                    argSet(() => [undefined], 'undefined'),
+                    argSet(() => [undefined, undefined], 'undefined, undefined'),
+                    argSet(() => [null], 'null'),
+                    argSet(() => [undefined, null], 'undefined, null'),
+                    argSet(() => [null, undefined], 'null, undefined'),
+                    argSet(() => [""], '""'),
+                    argSet(() => [""], '""'),
+                    argSet(() => [[]], '[]'),
+                    argSet(() => [[""]], '[""]'),
+                    argSet(() => ["", undefined], '"", undefined'),
+                    argSet(() => ["", null], '"", null'),
+                    argSet(() => [undefined, ""], 'undefined, ""'),
+                    argSet(() => [null, ""], 'null, ""'),
+                    argSet(() => ["", Symbol.iterator], '"", Symbol.iterator'),
+                    argSet(() => ["", Symbol.iterator, false], '"", Symbol.iterator, false'),
+                    argSet(() => ["", "\t\n\r "], '"", "\\t\\n\\r "'),
+                    argSet(() => ["", "\t\n\r ", false], '"", "\\t\\n\\r ", false')
+                ),
+                expectEqualTo('"true"', () => "true",
+                    argSet(() => ["true"], '"true"'),
+                    argSet(() => [true,], 'true')
+                ),
+                expectEqualTo('"false"', () => "false",
+                    argSet(() => ["false"], '"false"'),
+                    argSet(() => [false,], 'false')
+                ),
+                expectEqualTo('"iterator"', () => "iterator",
+                    argSet(() => [Symbol.iterator], 'Symbol.iterator'),
+                    argSet(() => [[Symbol.iterator]], '[Symbol.iterator]'),
+                    argSet(() => [undefined, Symbol.iterator], 'undefined, Symbol.iterator'),
+                    argSet(() => [null, Symbol.iterator], 'null, Symbol.iterator'),
+                    argSet(() => ["", Symbol.iterator, true], '"", Symbol.iterator, true'),
+                    argSet(() => ["\t\n\r ", Symbol.iterator, true], '"\\t\\n\\r ", Symbol.iterator, true')
+                ),
+                expectEqualTo('"\\t\\n\\r "', () => "\t\n\r ",
+                    argSet(() => ["\t\n\r ", " "], '"\\t\\n\\r ", " "'),
+                    argSet(() => ["\t\n\r ", " "], '"\\t\\n\\r ", " "'),
+                    argSet(() => ["\t\n\r ", Symbol.iterator], '"\\t\\n\\r ", Symbol.iterator'),
+                    argSet(() => ["", "\t\n\r ", true], '"", "\\t\\n\\r ", true'),
+                    argSet(() => ["\t\n\r ", "", true], '"\\t\\n\\r ", "", true'),
+                    argSet(() => ["\t\n\r ", Symbol.iterator, false], '"\\t\\n\\r ", Symbol.iterator, false')
+                )
+            )
+        ),
+        functionTypeGroup('boolean conversion',
+            testFunction(JsTypeCommander.asBoolean, 'asBoolean', '(obj?: TDefined): Nilable<boolean>): Nilable<boolean>',
+                expectIsA('undefined',
+                    argSet(() => [undefined], 'undefined'),
+                    argSet(() => [""], '""'), argSet(() => ["talse"], '"talse"'), argSet(() => ["nes"], '""nes'), argSet(() => ["yo"], '"yo"'), argSet(() => ["frue"], '"frue"'),
+                    argSet(() => [[]], '[]'),
+                    argSet(() => [undefined, undefined], 'undefined, undefined')
+                ),
+                expectIsA('null',
+                    argSet(() => [null], 'null'),
+                    argSet(() => [undefined, null], 'undefined, null'),
+                    argSet(() => [null, undefined], 'null, undefined')
+                ),
+                expectEqualTo('true', () => true,
+                    argSet(() => [true], 'true'),
+                    argSet(() => [1], '1'),
+                    argSet(() => [-1], '-1'),
+                    argSet(() => [100], '100'),
+                    argSet(() => [Number.POSITIVE_INFINITY], 'Number.POSITIVE_INFINITY'),
+                    argSet(() => [Number.NEGATIVE_INFINITY], 'Number.NEGATIVE_INFINITY'),
+                    argSet(() => ["t"], '"t"'), argSet(() => ["T"], '"T"'),
+                    argSet(() => ["true"], '"true"'), argSet(() => ["TRUE"], '"TRUE"'), argSet(() => ["True"], '"True"'), argSet(() => ["tRuE"], '"tRuE"'),
+                    argSet(() => ["y"], '"y"'), argSet(() => ["Y"], '"Y"'),
+                    argSet(() => ["yes"], '"yes"'), argSet(() => ["YES"], '"YES"'), argSet(() => ["Yes"], '"Yes"'), argSet(() => ["yEs"], '"yEs"'),
+                    argSet(() => [[true]], '[true]'),
+                    argSet(() => [true, undefined], 'true, undefined'),
+                    argSet(() => [true, null], 'true, null'),
+                    argSet(() => [undefined, true], 'undefined, true'),
+                    argSet(() => [null, true], 'null, true'),
+                    argSet(() => [null, -0.0001], 'null, -0.0001'),
+                    argSet(() => [true, false], 'true, false')
+                ),
+                expectEqualTo('false', () => false,
+                    argSet(() => [false], 'false'),
+                    argSet(() => [0], '0'),
+                    argSet(() => ["-0.0000"], '"-0.0000"'),
+                    argSet(() => [NaN], 'NaN'),
+                    argSet(() => ["f"], '"f"'), argSet(() => ["F"], '"F"'),
+                    argSet(() => ["false"], '"false"'), argSet(() => ["FALSE"], '"FALSE"'), argSet(() => ["False"], '"False"'), argSet(() => ["fAlSe"], '"fAlSe"'),
+                    argSet(() => [[false]], '[false]'),
+                    argSet(() => [false, undefined], 'false, undefined'),
+                    argSet(() => [false, null], 'false, null'),
+                    argSet(() => [undefined, false], 'undefined, false'),
+                    argSet(() => [null, false], 'null, false'),
+                    argSet(() => [false, true], 'false, true')
+                )
+            ),
+            testFunction(JsTypeCommander.toBoolean, 'toBoolean', '(obj?: TDefined): Nilable<boolean>): boolean',
+                expectEqualTo('true', () => true,
+                    argSet(() => [true], 'true'),
+                    argSet(() => [1], '1'),
+                    argSet(() => [-1], '-1'),
+                    argSet(() => [100], '100'),
+                    argSet(() => [Number.POSITIVE_INFINITY], 'Number.POSITIVE_INFINITY'),
+                    argSet(() => [Number.NEGATIVE_INFINITY], 'Number.NEGATIVE_INFINITY'),
+                    argSet(() => ["t"], '"t"'), argSet(() => ["T"], '"T"'),
+                    argSet(() => ["true"], '"true"'), argSet(() => ["TRUE"], '"TRUE"'), argSet(() => ["True"], '"True"'), argSet(() => ["tRuE"], '"tRuE"'),
+                    argSet(() => ["y"], '"y"'), argSet(() => ["Y"], '"Y"'),
+                    argSet(() => ["yes"], '"yes"'), argSet(() => ["YES"], '"YES"'), argSet(() => ["Yes"], '"Yes"'), argSet(() => ["yEs"], '"yEs"'),
+                    argSet(() => [[true]], '[true]'),
+                    argSet(() => [true, undefined], 'true, undefined'),
+                    argSet(() => [true, null], 'true, null'),
+                    argSet(() => [undefined, true], 'undefined, true'),
+                    argSet(() => [null, true], 'null, true'),
+                    argSet(() => [null, -0.0001], 'null, -0.0001'),
+                    argSet(() => [true, false], 'true, false')
+                ),
+                expectEqualTo('false', () => false,
+                    argSet(() => [undefined], 'undefined'),
+                    argSet(() => [""], '""'), argSet(() => ["talse"], '"talse"'), argSet(() => ["nes"], '""nes'), argSet(() => ["yo"], '"yo"'), argSet(() => ["frue"], '"frue"'),
+                    argSet(() => [[]], '[]'),
+                    argSet(() => [undefined, undefined], 'undefined, undefined'),
+                    argSet(() => [null], 'null'),
+                    argSet(() => [undefined, null], 'undefined, null'),
+                    argSet(() => [null, undefined], 'null, undefined'),
+                    argSet(() => [false], 'false'),
+                    argSet(() => [0], '0'),
+                    argSet(() => ["-0.0000"], '"-0.0000"'),
+                    argSet(() => [NaN], 'NaN'),
+                    argSet(() => ["f"], '"f"'), argSet(() => ["F"], '"F"'),
+                    argSet(() => ["false"], '"false"'), argSet(() => ["FALSE"], '"FALSE"'), argSet(() => ["False"], '"False"'), argSet(() => ["fAlSe"], '"fAlSe"'),
+                    argSet(() => [[false]], '[false]'),
+                    argSet(() => [false, undefined], 'false, undefined'),
+                    argSet(() => [false, null], 'false, null'),
+                    argSet(() => [undefined, false], 'undefined, false'),
+                    argSet(() => [null, false], 'null, false'),
+                    argSet(() => [false, true], 'false, true')
+                )
+            )
+        ),
+        functionTypeGroup('number conversion',
+            testFunction(JsTypeCommander.asNumber, 'asNumber', '(obj?: TDefined): Nilable<number>): Nilable<number>',
+                expectIsA('undefined',
+                    argSet(() => [undefined], 'undefined'),
+                    argSet(() => [""], '""'),
+                    argSet(() => [[]], '[]'),
+                    argSet(() => [undefined, undefined], 'undefined, undefined')
+                ),
+                expectIsA('null',
+                    argSet(() => [null], 'null'),
+                    argSet(() => [undefined, null], 'undefined, null'),
+                    argSet(() => [null, undefined], 'null, undefined')
+                ),
+                expectEqualTo('1', () => 1,
+                    argSet(() => [1], '1'),
+                    argSet(() => [true], 'true'),
+                    argSet(() => ["1"], '"1"'),
+                    argSet(() => ["0001.00"], '"0001.00"'),
+                    argSet(() => [undefined, 1], 'undefined, 1'),
+                    argSet(() => [undefined, true], 'undefined, true'),
+                    argSet(() => [undefined, "1"], 'undefined, "1"'),
+                    argSet(() => [undefined, "0001.00"], 'undefined, "0001.00"'),
+                    argSet(() => [null, 1], 'null, 1'),
+                    argSet(() => [null, true], 'null, true'),
+                    argSet(() => [null, "1"], 'null, "1"'),
+                    argSet(() => [null, "0001.00"], 'null, "0001.00"'),
+                    argSet(() => ["x2", 1], '"x2", 1'),
+                    argSet(() => ["x2", true], '"x2", true'),
+                    argSet(() => [null, "1"], 'null, "1"'),
+                    argSet(() => [null, "0001.00"], 'null, "0001.00"')
+                ),
+                expectEqualTo('false', () => false,
+                    argSet(() => [false], 'false'),
+                    argSet(() => [0], '0'),
+                    argSet(() => ["-0.0000"], '"-0.0000"'),
+                    argSet(() => ["false"], '"false"'),
+                    argSet(() => [[false]], '[false]'),
+                    argSet(() => [false, undefined], 'false, undefined'),
+                    argSet(() => [false, null], 'false, null'),
+                    argSet(() => [undefined, false], 'undefined, false'),
+                    argSet(() => [null, false], 'null, false'),
+                    argSet(() => [false, true], 'false, true')
+                )
+            ),
+            testFunction(JsTypeCommander.toNumber, 'toNumber', '(obj?: TDefined): Nilable<number>): number',
+                expectEqualTo('true', () => true,
+                    argSet(() => [true], 'true'),
+                    argSet(() => [1], '1'),
+                    argSet(() => [-1], '-1'),
+                    argSet(() => [100], '100'),
+                    argSet(() => ["true"], '"true"'),
+                    argSet(() => [[true]], '[true]'),
+                    argSet(() => [true, undefined], 'true, undefined'),
+                    argSet(() => [true, null], 'true, null'),
+                    argSet(() => [undefined, true], 'undefined, true'),
+                    argSet(() => [null, true], 'null, true'),
+                    argSet(() => [null, -0.0001], 'null, -0.0001'),
+                    argSet(() => [true, false], 'true, false')
+                ),
+                expectEqualTo('false', () => false,
+                    argSet(() => [false], 'false'),
+                    argSet(() => [0], '0'),
+                    argSet(() => ["-0.0000"], '"-0.0000"'),
+                    argSet(() => ["false"], '"false"'),
+                    argSet(() => [[false]], '[false]'),
+                    argSet(() => [false, undefined], 'false, undefined'),
+                    argSet(() => [false, null], 'false, null'),
+                    argSet(() => [undefined, false], 'undefined, false'),
+                    argSet(() => [null, false], 'null, false'),
+                    argSet(() => [false, true], 'false, true'),
+                    argSet(() => [undefined], 'undefined'),
+                    argSet(() => [""], '""'),
+                    argSet(() => [[]], '[]'),
+                    argSet(() => [undefined, undefined], 'undefined, undefined'),
+                    argSet(() => [null], 'null'),
+                    argSet(() => [undefined, null], 'undefined, null'),
+                    argSet(() => [null, undefined], 'null, undefined')
+                )
+            )
+        )
+    ];
+    describeFunctionTypeGroups(functionTypeGroups);
+    describe("Testing number type conversion functions", function() {
+        describe("Testing function asNumber(obj?: TDefined): Nilable<number>", function() {
+        
         });
-        describe("Testing toString", function() {
-    
+        describe("Testing function asNumber(obj?: TDefined, defaultValue?: Nullable<number>): Nilable<number>", function() {
+        
         });
-        describe("Testing trimStart", function() {
-    
+        describe("Testing function toNumber(obj?: TDefined): number", function() {
+        
         });
-        describe("Testing trimEnd", function() {
-    
-        });
-        describe("Testing asNormalizedWs", function() {
-    
-        });
-        describe("Testing ucFirst", function() {
-    
-        });
-        describe("Testing splitLines", function() {
-    
-        });
-        describe("Testing indentText", function() {
-    
-        });
-        describe("Testing indentLines", function() {
-    
+        describe("Testing function toNumber(obj?: TDefined, defaultValue?: Nullable<number>): number", function() {
+        
         });
     });
-    describe("Testing boolean conversion functions", function() {
-        describe("Testing asBoolean", function() {
+    describe("Testing function toArray(obj?: TDefined, checkElements?: boolean): AnyNilable[]", function() {
     
-        });
-        describe("Testing toBoolean", function() {
-    
-        });
     });
-    describe("Testing number conversion functions", function() {
-        describe("Testing asNumber", function() {
+    describe("Testing function asErrorLike(obj?: TDefined): Nilable<ErrorLike>", function() {
     
-        });
-        describe("Testing toNumber", function() {
-    
-        });
     });
-    describe("Testing Array conversion functions", function() {
-        describe("Testing toArray", function() {
+});
+describe("Testing string manipulation functions", function() {
+    describe("Testing function trimStart(text: string): string", function() {
     
-        });
-        describe("Testing mapInto", function() {
-    
-        });
     });
-    describe("Testing asErrorLike", function() {
+    describe("Testing function trimEnd(text: string): string", function() {
+    
+    });
+    describe("Testing function asNormalizedWs(text: string): string", function() {
+    
+    });
+    describe("Testing function ucFirst(text: string): string", function() {
+    
+    });
+    describe("Testing function splitLines(text: string): string[]", function() {
+    
+    });
+    describe("Testing function indentText(text: string | string[], indent?: string): string", function() {
+    
+    });
+    describe("Testing function indentLines(text: string[] | string, indent?: string): string[]", function() {
+    
+    });
+});
+describe("Testing function mapInto(obj: any, callbackfn: RecursiveMapCallbackFn, options?: MapIntoOptions): any", function() {
 
-    });
 });

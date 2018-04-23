@@ -215,7 +215,7 @@ var JsTypeCommander;
     }
     JsTypeCommander.mapByNotNil = mapByNotNil;
     /**
-     * Determesin whether an object is undefined.
+     * Determines whether an object is undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is undefined; otherwise, false.
      */
@@ -1234,7 +1234,7 @@ var JsTypeCommander;
     JsTypeCommander.toArray = toArray;
     /**
      * Searches the value's inherited prototype chain for a matching constructor function.
-     * @param value Value to test.
+     * @param obj Value to test.
      * @param {AnyFunction} classConstructor Constructor function to look for.
      * @returns {boolean} True if the value is determined to inherit from the specified class; otherwise false.
      */

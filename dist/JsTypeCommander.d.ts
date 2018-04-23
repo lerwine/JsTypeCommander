@@ -1,4 +1,7 @@
 export declare module JsTypeCommander {
+    /**
+     * Defines options for updating regular expressions used in the current module.
+     */
     interface IJsTypeCommanderRegex {
         /**
          * Pattern which matches one or more consecutive whitespace characters.
@@ -34,6 +37,9 @@ export declare module JsTypeCommander {
          */
         abnormalWhitespace?: RegExp;
     }
+    /**
+     * Names of settings which can be used to reference regular expression patters used in the current module.
+     */
     type PatternSettingsName = "onlyWhitespace" | "trimStart" | "trimEnd" | "lineSeparator" | "booleanText" | "firstLetterLc" | "abnormalWhitespace";
     /**
      * Alias for a type that is defined.
@@ -41,19 +47,34 @@ export declare module JsTypeCommander {
      */
     type TDefined = any | null;
     /**
-     * Alias for a type that can be either defined or undefined.
+     * Alias for a type that includes null and undefined.
+     * @description This is intended for use when strictNullChecks is turned on.
+     */
+    type Nilable<T> = T | null | undefined;
+    /**
+     * Alias for any type, including null and undefined.
      * @description This is intended to represent any value at all when strictNullChecks is turned on.
      */
-    type TAnythingAtAll = any | null | undefined;
+    type AnyNilable = any | null | undefined;
+    /**
+     * Alias for a type that includes null and undefined.
+     * @description This is intended to include nulls in a type when strictNullChecks is turned on.
+     */
+    type Nullable<T> = T | null;
+    /**
+     * Alias for any type or null.
+     * @description This is intended for use when strictNullChecks is turned on.
+     */
+    type AnyNullable = any | null;
     /** Represents an object which can contained arbitrarily named properties. */
     interface IStringKeyedObject {
-        [key: string]: TAnythingAtAll;
+        [key: string]: AnyNilable;
     }
     /**
      * Represents an object which contains both named properties and indexed elements.
      */
-    interface ICompoundArrayObject extends IStringKeyedObject, ArrayLike<TAnythingAtAll> {
-        readonly [key: string]: TAnythingAtAll;
+    interface ICompoundArrayObject extends IStringKeyedObject, ArrayLike<AnyNilable> {
+        readonly [key: string]: AnyNilable;
     }
     /**
      * Represents an object which contains properties that are similar to Error objects.
@@ -151,14 +172,14 @@ export declare module JsTypeCommander {
          * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"object"</code> and the source value derrives from <code>Array</code>.
          * @description If the source value derrives from <code>Array</code> and this property is not defined, then {@link TypeGuardResultSpecs#whenArrayLike} will be next in line to determine the mapped value.
          */
-        whenArray?: MapFromValueCallback<TAnythingAtAll[], TResult> | TResult;
+        whenArray?: MapFromValueCallback<AnyNilable[], TResult> | TResult;
         /**
          * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"object"</code> and the source appears to implement the <code>ArrayLike</code> interface.
          * @description If this property is not defined then the following rules apply:
          * If the source value derrives from <code>Array</code> and {@link TypeGuardResultSpecs#whenArrayLike} is defined, then {@link TypeGuardResultSpecs#whenArrayLike} will determine the mapped value.
          * Otherwise, {@link TypeGuardResultSpecs#whenObject} will be next in line to determine the mapped value.
          */
-        whenArrayLike?: MapFromValueCallback<ArrayLike<TAnythingAtAll>, TResult> | TResult;
+        whenArrayLike?: MapFromValueCallback<ArrayLike<AnyNilable>, TResult> | TResult;
         /**
          * This determines the mapped value when <code>typeof(<em>sourceValue</em>)</code> returns <code>"object"</code> and the source value does not derrive from <code>Array</code> and does not appear to implement the <code>ArrayLike</code> interface.
          * @description If the source value is an object and this property is not defined, then {@link TypeGuardResultSpecs#whenObject} will be next in line to determine the mapped value.
@@ -224,7 +245,7 @@ export declare module JsTypeCommander {
      * @param checkElements When checking whether an object is <code>ArrayLike</code> and this is set true, then the existance of each element index is checked, which makes it slower, but more accurate.
      * @returns {*} Value returned from the matching callback.
      */
-    function mapByTypeValue<TSource, TResult>(target: TSource | null | undefined, callbacks: TypeGuardResultSpecs<TSource | null | undefined, TResult>, checkElements?: boolean): TResult;
+    function mapByTypeValue<TSource, TResult>(target: Nilable<TSource>, callbacks: TypeGuardResultSpecs<Nilable<TSource>, TResult>, checkElements?: boolean): TResult;
     /**
      * Gets a mapped value according to whether the object is defined and optionally by target object type.
      * @param target Value to test.
@@ -255,9 +276,9 @@ export declare module JsTypeCommander {
      * @param thisObj Object which becomes the <code>this</code> variable when callbacks are invoked.
      * @returns {*} Mapped value according to whether the object is defined and not null and optionally by defined target object type.
      */
-    function mapByNotNil<TSource, TResult>(target: TSource | undefined, whenTrue: MapFromValueCallback<TSource, TResult> | TResult, otherwise: MapFromValueCallback<TAnythingAtAll, TResult> | TResult, thisObj?: any): TResult;
+    function mapByNotNil<TSource, TResult>(target: TSource | undefined, whenTrue: MapFromValueCallback<TSource, TResult> | TResult, otherwise: MapFromValueCallback<AnyNilable, TResult> | TResult, thisObj?: any): TResult;
     /**
-     * Determesin whether an object is undefined.
+     * Determines whether an object is undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is undefined; otherwise, false.
      */
@@ -273,7 +294,7 @@ export declare module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is null; otherwise false (not defined or not null).
      */
-    function isNull(obj?: TDefined): obj is null | undefined;
+    function isNull(obj?: TDefined): obj is null;
     /**
      * Determines whether a value is a string.
      * @param {*} obj Object to test.
@@ -291,13 +312,13 @@ export declare module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is a string or null; otherwise false.
      */
-    function isStringOrNull(obj?: TDefined): obj is string | null;
+    function isStringOrNull(obj?: TDefined): obj is Nullable<string>;
     /**
      * Determines whether a value is a string, null or undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is a string, null or undefined; otherwise false.
      */
-    function isStringOrNil(obj?: TDefined): obj is string | null | undefined;
+    function isStringOrNil(obj?: TDefined): obj is Nilable<string>;
     /**
      * Determines whether a value is an empty string.
      * @param {*} obj Object to test.
@@ -315,13 +336,13 @@ export declare module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string or null; otherwise false.
      */
-    function isEmptyStringOrNull(obj?: TDefined): obj is string | null;
+    function isEmptyStringOrNull(obj?: TDefined): obj is Nullable<string>;
     /**
      * Determines whether a value is an empty string, null or undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string, null or undefined; otherwise false.
      */
-    function isEmptyStringOrNil(obj?: TDefined): obj is string | null | undefined;
+    function isEmptyStringOrNil(obj?: TDefined): obj is Nilable<string>;
     /**
      * Determines whether a value is an empty string or contains only whitespace characters.
      * @param {*} obj Object to test.
@@ -339,13 +360,13 @@ export declare module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string, contains only whitespace characters, or is null; otherwise false.
      */
-    function isNullOrWhitespace(obj?: TDefined): obj is string | null;
+    function isNullOrWhitespace(obj?: TDefined): obj is Nullable<string>;
     /**
      * Determines whether a value is an empty string, contains only whitespace characters, or is null or undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty string, contains only whitespace characters, or is null or undefined; otherwise false.
      */
-    function isNilOrWhitespace(obj?: TDefined): obj is string | null | undefined;
+    function isNilOrWhitespace(obj?: TDefined): obj is Nilable<string>;
     /**
      * Converts a value to a string.
      * @param {*} obj Object to convert.
@@ -353,7 +374,7 @@ export declare module JsTypeCommander {
      * @param {boolean} [ifWhitespace] Return default value if converted value is empty or only whitespace.
      * @returns {string|null|undefined} Value converted to a string or the default value.
      */
-    function asString(obj?: TDefined, defaultValue?: string | null, ifWhitespace?: boolean): string | null | undefined;
+    function asString(obj?: TDefined, defaultValue?: Nullable<string>, ifWhitespace?: boolean): Nilable<string>;
     /**
      * Forces a value to a string.
      * @param {*} obj Object to convert.
@@ -361,7 +382,7 @@ export declare module JsTypeCommander {
      * @param {boolean} [ifWhitespace] Return default value if converted value is empty or only whitespace.
      * @returns {string} Value converted to a string or the default value. If the default value is nil, then an empty string will be returned.
      */
-    function toString(obj?: TDefined, defaultValue?: string | null, ifWhitespace?: boolean): string;
+    function toString(obj?: TDefined, defaultValue?: Nullable<string>, ifWhitespace?: boolean): string;
     /**
      * Trims leading whitespace from text.
      * @param text Text to trim.
@@ -423,27 +444,27 @@ export declare module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is boolean or null; otherwise false.
      */
-    function isBooleanOrNull(obj?: TDefined): obj is boolean | null;
+    function isBooleanOrNull(obj?: TDefined): obj is Nullable<boolean>;
     /**
      * Determines whether a value is boolean, null or undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is boolean, null or undefined; otherwise false.
      */
-    function isBooleanOrNil(obj?: TDefined): obj is boolean | null | undefined;
+    function isBooleanOrNil(obj?: TDefined): obj is Nilable<boolean>;
     /**
      * Converts a value to a boolean.
      * @param {*} obj Object to convert.
      * @param {boolean|null} [defaultValue] Default value if object could not be converted to a boolean.
      * @returns {boolean|null|undefined} Value converted to a boolean or the default value.
      */
-    function asBoolean(obj?: TDefined, defaultValue?: boolean | null): boolean | null | undefined;
+    function asBoolean(obj?: TDefined, defaultValue?: Nullable<boolean>): Nilable<boolean>;
     /**
      * Forces a value to a boolean.
      * @param {*} obj Object to convert.
      * @param {boolean|null} [defaultValue] Default value if object could not be converted to a boolean.
      * @returns {boolean} Value converted to a boolean or the default value. If the default value is nil, then a false value will be returned.
      */
-    function toBoolean(obj?: TDefined, defaultValue?: boolean): boolean;
+    function toBoolean(obj?: TDefined, defaultValue?: Nullable<boolean>): boolean;
     /**
      * Determines whether a value is a finite number (not including NaN).
      * @param {*} obj Object to test.
@@ -461,19 +482,19 @@ export declare module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is a finite number or null; otherwise false.
      */
-    function isNumberOrNull(obj?: TDefined): obj is number | null;
+    function isNumberOrNull(obj?: TDefined): obj is Nullable<number>;
     /**
      * Determines whether a value is a number or null (including NaN and Infinity).
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is a number or null; otherwise false.
      */
-    function isNumberNaNorNull(obj?: TDefined): obj is number | null;
+    function isNumberNaNorNull(obj?: TDefined): obj is Nullable<number>;
     /**
      * Determines whether a value is a finite number, null or undefined (including NaN).
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is a finite number, null or undefined; otherwise false.
      */
-    function isNumberOrNil(obj?: TDefined): obj is number | null | undefined;
+    function isNumberOrNil(obj?: TDefined): obj is Nilable<number>;
     /**
      * Determines whether a value is an infinite number.
      * @param {*} obj Object to test.
@@ -486,14 +507,14 @@ export declare module JsTypeCommander {
      * @param {number|null} [defaultValue] Default value if object could not be converted to a number.
      * @returns {number|null|undefined} Value converted to a number or the default value.
      */
-    function asNumber(obj?: TDefined, defaultValue?: number | null): number | null | undefined;
+    function asNumber(obj?: TDefined, defaultValue?: Nullable<number>): Nilable<number>;
     /**
      * Forces a value to a number.
      * @param {*} obj Object to convert.
      * @param {number|null} [defaultValue] Default value if object could not be converted to a number.
      * @returns {number} Value converted to a number or the default value. If the default value is nil, then a zer0 value will be returned.
      */
-    function toNumber(obj?: TDefined, defaultValue?: number | null): number;
+    function toNumber(obj?: TDefined, defaultValue?: Nullable<number>): number;
     /**
      * Determines whether a value is a function.
      * @param {*} obj Object to test.
@@ -511,13 +532,13 @@ export declare module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is function or null; otherwise false.
      */
-    function isFunctionOrNull(obj?: TDefined): obj is Function | null;
+    function isFunctionOrNull(obj?: TDefined): obj is Nullable<Function>;
     /**
      * Determines whether a value is function, null or undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is function, null or undefined; otherwise false.
      */
-    function isFunctionOrNil(obj?: TDefined): obj is Function | null | undefined;
+    function isFunctionOrNil(obj?: TDefined): obj is Nilable<Function>;
     /**
      * Determines whether a value's type is "object" and it is not null.
      * @param {*} obj Object to test.
@@ -535,13 +556,13 @@ export declare module JsTypeCommander {
      * @param {*} obj Object to test.
      * @returns {boolean} True if the value is null, or its type is "object"; otherwise false.
      */
-    function isObjectTypeOrNull(obj?: TDefined): obj is object | null;
+    function isObjectTypeOrNull(obj?: TDefined): obj is Nullable<object>;
     /**
      * Determines whether a value is undefined, null, or its type is "object".
      * @param {*} obj Object to test.
      * @returns {boolean} True if the value is undefined, null, or its type is "object"; otherwise false.
      */
-    function isObjectTypeOrNil(obj?: TDefined): obj is object | null | undefined;
+    function isObjectTypeOrNil(obj?: TDefined): obj is Nilable<object>;
     /**
      * Determines whether a value is an object and it is not null.
      * @param {*} obj Object to test.
@@ -565,7 +586,7 @@ export declare module JsTypeCommander {
      * @description As a type guard, this behaves the same as isNonArrayObjectOrNull() and isPlainObjectOrNull().
      * The difference is that this always returns true if the type is "object", even if the value is an actual Array.
      */
-    function isObjectOrNull(obj?: TDefined): obj is IStringKeyedObject | null;
+    function isObjectOrNull(obj?: TDefined): obj is Nullable<IStringKeyedObject>;
     /**
      * Determines whether a value undefined, null, or it is an object.
      * @param {*} obj Object to test.
@@ -573,7 +594,7 @@ export declare module JsTypeCommander {
      * @description As a type guard, this behaves the same as isNonArrayObjectOrNil() and isPlainObjectOrNil().
      * The difference is that this always returns true if the type is "object", even if the value is an actual Array.
      */
-    function isObjectOrNil(obj?: TDefined): obj is IStringKeyedObject | null | undefined;
+    function isObjectOrNil(obj?: TDefined): obj is Nilable<IStringKeyedObject>;
     /**
      * Determines whether a value is an object, but not an array.
      * @param {*} obj Object to test.
@@ -597,7 +618,7 @@ export declare module JsTypeCommander {
      * @description As a type guard, this behaves the same as isObjectOrNull() and isPlainObjectOrNull().
      * The difference is that this returns false if the value is an actual Array. Also, it will return true even if the value was not constructed directly from Object.
      */
-    function isNonArrayObjectOrNull(obj?: TDefined): obj is IStringKeyedObject | null;
+    function isNonArrayObjectOrNull(obj?: TDefined): obj is Nullable<IStringKeyedObject>;
     /**
      * Determines whether a value is an object, null or undefined, and not an array.
      * @param {*} obj Object to test.
@@ -605,7 +626,7 @@ export declare module JsTypeCommander {
      * @description As a type guard, this behaves the same as isObjectOrNil() and isPlainObjectOrNil().
      * The difference is that this returns false if the value is an actual Array. Also, it will return true even if the value was not constructed directly from Object.
      */
-    function isNonArrayObjectOrNil(obj?: TDefined): obj is IStringKeyedObject | null | undefined;
+    function isNonArrayObjectOrNil(obj?: TDefined): obj is Nilable<IStringKeyedObject>;
     /**
      * Determines whether a value is an object, but not an array.
      * @param {*} obj Object to test.
@@ -629,7 +650,7 @@ export declare module JsTypeCommander {
      * @description As a type guard, this behaves the same as isObjectOrNull() and isNonArrayObjectOrNull().
      * The difference is that this returns false if the value is not constructed directly from Object.
      */
-    function isPlainObjectOrNull(obj?: TDefined): obj is IStringKeyedObject | null;
+    function isPlainObjectOrNull(obj?: TDefined): obj is Nullable<IStringKeyedObject>;
     /**
      * Determines whether a value is an object, null or undefined, and not an array.
      * @param {*} obj Object to test.
@@ -637,55 +658,55 @@ export declare module JsTypeCommander {
      * @description As a type guard, this behaves the same as isObjectOrNil() and isNonArrayObjectOrNil().
      * The difference is that this returns false if the value is not constructed directly from Object.
      */
-    function isPlainObjectOrNil(obj?: TDefined): obj is IStringKeyedObject | null | undefined;
+    function isPlainObjectOrNil(obj?: TDefined): obj is Nilable<IStringKeyedObject>;
     /**
      * Determines whether a value is an array.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an array; otherwise false.
      */
-    function isArray(obj?: TDefined): obj is TAnythingAtAll[];
+    function isArray(obj?: TDefined): obj is AnyNilable[];
     /**
      * Determines whether a value is an array or undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an array or undefined; otherwise false.
      */
-    function isArrayIfDef(obj?: TDefined): obj is TAnythingAtAll[] | undefined;
+    function isArrayIfDef(obj?: TDefined): obj is AnyNilable[] | undefined;
     /**
      * Determines whether a value is an array or null.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an array or null; otherwise false.
      */
-    function isArrayOrNull(obj?: TDefined): obj is TAnythingAtAll[] | null;
+    function isArrayOrNull(obj?: TDefined): obj is Nullable<AnyNilable[]>;
     /**
      * Determines whether a value is an array, null or undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an array, null or undefined; otherwise false.
      */
-    function isArrayOrNil(obj?: TDefined): obj is TAnythingAtAll[] | null;
+    function isArrayOrNil(obj?: TDefined): obj is Nilable<AnyNilable[]>;
     /**
      * Determines whether a value is an empty array.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty array; otherwise false.
      */
-    function isEmptyArray(obj?: TDefined): obj is TAnythingAtAll[];
+    function isEmptyArray(obj?: TDefined): obj is AnyNilable[];
     /**
      * Determines whether a value is an empty array or undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty array or undefined; otherwise false.
      */
-    function isEmptyArrayIfDef(obj?: TDefined): obj is TAnythingAtAll[] | undefined;
+    function isEmptyArrayIfDef(obj?: TDefined): obj is AnyNilable[] | undefined;
     /**
      * Determines whether a value is an empty array or null.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty array or null; otherwise false.
      */
-    function isEmptyArrayOrNull(obj?: TDefined): obj is TAnythingAtAll[] | null;
+    function isEmptyArrayOrNull(obj?: TDefined): obj is Nullable<AnyNilable[]>;
     /**
      * Determines whether a value is an empty array, null or undefined.
      * @param {*} obj Object to test.
      * @returns {boolean} True if object is an empty array, null or undefined; otherwise false.
      */
-    function isEmptyArrayOrNil(obj?: TDefined): obj is TAnythingAtAll[] | null;
+    function isEmptyArrayOrNil(obj?: TDefined): obj is Nilable<AnyNilable[]>;
     /**
      * Determines whether an object has properties which indiciates it behaves like an array.
      * @param {*} obj Object to test.
@@ -693,7 +714,7 @@ export declare module JsTypeCommander {
      * @returns {boolean} True if the object has properties which indiciates it behaves like an array; otherwise false.
      * @see {@link https://github.com/Microsoft/TypeScript/blob/530d7e9358ee95d2101a619e73356867b617cd95/lib/lib.es5.d.ts}
      */
-    function isArrayLike(obj?: TDefined, checkElements?: boolean): obj is ArrayLike<TAnythingAtAll>;
+    function isArrayLike(obj?: TDefined, checkElements?: boolean): obj is ArrayLike<AnyNilable>;
     /**
      * Determines whether an object has properties which indiciates it behaves like an array.
      * @param {*} obj Object to test.
@@ -701,7 +722,7 @@ export declare module JsTypeCommander {
      * but can result in false positives for non-array objects which have a numeric "length" property.
      * @returns {boolean} True if the object has properties which indiciates it behaves like an array; otherwise false.
      */
-    function isArrayLikeIfDef(obj?: TDefined, simpleCheck?: boolean): obj is ArrayLike<TAnythingAtAll> | undefined;
+    function isArrayLikeIfDef(obj?: TDefined, simpleCheck?: boolean): obj is ArrayLike<AnyNilable> | undefined;
     /**
      * Determines whether an object has properties which indiciates it behaves like an array.
      * @param {*} obj Object to test.
@@ -709,7 +730,7 @@ export declare module JsTypeCommander {
      * but can result in false positives for non-array objects which have a numeric "length" property.
      * @returns {boolean} True if the object has properties which indiciates it behaves like an array; otherwise false.
      */
-    function isArrayLikeOrNull(obj?: TDefined, simpleCheck?: boolean): obj is ArrayLike<TAnythingAtAll> | null;
+    function isArrayLikeOrNull(obj?: TDefined, simpleCheck?: boolean): obj is Nullable<ArrayLike<AnyNilable>>;
     /**
      * Determines whether an object has properties which indiciates it behaves like an array.
      * @param {*} obj Object to test.
@@ -717,7 +738,7 @@ export declare module JsTypeCommander {
      * but can result in false positives for non-array objects which have a numeric "length" property.
      * @returns {boolean} True if the object has properties which indiciates it behaves like an array; otherwise false.
      */
-    function isArrayLikeOrNil(obj?: TDefined, simpleCheck?: boolean): obj is ArrayLike<TAnythingAtAll> | null | undefined;
+    function isArrayLikeOrNil(obj?: TDefined, simpleCheck?: boolean): obj is Nilable<ArrayLike<AnyNilable>>;
     /**
      * Ensures that a value is a true array.
      * @param {*} obj Value to convert.
@@ -728,15 +749,15 @@ export declare module JsTypeCommander {
      * If the object is Array-like, an array is returned with values taken from each of its indexed values.
      * Otherwise, an array with a single element containing the value is returned.
      */
-    function toArray(obj?: TDefined, checkElements?: boolean): TAnythingAtAll[];
+    function toArray(obj?: TDefined, checkElements?: boolean): AnyNilable[];
     /**
      * Searches the value's inherited prototype chain for a matching constructor function.
-     * @param value Value to test.
+     * @param obj Value to test.
      * @param {AnyFunction} classConstructor Constructor function to look for.
      * @returns {boolean} True if the value is determined to inherit from the specified class; otherwise false.
      */
     function derivesFrom<T>(obj?: TDefined, classConstructor?: {
-        new (...args: TAnythingAtAll[]): T;
+        new (...args: AnyNilable[]): T;
     }): obj is T;
     /**
      * If defined, Searches the value's inherited prototype chain for a matching constructor function.
@@ -745,7 +766,7 @@ export declare module JsTypeCommander {
      * @returns {boolean} True if the value is not defined or if it is determined to inherit from the specified class; otherwise false.
      */
     function derivesFromIfDef<T>(obj?: TDefined, classConstructor?: {
-        new (...args: TAnythingAtAll[]): T;
+        new (...args: AnyNilable[]): T;
     }): obj is T | undefined;
     /**
      * If not null, Searches the value's inherited prototype chain for a matching constructor function.
@@ -754,8 +775,8 @@ export declare module JsTypeCommander {
      * @returns {boolean} True if the value is null or if it is determined to inherit from the specified class; otherwise false.
      */
     function derivesFromOrNull<T>(obj?: TDefined, classConstructor?: {
-        new (...args: TAnythingAtAll[]): T;
-    }): obj is T | null;
+        new (...args: AnyNilable[]): T;
+    }): obj is Nullable<T>;
     /**
      * If defined and not null, Searches the value's inherited prototype chain for a matching constructor function.
      * @param value Value to test.
@@ -763,8 +784,8 @@ export declare module JsTypeCommander {
      * @returns {boolean} True if the value is null, not defined or if it is determined to inherit from the specified class; otherwise false.
      */
     function derivesFromOrNil<T>(obj?: TDefined, classConstructor?: {
-        new (...args: TAnythingAtAll[]): T;
-    }): obj is T | null;
+        new (...args: AnyNilable[]): T;
+    }): obj is Nilable<T>;
     /**
      * Determines if an object has properties similar to an Error object.
      * @param {*} obj Value to test
@@ -777,7 +798,7 @@ export declare module JsTypeCommander {
      * @returns {ErrorLike|null|undefined} Object with properties similar to an error objecst. If the object is null or emtpy, then the object is returned.
      * @description This can be useful for serializing error objects when logging.
      */
-    function asErrorLike(obj?: TDefined): ErrorLike | null | undefined;
+    function asErrorLike(obj?: TDefined): Nilable<ErrorLike>;
     /**
      * @callback
      * Similar to Array.map, recursively iterate through nested arrays and named object properties to map result values.
@@ -804,7 +825,7 @@ export declare module JsTypeCommander {
      * });
      */
     interface RecursiveMapCallbackFn {
-        (current: TAnythingAtAll, key: number | string | undefined, source: TAnythingAtAll[] | IStringKeyedObject | undefined, target: TAnythingAtAll[] | IStringKeyedObject | undefined): TAnythingAtAll;
+        (current: AnyNilable, key: number | string | undefined, source: AnyNilable[] | IStringKeyedObject | undefined, target: AnyNilable[] | IStringKeyedObject | undefined): AnyNilable;
     }
     /**
      * Represents options for the JsTypeCommander.mapInto function.
