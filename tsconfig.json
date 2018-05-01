@@ -2,7 +2,6 @@
     "compilerOptions": {
         "target":"es5",
         "module":"commonjs",
-        //"allowJs": true,
         "strictNullChecks": true,
         "noImplicitAny": true,
         "removeComments": false,
@@ -13,9 +12,13 @@
         "strict": true,
         "lib": [
             "es5"
-        ]
+        ], 
     },
-    "files": [
-        "src/JsTypeCommander.ts"
+    "include": [
+        "./src/**/*.ts"
+    ],
+    "exclude": [
+        "./src/**/test-*.ts",
+        "./src/**/testLib.ts"
     ]
 }

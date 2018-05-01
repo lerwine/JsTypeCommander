@@ -4,11 +4,95 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Build JsTypeCommander",
-            "identifier": "buildTarget",
+            "label": "Build Distributable",
+            "identifier": "buildDist",
+            "type": "gulp",
+            "task": "buildDist",
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": [ "$tsc" ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Re-Build Distributable",
+            "identifier": "rebuildDist",
+            "type": "gulp",
+            "task": "rebuildDist",
+            "group": "build",
+            "problemMatcher": [ "$tsc" ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Build Test",
+            "identifier": "buildTest",
+            "type": "gulp",
+            "task": "buildTest",
+            "group": "build",
+            "problemMatcher": [ "$tsc" ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Re-Build Test",
+            "identifier": "rebuildTest",
+            "type": "gulp",
+            "task": "rebuildTest",
+            "group": "build",
+            "problemMatcher": [ "$tsc" ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Build All",
+            "identifier": "buildAll",
+            "type": "gulp",
+            "task": "buildAll",
+            "group": "build",
+            "problemMatcher": [ "$tsc" ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Re-Build All",
+            "identifier": "rebuildAll",
+            "type": "gulp",
+            "task": "rebuildAll",
+            "group": "build",
+            "problemMatcher": [ "$tsc" ],
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": true,
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "Build JsTypeCommander Old",
+            "identifier": "buildTargetOld",
             "type": "typescript",
             "tsconfig": "tsconfig.json",
-            "group": { "kind": "build", "isDefault": true },
+            "group": "build",
             "problemMatcher": [ "$tsc" ],
             "presentation": {
                 "echo": true,
@@ -18,8 +102,8 @@
             }
         },
         {
-            "label": "Build Test Script",
-            "identifier": "buildTest",
+            "label": "Build Test Script Old",
+            "identifier": "buildTestOld",
             "type": "typescript",
             "tsconfig": "tsconfig-test.json",
             "group": "build",
@@ -33,12 +117,14 @@
         },
         {
             "label": "Start web server",
+            "identifier": "startWebServer",
             "type": "gulp",
             "task": "startWebServer",
             "problemMatcher": []
         },
         {
             "label": "Stop web server",
+            "identifier": "stopWebServer",
             "type": "gulp",
             "task": "stopWebServer",
             "problemMatcher": []

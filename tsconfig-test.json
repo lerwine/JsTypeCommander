@@ -6,15 +6,16 @@
         "noImplicitAny": true,
         "removeComments": false,
         "preserveConstEnums": true,
-        "sourceMap": false,
-        "declaration": false,
+        "sourceMap": true,
+        "declaration": true,
         "outDir": "./test",
         "strict": true,
         "lib": [
             "es5"
         ]
     },
-    "files": [
-        "src/test.ts"
+    "include": [
+        "./src/**/test-*.ts",
+        "./src/**/testLib.ts"
     ]
 }

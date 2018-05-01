@@ -66,19 +66,19 @@ var JsTypeCommander;
             patternOptions.regex.abnormalWhitespace = patternDefaults.regex.abnormalWhitespace;
         }
         else if (typeof (settings) == "object") {
-            if (derivesFrom(settings.onlyWhitespace))
+            if (!isNil(settings.onlyWhitespace))
                 patternOptions.regex.onlyWhitespace = settings.onlyWhitespace;
-            if (derivesFrom(settings.trimStart))
+            if (!isNil(settings.trimStart))
                 patternOptions.regex.trimStart = settings.trimStart;
-            if (derivesFrom(settings.trimEnd))
+            if (!isNil(settings.trimEnd))
                 patternOptions.regex.trimEnd = settings.trimEnd;
-            if (derivesFrom(settings.lineSeparator))
+            if (!isNil(settings.lineSeparator))
                 patternOptions.regex.lineSeparator = settings.lineSeparator;
-            if (derivesFrom(settings.booleanText))
+            if (!isNil(settings.booleanText))
                 patternOptions.regex.booleanText = settings.booleanText;
-            if (derivesFrom(settings.firstLetterLc))
+            if (!isNil(settings.firstLetterLc))
                 patternOptions.regex.firstLetterLc = settings.firstLetterLc;
-            if (derivesFrom(settings.abnormalWhitespace))
+            if (!isNil(settings.abnormalWhitespace))
                 patternOptions.regex.abnormalWhitespace = settings.abnormalWhitespace;
         }
         return getPatternOptions();
@@ -761,16 +761,17 @@ var JsTypeCommander;
      * Converts a value to a number.
      * @param {*} obj Object to convert.
      * @param {number|null} [defaultValue] Default value if object could not be converted to a number.
+     * @param {boolean} [allowNaN] If true, then NaN and infinite values count as numbers.
      * @returns {number|null|undefined} Value converted to a number or the default value.
      */
-    function asNumber(obj, defaultValue) {
+    function asNumber(obj, defaultValue, allowNaN) {
         var ns = mapByTypeValue(obj, {
             whenUndefined: function (b) { return b; },
             whenNull: function (b) { return b; },
             whenBoolean: function (b) { return (b) ? 1 : 0; },
             whenString: function (s) { return parseFloat(s); },
-            whenNaN: null,
-            whenInfinity: null,
+            whenNaN: (allowNaN === true) ? NaN : null,
+            whenInfinity: (allowNaN === true) ? (function (n) { return n; }) : null,
             whenNumber: function (n) { return n; },
             otherwise: function (o) {
                 try {
@@ -779,8 +780,8 @@ var JsTypeCommander;
                         whenNull: function (b) { return o.toString(); },
                         whenBoolean: function (b) { return (b) ? 1 : 0; },
                         whenString: function (s) { return parseFloat(s); },
-                        whenNaN: null,
-                        whenInfinity: null,
+                        whenNaN: (allowNaN === true) ? NaN : null,
+                        whenInfinity: (allowNaN === true) ? (function (n) { return n; }) : null,
                         whenNumber: function (n) { return n; },
                         otherwise: function (v) {
                             try {
@@ -799,8 +800,16 @@ var JsTypeCommander;
                 return parseFloat(o + "");
             }
         });
-        if (typeof (defaultValue) == "undefined" || typeof (ns) == "number" && !isNaN(ns) && !isInfinite(ns))
+        if (typeof (defaultValue) == "undefined")
             return ns;
+        if (typeof (ns) == "number") {
+            if (isNaN(ns) || isInfinite(ns)) {
+                if (allowNaN === true)
+                    return ns;
+            }
+            else
+                return ns;
+        }
         return mapByTypeValue(asNumber(defaultValue), {
             whenUndefined: function (d) { return ns; },
             whenInfinity: function (d) { return (typeof (ns) != "number" || isNaN(ns)) ? d : ns; },
@@ -813,11 +822,16 @@ var JsTypeCommander;
      * Forces a value to a number.
      * @param {*} obj Object to convert.
      * @param {number|null} [defaultValue] Default value if object could not be converted to a number.
-     * @returns {number} Value converted to a number or the default value. If the default value is nil, then a zer0 value will be returned.
+     * @param {boolean} [allowNaN] If true, then NaN and infinite values count as numbers.
+     * @returns {number} Value converted to a number or the default value. If the default value is nil, then a zero value will be returned.
      */
-    function toNumber(obj, defaultValue) {
-        var i = asNumber(obj, defaultValue);
-        if (isNumber(i))
+    function toNumber(obj, defaultValue, allowNaN) {
+        var i = asNumber(obj, defaultValue, allowNaN);
+        if (allowNaN === true) {
+            if (typeof (i) == "number")
+                return i;
+        }
+        else if (isNumber(i))
             return i;
         return 0;
     }
@@ -1457,4 +1471,3 @@ var JsTypeCommander;
     }
     JsTypeCommander.mapInto = mapInto;
 })(JsTypeCommander = exports.JsTypeCommander || (exports.JsTypeCommander = {}));
-//# sourceMappingURL=JsTypeCommander.js.map

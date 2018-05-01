@@ -302,19 +302,19 @@ export module JsTypeCommander {
             patternOptions.regex.firstLetterLc = patternDefaults.regex.firstLetterLc;
             patternOptions.regex.abnormalWhitespace = patternDefaults.regex.abnormalWhitespace;
         } else if (typeof(settings) == "object") {
-            if (derivesFrom<RegExp>(settings.onlyWhitespace))
+            if (!isNil(settings.onlyWhitespace))
                 patternOptions.regex.onlyWhitespace = settings.onlyWhitespace;
-            if (derivesFrom<RegExp>(settings.trimStart))
+            if (!isNil(settings.trimStart))
                 patternOptions.regex.trimStart = settings.trimStart;
-            if (derivesFrom<RegExp>(settings.trimEnd))
+            if (!isNil(settings.trimEnd))
                 patternOptions.regex.trimEnd = settings.trimEnd;
-            if (derivesFrom<RegExp>(settings.lineSeparator))
+            if (!isNil(settings.lineSeparator))
                 patternOptions.regex.lineSeparator = settings.lineSeparator;
-            if (derivesFrom<RegExp>(settings.booleanText))
+            if (!isNil(settings.booleanText))
                 patternOptions.regex.booleanText = settings.booleanText;
-            if (derivesFrom<RegExp>(settings.firstLetterLc))
+            if (!isNil(settings.firstLetterLc))
                 patternOptions.regex.firstLetterLc = settings.firstLetterLc;
-            if (derivesFrom<RegExp>(settings.abnormalWhitespace))
+            if (!isNil(settings.abnormalWhitespace))
                 patternOptions.regex.abnormalWhitespace = settings.abnormalWhitespace;
         }
         return getPatternOptions();
@@ -834,6 +834,7 @@ export module JsTypeCommander {
             whenString: (s) => s,
             whenNaN: false,
             whenNumber: (n) => n != 0,
+            whenArray: (a) => (a.length == 0) ? undefined : (isNil(a[0]) ? a[0] : ((isObject(a[0])) ? undefined : asBoolean(a[0]))),
             otherwise: (o) => {
                 try {
                     return mapByTypeValue<any, Nilable<boolean|string>>(o.valueOf(), {
@@ -993,18 +994,20 @@ export module JsTypeCommander {
      * Converts a value to a number.
      * @param {*} obj Object to convert.
      * @param {number|null} [defaultValue] Default value if object could not be converted to a number.
+     * @param {boolean} [allowNaN] If true, then NaN and infinite values count as numbers.
      * @returns {number|null|undefined} Value converted to a number or the default value.
      */
-    export function asNumber(obj?: TDefined, defaultValue?: Nullable<number>): Nilable<number>
+    export function asNumber(obj?: TDefined, defaultValue?: Nullable<number>, allowNaN?: boolean): Nilable<number>
     {
         let ns: Nilable<number> = mapByTypeValue<any, Nilable<number>>(obj, {
             whenUndefined: (b) => b,
             whenNull: (b) => b,
             whenBoolean: (b) => (b) ? 1 : 0,
             whenString: (s) => parseFloat(s),
-            whenNaN: null,
-            whenInfinity: null,
+            whenNaN: (allowNaN === true) ? NaN : null,
+            whenInfinity: (allowNaN === true) ? ((n) => n) : null,
             whenNumber: (n) => n,
+            whenArray: (a) => (a.length == 0) ? undefined : (isNil(a[0]) ? a[0] : ((isObject(a[0])) ? undefined : asNumber(a[0], undefined, allowNaN))),
             otherwise: (o) => {
                 try {
                     return mapByTypeValue<any, Nilable<number>>(o.valueOf(), {
@@ -1012,8 +1015,8 @@ export module JsTypeCommander {
                         whenNull: (b) => o.toString(),
                         whenBoolean: (b) => (b) ? 1 : 0,
                         whenString: (s) => parseFloat(s),
-                        whenNaN: null,
-                        whenInfinity: null,
+                        whenNaN: (allowNaN === true) ? NaN : null,
+                        whenInfinity: (allowNaN === true) ? ((n) => n) : null,
                         whenNumber: (n) => n,
                         otherwise: (v) => {
                             try { return parseFloat(v.toString()); } catch (e) { }
@@ -1026,8 +1029,17 @@ export module JsTypeCommander {
             }
         });
     
-        if (typeof(defaultValue) == "undefined" || typeof(ns) == "number" && !isNaN(ns) && !isInfinite(ns))
+        if (typeof(defaultValue) == "undefined")
             return ns;
+
+        if (typeof(ns) == "number") {
+            if (isNaN(ns) || isInfinite(ns)) {
+                if (allowNaN === true)
+                    return ns;
+            } else
+                return ns;
+        }
+        
         return mapByTypeValue<Nilable<number>,Nilable<number>>(asNumber(defaultValue), {
             whenUndefined: d => ns,
             whenInfinity: d => (typeof(ns) != "number" || isNaN(ns)) ? d : ns,
@@ -1040,12 +1052,16 @@ export module JsTypeCommander {
      * Forces a value to a number.
      * @param {*} obj Object to convert.
      * @param {number|null} [defaultValue] Default value if object could not be converted to a number.
-     * @returns {number} Value converted to a number or the default value. If the default value is nil, then a zer0 value will be returned.
+     * @param {boolean} [allowNaN] If true, then NaN and infinite values count as numbers.
+     * @returns {number} Value converted to a number or the default value. If the default value is nil, then a zero value will be returned.
      */
-    export function toNumber(obj?: TDefined, defaultValue?: Nullable<number>): number
+    export function toNumber(obj?: TDefined, defaultValue?: Nullable<number>, allowNaN?: boolean): number
     {
-        let i = asNumber(obj, defaultValue);
-        if (isNumber(i))
+        let i = asNumber(obj, defaultValue, allowNaN);
+        if (allowNaN === true) {
+            if (typeof(i) == "number")
+                return i;
+        } else if (isNumber(i))
             return i;
         return 0;
     }

@@ -505,16 +505,18 @@ export declare module JsTypeCommander {
      * Converts a value to a number.
      * @param {*} obj Object to convert.
      * @param {number|null} [defaultValue] Default value if object could not be converted to a number.
+     * @param {boolean} [allowNaN] If true, then NaN and infinite values count as numbers.
      * @returns {number|null|undefined} Value converted to a number or the default value.
      */
-    function asNumber(obj?: TDefined, defaultValue?: Nullable<number>): Nilable<number>;
+    function asNumber(obj?: TDefined, defaultValue?: Nullable<number>, allowNaN?: boolean): Nilable<number>;
     /**
      * Forces a value to a number.
      * @param {*} obj Object to convert.
      * @param {number|null} [defaultValue] Default value if object could not be converted to a number.
-     * @returns {number} Value converted to a number or the default value. If the default value is nil, then a zer0 value will be returned.
+     * @param {boolean} [allowNaN] If true, then NaN and infinite values count as numbers.
+     * @returns {number} Value converted to a number or the default value. If the default value is nil, then a zero value will be returned.
      */
-    function toNumber(obj?: TDefined, defaultValue?: Nullable<number>): number;
+    function toNumber(obj?: TDefined, defaultValue?: Nullable<number>, allowNaN?: boolean): number;
     /**
      * Determines whether a value is a function.
      * @param {*} obj Object to test.
