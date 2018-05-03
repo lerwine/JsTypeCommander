@@ -6,6 +6,10 @@ Validate, detect and convert JavaScript types and classes.
 
 Contains functions for checking and converting many JavaScript types, with many functions being able to serve as TypeScript type guards.
 
+> ### NOTE ###
+> This is being prepared to be usable as an npm module, but documentation is not yet fully complete.
+> In the meantime, you can refer to dist/JsTypeCommander.d.ts for more complete function documentation.
+
 ## Usage ##
 
 ### Importing ###
