@@ -20,7 +20,7 @@ Contains functions for checking and converting many JavaScript types, with many 
 
 #### TypeScript ####
 
-`import { JsTypeCommander } from '../dist/JsTypeCommander';`
+`import { JsTypeCommander } from 'JsTypeCommander';`
 
 ### getDefaultLineSeparatorSequence ###
 
