@@ -43,11 +43,11 @@ export module JsTypeCommander {
         newLineSequence: "\n",
         regex: {
             onlyWhitespace: /^[\s\r\n]+$/,
-            trimStart: /^[\s\r\n]+(\S[\S\s]*)$/,
+            trimStart: /^[\s\r\n]*(\S(?:.|[\r\n])*)$/,
             trimEnd: /^([\s\r\n]*\S+(?:[\s\r\n]+[^\s\r\n]+)*)/,
             lineSeparator: /\r\n?|\n/,
             booleanText: /^[\s\r\n]*(?:(t(?:rue)?|y(?:es)?|[+-]?(?:0*[1-9]\d*(?:\.\d+)?|0+\.0*[1-9]\d*)|\+)|(f(?:alse)?|no?|[+-]?0+(?:\.0+)?|-))[\s\r\n]*$/i,
-            firstLetterLc: /^([^a-zA-Z\d]+)?([a-z])(.+)?$/,
+            firstLetterLc: /^([^a-zA-Z\d]+)?([a-z])((?:.|[\r\n])+)?$/,
             abnormalWhitespace: /(?:(?=[^ ])[\s\r\n]+|[\s\r\n]{2,})/
         }
     };
@@ -633,7 +633,11 @@ export module JsTypeCommander {
             whenUndefined: (s) => s,
             whenNull: (s) => s,
             whenString: (s) => s,
-            whenArray: (a) => (a.length == 0) ? "" : a.join(","),
+            whenArray: (a) => (a.length == 0) ? "" : a.map(o => {
+                if (isNil(o))
+                    return "";
+                return (typeof(o) == "string") ? o : o.toString();
+            }).join(","),
             otherwise: (s) => {
                 try { return s.toString(); } catch (e) { }
                 return s + "";
@@ -645,7 +649,11 @@ export module JsTypeCommander {
             whenUndefined: (s) => str,
             whenNull: (s) => (typeof(str) == "string") ? str : s,
             whenString: (s) => s,
-            whenArray: (a) => (a.length == 0) ? "" : a.join(","),
+            whenArray: (a) => (a.length == 0) ? "" : a.map(o => {
+                if (isNil(o))
+                    return "";
+                return (typeof(o) == "string") ? o : o.toString();
+            }).join(","),
             otherwise: (s) => {
                 try { return s.toString(); } catch (e) { }
                 return s + "";
@@ -744,13 +752,22 @@ export module JsTypeCommander {
      */
     export function indentText(text: string|string[], indent?: string): string {
         let i = toString(indent, "\t");
-        if (i.length == 0)
-            i = "\t";
-        let t = (Array.isArray(text)) ? text.join(patternOptions.newLineSequence) : toString(text, "");
-        if (i.length == 0 || t.length == 0)
-            return t;
+        let arr: string[];
+        if (Array.isArray(text)) {
+            if (text.length == 0)
+                arr = text;
+            else if (text.length == 1)
+                arr = splitLines(text[0]);
+            else {
+                arr = [];
+                text.forEach(s => splitLines(s).forEach(l => arr.push(l)));
+            }
+        } else
+            arr = splitLines(text);
+        if (arr.length == 0 || (arr.length == 1 && arr[0].length == 0))
+            return "";
     
-        return splitLines(t).map(s => trimEnd(s)).map(s => {
+        return arr.map(s => trimEnd(s)).map(s => {
             if (s.length == 0)
                 return s;
             return i + s;
@@ -765,14 +782,26 @@ export module JsTypeCommander {
      */
     export function indentLines(text: string[]|string, indent?: string): string[] {
         let i = toString(indent, "\t");
-        let t = (Array.isArray(text)) ? text.join(patternOptions.newLineSequence) : toString(text, "");
-        if (t.length == 0)
-            return [t];
-        let a = splitLines(t).map(s => trimEnd(s));
-        if (i.length == 0)
-            return a;
+        let arr: string[];
+        if (Array.isArray(text)) {
+            if (text.length == 0)
+                arr = text;
+            else if (text.length == 1)
+                arr = splitLines(text[0]);
+            else {
+                arr = [];
+                text.forEach(s => splitLines(s).forEach(l => arr.push(l)));
+            }
+        } else
+            arr = splitLines(text);
+        if (arr.length == 0 || (arr.length == 1 && arr[0].length == 0))
+            return arr;
+        arr = arr.map(s => trimEnd(s));
     
-        return a.map(s => {
+        if (i.length == 0)
+            return arr;
+        
+        return arr.map(s => {
             if (s.length == 0)
                 return s;
             return i + s;
@@ -968,8 +997,8 @@ export module JsTypeCommander {
             whenUndefined: true,
             whenNull: true,
             whenNumber: true,
-            whenInfinity: false,
-            whenNaN: false,
+            whenInfinity: true,
+            whenNaN: true,
             otherwise: false
         });
     }
@@ -1003,7 +1032,11 @@ export module JsTypeCommander {
             whenUndefined: (b) => b,
             whenNull: (b) => b,
             whenBoolean: (b) => (b) ? 1 : 0,
-            whenString: (s) => parseFloat(s),
+            whenString: (s) => {
+                let v: number = parseFloat(s);
+                if (!isNaN(v))
+                    return v;
+            },
             whenNaN: (allowNaN === true) ? NaN : null,
             whenInfinity: (allowNaN === true) ? ((n) => n) : null,
             whenNumber: (n) => n,
@@ -1014,7 +1047,11 @@ export module JsTypeCommander {
                         whenUndefined: (b) => o.toString(),
                         whenNull: (b) => o.toString(),
                         whenBoolean: (b) => (b) ? 1 : 0,
-                        whenString: (s) => parseFloat(s),
+                        whenString: (s) => {
+                            let v: number = parseFloat(s);
+                            if (!isNaN(v))
+                                return v;
+                        },
                         whenNaN: (allowNaN === true) ? NaN : null,
                         whenInfinity: (allowNaN === true) ? ((n) => n) : null,
                         whenNumber: (n) => n,
@@ -1041,7 +1078,7 @@ export module JsTypeCommander {
         }
         
         return mapByTypeValue<Nilable<number>,Nilable<number>>(asNumber(defaultValue), {
-            whenUndefined: d => ns,
+            whenUndefined: d => (allowNaN === true) ? ns : d,
             whenInfinity: d => (typeof(ns) != "number" || isNaN(ns)) ? d : ns,
             whenNumber: d => d,
             otherwise: d => (typeof(ns) == "number") ? ns : d
@@ -1058,11 +1095,10 @@ export module JsTypeCommander {
     export function toNumber(obj?: TDefined, defaultValue?: Nullable<number>, allowNaN?: boolean): number
     {
         let i = asNumber(obj, defaultValue, allowNaN);
-        if (allowNaN === true) {
-            if (typeof(i) == "number")
-                return i;
-        } else if (isNumber(i))
+        if (isNumber(i))
             return i;
+        else if (allowNaN === true && typeof(obj) == "number")
+            return obj;
         return 0;
     }
     

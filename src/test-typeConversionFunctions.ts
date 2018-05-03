@@ -31,6 +31,7 @@ describe("Testing type conversion functions", function() {
                     TL.argSet(() => ["", Symbol.iterator], '"", Symbol.iterator'),
                     TL.argSet(() => ["", Symbol.iterator, false], '"", Symbol.iterator, false'),
                     TL.argSet(() => ["", "\t\n\r "], '"", "\\t\\n\\r "'),
+                    TL.argSet(() => ["\t\n\r ", "", true], '"\\t\\n\\r ", "", true'),
                     TL.argSet(() => ["", "\t\n\r ", false], '"", "\\t\\n\\r ", false')
                 ),
                 TL.expectEqualTo('"true"', () => "true",
@@ -41,7 +42,7 @@ describe("Testing type conversion functions", function() {
                     TL.argSet(() => ["false"], '"false"'),
                     TL.argSet(() => [false,], 'false')
                 ),
-                TL.expectEqualTo('"iterator"', () => "iterator",
+                TL.expectEqualTo('"Symbol(Symbol.iterator)"', () => "Symbol(Symbol.iterator)",
                     TL.argSet(() => [Symbol.iterator], 'Symbol.iterator'),
                     TL.argSet(() => [[Symbol.iterator]], '[Symbol.iterator]'),
                     TL.argSet(() => [undefined, Symbol.iterator], 'undefined, Symbol.iterator'),
@@ -54,7 +55,6 @@ describe("Testing type conversion functions", function() {
                     TL.argSet(() => ["\t\n\r ", " "], '"\\t\\n\\r ", " "'),
                     TL.argSet(() => ["\t\n\r ", Symbol.iterator], '"\\t\\n\\r ", Symbol.iterator'),
                     TL.argSet(() => ["", "\t\n\r ", true], '"", "\\t\\n\\r ", true'),
-                    TL.argSet(() => ["\t\n\r ", "", true], '"\\t\\n\\r ", "", true'),
                     TL.argSet(() => ["\t\n\r ", Symbol.iterator, false], '"\\t\\n\\r ", Symbol.iterator, false')
                 )
             ),
@@ -76,6 +76,7 @@ describe("Testing type conversion functions", function() {
                     TL.argSet(() => ["", Symbol.iterator], '"", Symbol.iterator'),
                     TL.argSet(() => ["", Symbol.iterator, false], '"", Symbol.iterator, false'),
                     TL.argSet(() => ["", "\t\n\r "], '"", "\\t\\n\\r "'),
+                    TL.argSet(() => ["\t\n\r ", "", true], '"\\t\\n\\r ", "", true'),
                     TL.argSet(() => ["", "\t\n\r ", false], '"", "\\t\\n\\r ", false')
                 ),
                 TL.expectEqualTo('"true"', () => "true",
@@ -86,7 +87,7 @@ describe("Testing type conversion functions", function() {
                     TL.argSet(() => ["false"], '"false"'),
                     TL.argSet(() => [false,], 'false')
                 ),
-                TL.expectEqualTo('"iterator"', () => "iterator",
+                TL.expectEqualTo('"iterator"', () => "Symbol(Symbol.iterator)",
                     TL.argSet(() => [Symbol.iterator], 'Symbol.iterator'),
                     TL.argSet(() => [[Symbol.iterator]], '[Symbol.iterator]'),
                     TL.argSet(() => [undefined, Symbol.iterator], 'undefined, Symbol.iterator'),
@@ -99,7 +100,6 @@ describe("Testing type conversion functions", function() {
                     TL.argSet(() => ["\t\n\r ", " "], '"\\t\\n\\r ", " "'),
                     TL.argSet(() => ["\t\n\r ", Symbol.iterator], '"\\t\\n\\r ", Symbol.iterator'),
                     TL.argSet(() => ["", "\t\n\r ", true], '"", "\\t\\n\\r ", true'),
-                    TL.argSet(() => ["\t\n\r ", "", true], '"\\t\\n\\r ", "", true'),
                     TL.argSet(() => ["\t\n\r ", Symbol.iterator, false], '"\\t\\n\\r ", Symbol.iterator, false')
                 )
             )

@@ -14,7 +14,7 @@
                 "--recursive",
                 "-r", "ts-node/register",
                 "--reporter", "spec",
-                "./test/**/.test-*js"
+                "./test/**/test-*.js"
             ],
             "cwd": "${workspaceFolder}",
             "sourceMaps": true,

@@ -16,24 +16,35 @@ mocha_1.describe("Testing regular expressions", function () {
         {
             name: 'onlyWhitespace', getRegex: function (regexOptions) { return regexOptions.onlyWhitespace; }, tests: [
                 { input: " ", expected: true }, { input: " \t\r\n ", expected: true }, { input: " \t\r\n ", expected: true }, { input: "", expected: false },
-                { input: ".", expected: false }, { input: "0", expected: false }, { input: "X", expected: false }, { input: ". \t\r\n ", expected: false },
-                { input: " \t.\r\n ", expected: false }, { input: " \t\r\n .", expected: false }
+                { input: ".", expected: false }, { input: "0", expected: false }, { input: "Test", expected: false }, { input: ". \t\r\n ", expected: false },
+                { input: " \t.\r\n ", expected: false }, { input: " \t\r\n .", expected: false }, { input: "Test \t\r\n ", expected: false },
+                { input: " \tTest\r\n ", expected: false }, { input: " \t\r\n Test", expected: false }
             ]
         }, {
             name: 'trimStart', getRegex: function (regexOptions) { return regexOptions.trimStart; }, tests: [
                 { input: "", expected: false }, { input: " \t\r\n ", expected: false }, { input: " \t\r\n ", expected: false },
-                { input: "0", expected: false }, { input: "0\t\r\n", expected: false }, { input: ".", expected: false }, { input: ".\t\r\n", expected: false },
+                { input: "0", expected: { captures: ["0"], groupZero: "0" } }, { input: "0\t\r\n", expected: { captures: ["0\t\r\n"], groupZero: "0\t\r\n" } },
+                { input: ".", expected: { captures: ["."], groupZero: "." } }, { input: ".\t\r\n", expected: { captures: [".\t\r\n"], groupZero: ".\t\r\n" } },
+                { input: "Test", expected: { captures: ["Test"], groupZero: "Test" } }, { input: "Test\t\r\n", expected: { captures: ["Test\t\r\n"], groupZero: "Test\t\r\n" } },
                 { input: "\t\r\n0", expected: { captures: ["0"], groupZero: "\t\r\n0" } },
                 { input: "\t\r\n0\t\r\n", expected: { captures: ["0\t\r\n"], groupZero: "\t\r\n0\t\r\n" } },
+                { input: "\t\r\nTest", expected: { captures: ["Test"], groupZero: "\t\r\nTest" } },
+                { input: "\t\r\nTest\t\r\n", expected: { captures: ["Test\t\r\n"], groupZero: "\t\r\nTest\t\r\n" } },
                 { input: "\t\r\n.", expected: { captures: ["."], groupZero: "\t\r\n." } },
-                { input: "\t\r\n.\t\r\n", expected: { captures: [".\t\r\n"], groupZero: "\t\r\n.\t\r\n" } }
+                { input: "\t\r\n.\t\r\n", expected: { captures: [".\t\r\n"], groupZero: "\t\r\n.\t\r\n" } },
+                { input: "\t\r\nTest\t\r\nText\n\r", expected: { captures: ["Test\t\r\nText\n\r"], groupZero: "\t\r\nTest\t\r\nText\n\r" } },
+                { input: "Test \n\r\t Text", expected: { captures: ["Test \n\r\t Text"], groupZero: "Test \n\r\t Text" } },
+                { input: "\n\r Test \n\r\t Text \t", expected: { captures: ["Test \n\r\t Text \t"], groupZero: "\n\r Test \n\r\t Text \t" } }
             ]
         }, {
             name: 'trimEnd', getRegex: function (regexOptions) { return regexOptions.trimEnd; }, tests: [
                 { input: "", expected: false }, { input: " \t\r\n ", expected: false }, { input: " \t\r\n ", expected: false },
                 { input: "0", expected: { captures: ["0"], groupZero: "0" } }, { input: "\t\r\n0", expected: { captures: ["\t\r\n0"], groupZero: "\t\r\n0" } },
+                { input: "Test", expected: { captures: ["Test"], groupZero: "Test" } }, { input: "\t\r\nTest", expected: { captures: ["\t\r\nTest"], groupZero: "\t\r\nTest" } },
                 { input: ".", expected: { captures: ["."], groupZero: "." } }, { input: "\t\r\n.", expected: { captures: ["\t\r\n."], groupZero: "\t\r\n." } },
                 { input: "0\t\r\n", expected: { captures: ["0"], groupZero: "0" } }, { input: "\t\r\n0\t\r\n", expected: { captures: ["\t\r\n0"], groupZero: "\t\r\n0" } },
+                { input: "Test\t\r\n", expected: { captures: ["Test"], groupZero: "Test" } }, { input: "\t\r\nTest\t\r\n", expected: { captures: ["\t\r\nTest"], groupZero: "\t\r\nTest" } },
+                { input: "Test\t\n\r", expected: { captures: ["Test"], groupZero: "Test" } }, { input: "\t\n\rTest\t\r\n", expected: { captures: ["\t\n\rTest"], groupZero: "\t\n\rTest" } },
                 { input: ".\t\r\n", expected: { captures: ["."], groupZero: "." } }, { input: "\t\r\n.\t\r\n", expected: { captures: ["\t\r\n."], groupZero: "\t\r\n." } }
             ]
         }, {
@@ -98,6 +109,7 @@ mocha_1.describe("Testing regular expressions", function () {
             name: 'firstLetterLc', getRegex: function (regexOptions) { return regexOptions.firstLetterLc; }, tests: [
                 { input: "test", expected: [null, "t", "est"] }, { input: "t", expected: [null, "t", null] },
                 { input: "\r\n.test", expected: ["\r\n.", "t", "est"] }, { input: "\r\n.t", expected: ["\r\n.", "t", null] },
+                { input: "t\n\r\t .", expected: [null, "t", "\n\r\t ."] }, { input: "test \n\r\t text", expected: [null, "t", "est \n\r\t text"] },
                 { input: "Test", expected: false }, { input: "T", expected: false }, { input: " Test", expected: false }, { input: " T", expected: false },
                 { input: "0test", expected: false }, { input: "0t", expected: false }, { input: "\r\n.0test", expected: false }, { input: "\r\n.0t", expected: false }
             ]
