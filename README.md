@@ -55,6 +55,7 @@ console.log("Pattern which matches consecutive whitespace characters except for 
 ### setPatternOptions ##
 
 **setPatternOptions(settings?: IJsTypeCommanderRegex): IJsTypeCommanderRegex
+
 Sets regular expression pattern options used internally by this module.
 
 Undefined properties will not be changed. If this parameter is not defined, then the default pattern options will be restored.
@@ -69,6 +70,7 @@ patternOptions = JsTypeCommander.setPatternOptions(patternOptions);
 ### setDefaultLineSeparatorSequence ###
 
 **setDefaultLineSeparatorSequence(s?: string): string;
+
 Sets the default character sequence that will be used when joining lines of text.
 
 ```TypeScript
@@ -83,6 +85,7 @@ let newLline = JsTypeCommander.setDefaultLineSeparatorSequence();
 ### mapByTypeValue ###
 
 **mapByTypeValue&lt;TSource, TResult>(target: Nilable&lt;TSource>, callbacks: TypeGuardResultSpecs&lt;Nilable&lt;TSource>, TResult>, checkElements?: boolean): TResult;
+
 Maps a source value to a new value based upon the source value's type.
 
 ```TypeScript
@@ -113,6 +116,7 @@ n = JsTypeCommander.mapByTypeValue&lt;any|undefined, number>(myVar, {
 ### mapByDefined ###
 
 **mapByDefined&lt;TSource, TResult>(target: TSource | undefined, whenTrue: MapFromValueCallback&lt;TSource, TResult> | TResult, otherwise: { (): TResult; } | TResult, thisObj?: any): TResult;
+
 Gets a mapped value according to whether the object is defined and optionally by target object type.
 
 When target type is not "undefined", the second argument determines the return value, which can either be an actual result value or a function that takes the defined value and returns the result value.
@@ -126,6 +130,7 @@ let b: boolean = JsTypeCommander.mapByDefined&lt;any, boolean>(myVar, (d: any) =
 ### mapByNotNull ###
 
 **mapByNotNull&lt;TSource, TResult>(target: TSource, whenTrue: MapFromValueCallback&lt;TSource, TResult> | TResult, otherwise: { (): TResult; } | TResult, thisObj?: any): TResult;
+
 Gets a mapped value according to whether the object is not defined or not null and optionally by defined target object type.
 
 ```TypeScript
@@ -135,6 +140,7 @@ let s: string = JsTypeCommander.mapByNotNull&lt;any, string>(myVar, (d: any) => 
 ### mapByNotNil ###
 
 **mapByNotNil&lt;TSource, TResult>(target: TSource | undefined, whenTrue: MapFromValueCallback&lt;TSource, TResult> | TResult, otherwise: MapFromValueCallback&lt;AnyNilable, TResult> | TResult, thisObj?: any): TResult;
+
 Gets a mapped value according to whether the object is defined and not null and optionally by defined target object type.
 
 ```TypeScript
@@ -144,6 +150,7 @@ let s: string = JsTypeCommander.mapByNotNil&lt;any, string>(myVar, (d: any) => d
 ### notDefined ###
 
 **notDefined(obj?: TDefined): obj is undefined;
+
 Determines whether an object is undefined.
 
 ```TypeScript
@@ -157,6 +164,7 @@ if (JsTypeCommander.notDefined(myVar)) {
 ### isNull ###
 
 **isNull(obj?: TDefined): obj is null;
+
 Determines whether an object is null.
 
 ```TypeScript
@@ -170,6 +178,7 @@ if (JsTypeCommander.isNull(myVar)) {
 ### isNil ###
 
 **isNil(obj?: TDefined): obj is null | undefined;
+
 Determines wether an object is undefined or null.
 
 ```TypeScript
@@ -183,6 +192,7 @@ if (JsTypeCommander.isNil(myVar)) {
 ### isString ###
 
 **isString(obj?: TDefined): obj is string;
+
 Determines whether a value is a string.
 
 ```TypeScript
@@ -196,6 +206,7 @@ if (JsTypeCommander.isString(myVar)) {
 ### isStringOrNull ###
 
 **isStringOrNull(obj?: TDefined): obj is Nullable&lt;string>;
+
 Determines whether a value is a string or null.
 
 ```TypeScript
@@ -209,6 +220,7 @@ if (JsTypeCommander.isStringOrNull(myVar)) {
 ### isStringIfDef ###
 
 **isStringIfDef(obj?: TDefined): obj is string | undefined;
+
 Determines whether a value is a string or undefined.
 
 ```TypeScript
@@ -222,6 +234,7 @@ if (JsTypeCommander.isStringIfDef(myVar)) {
 ### isStringOrNil ###
 
 **isStringOrNil(obj?: TDefined): obj is Nilable&lt;string>;
+
 Determines whether a value is a string, null or undefined.
 
 ```TypeScript
@@ -235,6 +248,7 @@ if (JsTypeCommander.isStringOrNil(myVar)) {
 ### isEmptyString ###
 
 **isEmptyString(obj?: TDefined): obj is string;
+
 Determines whether a value is an empty string.
 
 ```TypeScript
@@ -248,6 +262,7 @@ if (JsTypeCommander.isEmptyString(myVar)) {
 ### isEmptyStringIfDef ###
 
 **isEmptyStringIfDef(obj?: TDefined): obj is string | undefined;
+
 Determines whether a value is an empty string or undefined.
 
 ```TypeScript
@@ -261,6 +276,7 @@ if (JsTypeCommander.isEmptyStringIfDef(myVar)) {
 ### isEmptyStringOrNull ###
 
 **isEmptyStringOrNull(obj?: TDefined): obj is Nullable&lt;string>;
+
 Determines whether a value is a empty string or null.
 
 ```TypeScript
@@ -274,6 +290,7 @@ if (JsTypeCommander.isEmptyStringOrNull(myVar)) {
 ### isEmptyStringOrNil ###
 
 **isEmptyStringOrNil(obj?: TDefined): obj is Nilable&lt;string>;
+
 Determines whether a value is an empty string, null or undefined.
 
 ```TypeScript
@@ -287,6 +304,7 @@ if (JsTypeCommander.isEmptyStringOrNil(myVar)) {
 ### isEmptyOrWhitespace ###
 
 **isEmptyOrWhitespace(obj?: TDefined): obj is string;
+
 Determines whether a value is an empty string or contains only whitespace characters.
 
 ```TypeScript
@@ -300,6 +318,7 @@ if (JsTypeCommander.isEmptyOrWhitespace(myVar)) {
 ### isEmptyOrWhitespaceIfDef ###
 
 **isEmptyOrWhitespaceIfDef(obj?: TDefined): obj is string | undefined;
+
 Determines whether a value is an empty string, contains only whitespace characters, or is undefined.
 
 ```TypeScript
@@ -313,6 +332,7 @@ if (JsTypeCommander.isEmptyOrWhitespaceIfDef(myVar)) {
 ### isNullOrWhitespace ###
 
 **isNullOrWhitespace(obj?: TDefined): obj is Nullable&lt;string>;
+
 Determines whether a value is an empty string, contains only whitespace characters, or is null.
 
 ```TypeScript
@@ -326,6 +346,7 @@ if (JsTypeCommander.isNullOrWhitespace(myVar)) {
 ### isNilOrWhitespace ###
 
 **isNilOrWhitespace(obj?: TDefined): obj is Nilable&lt;string>;
+
 Determines whether a value is an empty string, contains only whitespace characters, or is null or undefined.
 
 ```TypeScript
@@ -339,51 +360,61 @@ if (JsTypeCommander.isNilOrWhitespace(myVar)) {
 ### asString ###
 
 **asString(obj?: TDefined, defaultValue?: Nullable&lt;string>, ifWhitespace?: boolean): Nilable&lt;string>;
+
 Converts a value to a string.
 
 ### toString ###
 
 **toString(obj?: TDefined, defaultValue?: Nullable&lt;string>, ifWhitespace?: boolean): string;
+
 Forces a value to a string.
 
 ### trimStart ###
 
 **trimStart(text: string): string;
+
 Trims leading whitespace from text.
 
 ### trimEnd ###
 
 **trimEnd(text: string): string;
+
 Trims trailing whitespace from text.
 
 ### asNormalizedWs ###
 
 **asNormalizedWs(text: string): string;
+
 Normalizes whitespace in text.
 
 ### ucFirst ###
 
 **ucFirst(text: string): string;
+
 Capitalizes first letter in text.
 
 ### splitLines ###
 
 **splitLines(text: string): string[];
+
 Splits text by line separator character sequences.
 
 ### indentText ###
 
 **indentText(text: string | string[], indent?: string): string;
+
 Indents lines within text and trims trailing whitespace.
 
 ### indentLines ###
 
 **indentLines(text: string[] | string, indent?: string): string[];
+
 Indents lines of text and trim trailing whitespace.
 
 ### isBoolean ###
 
 **isBoolean(obj?: TDefined): obj is boolean;
+
 Determines whether a value is boolean.
 
 ```TypeScript
@@ -397,6 +428,7 @@ if (JsTypeCommander.isBoolean(myVar)) {
 ### isBooleanIfDef ###
 
 **isBooleanIfDef(obj?: TDefined): obj is boolean | undefined;
+
 Determines whether a value is boolean or undefined.
 
 ```TypeScript
@@ -410,6 +442,7 @@ if (JsTypeCommander.isBooleanIfDef(myVar)) {
 ### isBooleanOrNull ###
 
 **isBooleanOrNull(obj?: TDefined): obj is Nullable&lt;boolean>;
+
 Determines whether a value is boolean or null.
 
 ```TypeScript
@@ -423,6 +456,7 @@ if (JsTypeCommander.isBooleanOrNull(myVar)) {
 ### isBooleanOrNil ###
 
 **isBooleanOrNil(obj?: TDefined): obj is Nilable&lt;boolean>;
+
 Determines whether a value is boolean, null or undefined.
 
 ```TypeScript
@@ -436,16 +470,19 @@ if (JsTypeCommander.isBooleanOrNil(myVar)) {
 ### asBoolean ###
 
 **asBoolean(obj?: TDefined, defaultValue?: Nullable&lt;boolean>): Nilable&lt;boolean>;
+
 Converts a value to a boolean.
 
 ### toBoolean ###
 
 **toBoolean(obj?: TDefined, defaultValue?: Nullable&lt;boolean>): boolean;
+
 Forces a value to a boolean.
 
 ### isNumber ###
 
 **isNumber(obj?: TDefined): obj is number;
+
 Determines whether a value is a finite number (not including NaN).
 
 ```TypeScript
@@ -459,6 +496,7 @@ if (JsTypeCommander.isNumber(myVar)) {
 ### isNumberIfDef ###
 
 **isNumberIfDef(obj?: TDefined): obj is number | undefined;
+
 Determines whether a value is a finite number or undefined (not including NaN).
 
 ```TypeScript
@@ -472,6 +510,7 @@ if (JsTypeCommander.isNumberIfDef(myVar)) {
 ### isNumberOrNull ###
 
 **isNumberOrNull(obj?: TDefined): obj is Nullable&lt;number>;
+
 Determines whether a value is a finite number or null (not including NaN).
 
 ```TypeScript
@@ -485,6 +524,7 @@ if (JsTypeCommander.isNumberOrNull(myVar)) {
 ### isNumberNaNorNull ###
 
 **isNumberNaNorNull(obj?: TDefined): obj is Nullable&lt;number>;
+
 Determines whether a value is a number or null (including NaN and Infinity).
 
 ```TypeScript
@@ -498,6 +538,7 @@ if (JsTypeCommander.isNumberNaNorNull(myVar)) {
 ### isNumberOrNil ###
 
 **isNumberOrNil(obj?: TDefined): obj is Nilable&lt;number>;
+
 Determines whether a value is a finite number, null or undefined (including NaN and Infinity).
 
 ```TypeScript
@@ -511,6 +552,7 @@ if (JsTypeCommander.isNumberOrNil(myVar)) {
 ### isInfinite ###
 
 **isInfinite(obj?: TDefined): obj is number;
+
 Determines whether a value is an infinite number.
 
 ```TypeScript
@@ -524,16 +566,19 @@ if (JsTypeCommander.isInfinite(myVar)) {
 ### asNumber ###
 
 **asNumber(obj?: TDefined, defaultValue?: Nullable&lt;number>, allowNaN?: boolean): Nilable&lt;number>;
+
 Converts a value to a number.
 
 ### toNumber ###
 
 **toNumber(obj?: TDefined, defaultValue?: Nullable&lt;number>, allowNaN?: boolean): number;
+
 Forces a value to a number.
 
 ### isFunction ###
 
 **isFunction(obj?: TDefined): obj is Function;
+
 Determines whether a value is a function.
 
 ```TypeScript
@@ -547,6 +592,7 @@ if (JsTypeCommander.isFunction(myVar)) {
 ### isFunctionIfDef ###
 
 **isFunctionIfDef(obj?: TDefined): obj is Function | undefined;
+
 Determines whether a value is function or undefined.
 
 ```TypeScript
@@ -560,6 +606,7 @@ if (JsTypeCommander.isFunctionIfDef(myVar)) {
 ### isFunctionOrNull ###
 
 **isFunctionOrNull(obj?: TDefined): obj is Nullable&lt;Function>;
+
 Determines whether a value is function or null.
 
 ```TypeScript
@@ -573,6 +620,7 @@ if (JsTypeCommander.isFunctionOrNull(myVar)) {
 ### isFunctionOrNil ###
 
 **isFunctionOrNil(obj?: TDefined): obj is Nilable&lt;Function>;
+
 Determines whether a value is function, null or undefined.
 
 ```TypeScript
@@ -586,179 +634,215 @@ if (JsTypeCommander.isFunctionOrNil(myVar)) {
 ### isObjectType ###
 
 **isObjectType(obj?: TDefined): obj is object;
+
 Determines whether a value's type is "object" and it is not null.
 
 ### isObjectTypeIfDef ###
 
 **isObjectTypeIfDef(obj?: TDefined): obj is object | undefined;
+
 Determines whether a value is undefined or its type is "object" and it is not null.
 
 ### isObjectTypeOrNull ###
 
 **isObjectTypeOrNull(obj?: TDefined): obj is Nullable&lt;object>;
+
 Determines whether a value is null or its type is "object".
 
 ### isObjectTypeOrNil ###
 
 **isObjectTypeOrNil(obj?: TDefined): obj is Nilable&lt;object>;
+
 Determines whether a value is undefined, null, or its type is "object".
 
 ### isObject ###
 
 **isObject(obj?: TDefined): obj is IStringKeyedObject;
+
 Determines whether a value is an object and it is not null.
 
 ### isObjectIfDef ###
 
 **isObjectIfDef(obj?: TDefined): obj is IStringKeyedObject | undefined;
+
 Determines whether a value undefined or it is an object and it is not null.
 
 ### isObjectOrNull ###
 
 **isObjectOrNull(obj?: TDefined): obj is Nullable&lt;IStringKeyedObject>;
+
 Determines whether a value null or it is an object.
 
 ### isObjectOrNil ###
 
 **isObjectOrNil(obj?: TDefined): obj is Nilable&lt;IStringKeyedObject>;
+
 Determines whether a value undefined, null, or it is an object.
 
 ### isNonArrayObject ###
 
 **isNonArrayObject(obj?: TDefined): obj is IStringKeyedObject;
+
 Determines whether a value is an object, but not an array.
 
 ### isNonArrayObjectIfDef ###
 
 **isNonArrayObjectIfDef(obj?: TDefined): obj is IStringKeyedObject | undefined;
+
 Determines whether a value is an object or undefined, and not an array.
 
 ### isNonArrayObjectOrNull ###
 
 **isNonArrayObjectOrNull(obj?: TDefined): obj is Nullable&lt;IStringKeyedObject>;
+
 Determines whether a value is an object or null, and not an array.
 
 ### isNonArrayObjectOrNil ###
 
 **isNonArrayObjectOrNil(obj?: TDefined): obj is Nilable&lt;IStringKeyedObject>;
+
 Determines whether a value is an object, null or undefined, and not an array.
 
 ### isPlainObject ###
 
 **isPlainObject(obj?: TDefined): obj is IStringKeyedObject;
+
 Determines whether a value is an object, but not an array.
 
 ### isPlainObjectIfDef ###
 
 **isPlainObjectIfDef(obj?: TDefined): obj is IStringKeyedObject | undefined;
+
 Determines whether a value is an object or undefined, and not an array.
 
 ### isPlainObjectOrNull ###
 
 **isPlainObjectOrNull(obj?: TDefined): obj is Nullable&lt;IStringKeyedObject>;
+
 Determines whether a value is an object or null, and not an array.
 
 ### isPlainObjectOrNil ###
 
 **isPlainObjectOrNil(obj?: TDefined): obj is Nilable&lt;IStringKeyedObject>;
+
 Determines whether a value is an object, null or undefined, and not an array.
 
 ### isArray ###
 
 **isArray(obj?: TDefined): obj is AnyNilable[];
+
 Determines whether a value is an array.
 
 ### isArrayIfDef ###
 
 **isArrayIfDef(obj?: TDefined): obj is AnyNilable[] | undefined;
+
 Determines whether a value is an array or undefined.
 
 ### isArrayOrNull ###
 
 **isArrayOrNull(obj?: TDefined): obj is Nullable&lt;AnyNilable[]>;
+
 Determines whether a value is an array or null.
 
 ### isArrayOrNil ###
 
 **isArrayOrNil(obj?: TDefined): obj is Nilable&lt;AnyNilable[]>;
+
 Determines whether a value is an array, null or undefined.
 
 ### isEmptyArray ###
 
 **isEmptyArray(obj?: TDefined): obj is AnyNilable[];
+
 Determines whether a value is an empty array.
 
 ### isEmptyArrayIfDef ###
 
 **isEmptyArrayIfDef(obj?: TDefined): obj is AnyNilable[] | undefined;
+
 Determines whether a value is an empty array or undefined.
 
 ### isEmptyArrayOrNull ###
 
 **isEmptyArrayOrNull(obj?: TDefined): obj is Nullable&lt;AnyNilable[]>;
+
 Determines whether a value is an empty array or null.
 
 ### isEmptyArrayOrNil ###
 
 **isEmptyArrayOrNil(obj?: TDefined): obj is Nilable&lt;AnyNilable[]>;
+
 Determines whether a value is an empty array, null or undefined.
 
 ### isArrayLike ###
 
 **isArrayLike(obj?: TDefined, checkElements?: boolean): obj is ArrayLike&lt;AnyNilable>;
+
 Determines whether an object has properties which indiciates it behaves like an array.
 
 ### isArrayLikeIfDef ###
 
 **isArrayLikeIfDef(obj?: TDefined, simpleCheck?: boolean): obj is ArrayLike&lt;AnyNilable> | undefined;
+
 Determines whether an object has properties which indiciates it behaves like an array.
 
 ### isArrayLikeOrNull ###
 
 **isArrayLikeOrNull(obj?: TDefined, simpleCheck?: boolean): obj is Nullable&lt;ArrayLike&lt;AnyNilable>>;
+
 Determines whether an object has properties which indiciates it behaves like an array.
 
 ### isArrayLikeOrNil ###
 
 **isArrayLikeOrNil(obj?: TDefined, simpleCheck?: boolean): obj is Nilable&lt;ArrayLike&lt;AnyNilable>>;
+
 Determines whether an object has properties which indiciates it behaves like an array.
 
 ### toArray ###
 
 **toArray(obj?: TDefined, checkElements?: boolean): AnyNilable[];
+
 Ensures that a value is a true array.
 
 ### derivesFrom ###
 
 **derivesFrom&lt;T>(obj?: TDefined, classConstructor?: { new (...args: AnyNilable[]): T; }): obj is T;
+
 Searches the value's inherited prototype chain for a matching constructor function.
 
 ### derivesFromIfDef ###
 
 **derivesFromIfDef&lt;T>(obj?: TDefined, classConstructor?: { new (...args: AnyNilable[]): T; }): obj is T | undefined;
+
 If defined, Searches the value's inherited prototype chain for a matching constructor function.
 
 ### derivesFromOrNull ###
 
 **derivesFromOrNull&lt;T>(obj?: TDefined, classConstructor?: { new (...args: AnyNilable[]): T; }): obj is Nullable&lt;T>;
+
 If not null, Searches the value's inherited prototype chain for a matching constructor function.
 
 ### derivesFromOrNil ###
 
 **derivesFromOrNil&lt;T>(obj?: TDefined, classConstructor?: { new (...args: AnyNilable[]): T; }): obj is Nilable&lt;T>;
+
 If defined and not null, Searches the value's inherited prototype chain for a matching constructor function.
 
 ### isErrorLike ###
 
 **isErrorLike(obj?: TDefined): obj is ErrorLike;
+
 Determines if an object has properties similar to an Error object.
 
 ### asErrorLike ###
 
 **asErrorLike(obj?: TDefined): Nilable&lt;ErrorLike>;
+
 Creates an object with properties similar to an Error object.
 
 ### mapInto ###
 
 **mapInto(obj: any, callbackfn: RecursiveMapCallbackFn, options?: MapIntoOptions): any;
+
 Recursively maps an object or array.
