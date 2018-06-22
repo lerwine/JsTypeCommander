@@ -1,5 +1,3 @@
-import { settings } from "cluster";
-
 export module JsTypeCommander {
     /**
      * Defines options for updating regular expressions used in the current module.
