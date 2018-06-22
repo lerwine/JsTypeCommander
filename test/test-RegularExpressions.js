@@ -14,14 +14,14 @@ function expectNullStatus(expected, result, message) {
 mocha_1.describe("Testing regular expressions", function () {
     var patternDefinitions = [
         {
-            name: 'onlyWhitespace', getRegex: function (regexOptions) { return regexOptions.onlyWhitespace; }, tests: [
+            name: 'onlyWhitespace', getRegex: function (regexOptions) { return (JsTypeCommander_1.JsTypeCommander.notDefined(regexOptions)) ? undefined : regexOptions.onlyWhitespace; }, tests: [
                 { input: " ", expected: true }, { input: " \t\r\n ", expected: true }, { input: " \t\r\n ", expected: true }, { input: "", expected: false },
                 { input: ".", expected: false }, { input: "0", expected: false }, { input: "Test", expected: false }, { input: ". \t\r\n ", expected: false },
                 { input: " \t.\r\n ", expected: false }, { input: " \t\r\n .", expected: false }, { input: "Test \t\r\n ", expected: false },
                 { input: " \tTest\r\n ", expected: false }, { input: " \t\r\n Test", expected: false }
             ]
         }, {
-            name: 'trimStart', getRegex: function (regexOptions) { return regexOptions.trimStart; }, tests: [
+            name: 'trimStart', getRegex: function (regexOptions) { return (JsTypeCommander_1.JsTypeCommander.notDefined(regexOptions)) ? undefined : regexOptions.trimStart; }, tests: [
                 { input: "", expected: false }, { input: " \t\r\n ", expected: false }, { input: " \t\r\n ", expected: false },
                 { input: "0", expected: { captures: ["0"], groupZero: "0" } }, { input: "0\t\r\n", expected: { captures: ["0\t\r\n"], groupZero: "0\t\r\n" } },
                 { input: ".", expected: { captures: ["."], groupZero: "." } }, { input: ".\t\r\n", expected: { captures: [".\t\r\n"], groupZero: ".\t\r\n" } },
@@ -37,7 +37,7 @@ mocha_1.describe("Testing regular expressions", function () {
                 { input: "\n\r Test \n\r\t Text \t", expected: { captures: ["Test \n\r\t Text \t"], groupZero: "\n\r Test \n\r\t Text \t" } }
             ]
         }, {
-            name: 'trimEnd', getRegex: function (regexOptions) { return regexOptions.trimEnd; }, tests: [
+            name: 'trimEnd', getRegex: function (regexOptions) { return (JsTypeCommander_1.JsTypeCommander.notDefined(regexOptions)) ? undefined : regexOptions.trimEnd; }, tests: [
                 { input: "", expected: false }, { input: " \t\r\n ", expected: false }, { input: " \t\r\n ", expected: false },
                 { input: "0", expected: { captures: ["0"], groupZero: "0" } }, { input: "\t\r\n0", expected: { captures: ["\t\r\n0"], groupZero: "\t\r\n0" } },
                 { input: "Test", expected: { captures: ["Test"], groupZero: "Test" } }, { input: "\t\r\nTest", expected: { captures: ["\t\r\nTest"], groupZero: "\t\r\nTest" } },
@@ -48,14 +48,14 @@ mocha_1.describe("Testing regular expressions", function () {
                 { input: ".\t\r\n", expected: { captures: ["."], groupZero: "." } }, { input: "\t\r\n.\t\r\n", expected: { captures: ["\t\r\n."], groupZero: "\t\r\n." } }
             ]
         }, {
-            name: 'lineSeparator', getRegex: function (regexOptions) { return regexOptions.lineSeparator; }, tests: [
+            name: 'lineSeparator', getRegex: function (regexOptions) { return (JsTypeCommander_1.JsTypeCommander.notDefined(regexOptions)) ? undefined : regexOptions.lineSeparator; }, tests: [
                 { input: "", expected: false }, { input: " ", expected: false }, { input: ".", expected: false }, { input: "0", expected: false },
                 { input: "\r", expected: true }, { input: "\r\n", expected: true }, { input: "\n", expected: true },
                 { input: "x \t\r\n\r\nz ", expected: { captures: [], groupZero: "\r\n" } }, { input: " \t\n\r\r\n ", expected: { captures: [], groupZero: "\n" } },
                 { input: "x \t\r\r\r\nz ", expected: { captures: [], groupZero: "\r" } }
             ]
         }, {
-            name: 'booleanText', getRegex: function (regexOptions) { return regexOptions.booleanText; }, tests: (function () {
+            name: 'booleanText', getRegex: function (regexOptions) { return (JsTypeCommander_1.JsTypeCommander.notDefined(regexOptions)) ? undefined : regexOptions.booleanText; }, tests: (function () {
                 var results = [
                     { input: "true", expected: ["true", null] }, { input: "True", expected: ["True", null] }, { input: "tRuE", expected: ["tRuE", null] },
                     { input: "false", expected: [null, "false"] }, { input: "False", expected: [null, "False"] }, { input: "fAlSe", expected: [null, "fAlSe"] },
@@ -106,7 +106,7 @@ mocha_1.describe("Testing regular expressions", function () {
                 return results;
             }())
         }, {
-            name: 'firstLetterLc', getRegex: function (regexOptions) { return regexOptions.firstLetterLc; }, tests: [
+            name: 'firstLetterLc', getRegex: function (regexOptions) { return (JsTypeCommander_1.JsTypeCommander.notDefined(regexOptions)) ? undefined : regexOptions.firstLetterLc; }, tests: [
                 { input: "test", expected: [null, "t", "est"] }, { input: "t", expected: [null, "t", null] },
                 { input: "\r\n.test", expected: ["\r\n.", "t", "est"] }, { input: "\r\n.t", expected: ["\r\n.", "t", null] },
                 { input: "t\n\r\t .", expected: [null, "t", "\n\r\t ."] }, { input: "test \n\r\t text", expected: [null, "t", "est \n\r\t text"] },
@@ -114,7 +114,7 @@ mocha_1.describe("Testing regular expressions", function () {
                 { input: "0test", expected: false }, { input: "0t", expected: false }, { input: "\r\n.0test", expected: false }, { input: "\r\n.0t", expected: false }
             ]
         }, {
-            name: 'abnormalWhitespace', getRegex: function (regexOptions) { return regexOptions.abnormalWhitespace; }, tests: [
+            name: 'abnormalWhitespace', getRegex: function (regexOptions) { return (JsTypeCommander_1.JsTypeCommander.notDefined(regexOptions)) ? undefined : regexOptions.abnormalWhitespace; }, tests: [
                 { input: "  ", expected: { captures: [], groupZero: "  " } }, { input: " \t\r\n ", expected: { captures: [], groupZero: " \t\r\n " } },
                 { input: " Test this  string   ", expected: { captures: [], groupZero: "  " } },
                 { input: " Test\tthis  string   ", expected: { captures: [], groupZero: "\t" } },
@@ -133,8 +133,6 @@ mocha_1.describe("Testing regular expressions", function () {
         catch (_a) {
             r = undefined;
         }
-        if (typeof (r) == "undefined")
-            return {};
         return r;
     })();
     patternDefinitions.forEach(function (pattern) {

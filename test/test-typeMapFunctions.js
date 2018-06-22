@@ -485,5 +485,131 @@ mocha_1.describe("Testing type map functions", function () {
         });
     }, this);
 });
-mocha_1.describe("Testing function mapInto(obj: any, callbackfn: RecursiveMapCallbackFn, options?: MapIntoOptions): any", function () {
+mocha_1.describe("Testing function mapInto(obj: any, callbackFn: RecursiveMapCallbackFn, options?: MapIntoOptions): any", function () {
+    var sourceNumber = 7;
+    var expectedNumber = sourceNumber / 2;
+    it("JsTypeCommander.mapInto(" + sourceNumber + ", (current, key, source, target) => current / 2)) should return " + expectedNumber, function () {
+        var callbackFn = function (current, key, source, target) {
+            return current / 2;
+        };
+        var actual = JsTypeCommander_1.JsTypeCommander.mapInto(sourceNumber, callbackFn);
+        chai_1.expect(actual).to.a("number");
+        chai_1.expect(actual).to.equal(expectedNumber);
+    });
+    var sourceArray1 = [true, "2", 3];
+    var expectedArray1 = ["true", "2", "3"];
+    it("JsTypeCommander.mapInto(" + JSON.stringify(sourceArray1) + ", (current, key, source, target): any)) should return" + JSON.stringify(expectedArray1), function () {
+        var callbackFn = function (current, key, source, target) {
+            if (JsTypeCommander_1.JsTypeCommander.notDefined(source))
+                return [];
+            return current.toString();
+        };
+        var actual = JsTypeCommander_1.JsTypeCommander.mapInto(sourceArray1, callbackFn);
+        chai_1.expect(actual).to.a("Array");
+        if (Array.isArray(actual)) {
+            chai_1.expect(actual.length).to.equal(expectedArray1.length, "length mismatch");
+            for (var i = 0; i < expectedArray1.length; i++) {
+                chai_1.expect(actual[i]).to.a("string", "Element " + i + " type mismatch");
+                chai_1.expect(actual[i]).to.equal(expectedArray1[i], "Element " + i + " value mismatch");
+            }
+        }
+    });
+    var myThisObj = { count: 0, count2: 0 };
+    var sourceOpts1 = {
+        thisObj: myThisObj,
+        totalMaxItems: 6
+    };
+    var sourceArray2 = [undefined, null, true, false, 0, "test", 5.6];
+    var expectedArray2 = ["undefined", "null", "true", "false", "0", "\"test\""];
+    it("JsTypeCommander.mapInto(" + (sourceArray2.map(function (i) {
+        if (JsTypeCommander_1.JsTypeCommander.notDefined(i))
+            return "undefined";
+        if (JsTypeCommander_1.JsTypeCommander.isNull(i))
+            return "null";
+        return JSON.stringify(i);
+    })) + ", (current, key, source, target): any, " + JSON.stringify(sourceOpts1) + ")) should return" + JSON.stringify(expectedArray2) + " and thisObj.count should be " + expectedArray2.length + 1, function () {
+        var callbackFn = function (current, key, source, target) {
+            this.count++;
+            if (JsTypeCommander_1.JsTypeCommander.notDefined(source))
+                return [];
+            if (JsTypeCommander_1.JsTypeCommander.notDefined(current))
+                return "undefined";
+            if (JsTypeCommander_1.JsTypeCommander.isNull(current))
+                return "null";
+            return JSON.stringify(current);
+        };
+        var actual = JsTypeCommander_1.JsTypeCommander.mapInto(sourceArray2, callbackFn, sourceOpts1);
+        chai_1.expect(actual).to.a("Array");
+        if (Array.isArray(actual)) {
+            if (actual.length != expectedArray2.length) {
+                chai_1.expect(actual).to.equal(expectedArray2);
+                chai_1.expect(actual.length).to.equal(expectedArray2.length, "length mismatch");
+            }
+            for (var i = 0; i < expectedArray2.length; i++) {
+                chai_1.expect(actual[i]).to.a("string", "Element " + i + " type mismatch in ");
+                chai_1.expect(actual[i]).to.equal(expectedArray2[i], "Element " + i + " value mismatch");
+            }
+        }
+        chai_1.expect(myThisObj.count).to.equal(expectedArray2.length + 1);
+    });
+    var sourceArray3 = [{ a: 1, b: 2 }, 3, 4, ["Eins", "Svein", "Drei"]];
+    var expectedArray3 = [{ count: 2, a: 1, b: 2 }, 3, 4, ["Eins", "Svein", "Drei"]];
+    myThisObj.count = 0;
+    myThisObj.count2 = 0;
+    var sourceOpts2 = { thisObj: myThisObj };
+    it("JsTypeCommander.mapInto(" + JSON.stringify(sourceArray3) + ", (current, key, source, target): any, " + JSON.stringify(sourceOpts2) + ")) should return " + JSON.stringify(expectedArray3) + " and thisObj.count should be 10", function () {
+        var callbackFn = function (current, key, source, target) {
+            this.count++;
+            if (JsTypeCommander_1.JsTypeCommander.notDefined(source) || Array.isArray(current))
+                return [];
+            return (JsTypeCommander_1.JsTypeCommander.isObject(current)) ? { count: this.count } : current;
+        };
+        myThisObj.count = 0;
+        myThisObj.count2 = 0;
+        var actual = JsTypeCommander_1.JsTypeCommander.mapInto(sourceArray3, callbackFn, sourceOpts2);
+        (sourceArray3[0])["a"] = 5;
+        (sourceArray3[0])["b"] = 5;
+        sourceArray3[1] = 5;
+        sourceArray3[2] = 5;
+        sourceArray3[3][0] = "5";
+        sourceArray3[3][1] = "5";
+        sourceArray3[3][2] = "5";
+        chai_1.expect(actual).to.a("Array");
+        if (Array.isArray(actual)) {
+            chai_1.expect(actual.length).to.equal(expectedArray3.length, "length mismatch");
+            var obj = actual[0];
+            chai_1.expect(JsTypeCommander_1.JsTypeCommander.isNonArrayObject(obj)).to.equal(true, "Element 0 is not a non-array object");
+            if (JsTypeCommander_1.JsTypeCommander.isNonArrayObject(obj)) {
+                var e0 = (expectedArray3[0]);
+                chai_1.expect(obj["a"]).to.a("number", "actual[0].a is not a number");
+                chai_1.expect(obj["a"]).to.equal(e0["a"], "actual[0].a value mismatch");
+                chai_1.expect(obj["b"]).to.a("number", "actual[0].b is not a number");
+                chai_1.expect(obj["b"]).to.equal(e0["b"], "actual[0].b value mismatch");
+                chai_1.expect(obj["count"]).to.a("number", "actual[0].count is not a number");
+            }
+            obj = actual[1];
+            chai_1.expect(JsTypeCommander_1.JsTypeCommander.isNumber(obj)).to.equal(true, "Element 1 is not a number");
+            if (JsTypeCommander_1.JsTypeCommander.isNumber(obj)) {
+                chai_1.expect(obj).to.a("number", "actual[1] is not a number");
+                chai_1.expect(obj).to.equal(expectedArray3[1], "actual[1] value mismatch");
+            }
+            obj = actual[2];
+            chai_1.expect(JsTypeCommander_1.JsTypeCommander.isNumber(obj)).to.equal(true, "Element 2 is not a number");
+            if (JsTypeCommander_1.JsTypeCommander.isNumber(obj)) {
+                chai_1.expect(obj).to.a("number", "actual[2] is not a number");
+                chai_1.expect(obj).to.equal(expectedArray3[2], "actual[2] value mismatch");
+            }
+            obj = actual[3];
+            chai_1.expect(obj).to.a("Array", "Element 3 is not an array");
+            if (Array.isArray(obj)) {
+                var arr = (expectedArray3[3]);
+                chai_1.expect(obj.length).to.equal(arr.length);
+                for (var i = 0; i < arr.length; i++) {
+                    chai_1.expect(obj[i]).to.a("string", "actual[3][" + i + "] is not a string");
+                    chai_1.expect(obj[i]).to.equal(arr[i], "actual[3][" + i + "] value mismatch");
+                }
+            }
+        }
+        chai_1.expect(myThisObj.count).to.equal(10, "thisObj.count failed");
+    });
 });

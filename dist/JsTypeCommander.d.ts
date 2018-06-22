@@ -1,8 +1,46 @@
 export declare module JsTypeCommander {
     /**
-     * Defines options for updating regular expressions used in the current module.
+     * Defines regular expressions used in the current module.
      */
     interface IJsTypeCommanderRegex {
+        /**
+         * Pattern which matches one or more consecutive whitespace characters.
+         */
+        onlyWhitespace: RegExp;
+        /**
+         * Pattern which captures text from the first non-whitespace character to the end of the string in group index 1 or fails if there are no non-whitespace characters.
+         */
+        trimStart: RegExp;
+        /**
+         * Pattern which captures text in group at index 1, omitting trailing whitespace characters, or fails if there are no non-whitespace characters.
+         */
+        trimEnd: RegExp;
+        /**
+         * Pattern which matches a single character sequence which separates 2 lines of text.
+         */
+        lineSeparator: RegExp;
+        /**
+         * Pattern which captures text that can represent a boolean value, with true values being a successful match at group index 1,
+         * and false values being a successful match at group index 2.
+         */
+        booleanText: RegExp;
+        /**
+         * Pattern which captures text that can be used for capitalizing text.
+         * @description The group at index 1 captures all leading text which is not a letter or digit, and will fail if there are no such leading characters.
+         * The group at index 1 captures the first letter to be capitalized, and will never fail unless the whole pattern fails.
+         * The group at index 2 captures remaining text following the capitalized letter, and will fail if there are no remaining characters.
+         * If there are no letter characters or if the first letter is already capitalized, then the entire match will fail.
+         */
+        firstLetterLc: RegExp;
+        /**
+         * Pattern which matches consecutive whitespace characters except for single space (' ') characters that are not next to other whitespace characters.
+         */
+        abnormalWhitespace: RegExp;
+    }
+    /**
+     * Defines options for updating regular expressions used in the current module.
+     */
+    interface IJsTypeCommanderRegexOpt {
         /**
          * Pattern which matches one or more consecutive whitespace characters.
          */
@@ -227,11 +265,11 @@ export declare module JsTypeCommander {
     function getPatternOptions(): IJsTypeCommanderRegex;
     /**
      * Sets regular expression pattern options used internally by this module.
-     * @param {IJsTypeCommanderRegex} settings Object whose properties contain regular expression patterns used internally by this module.
+     * @param {IJsTypeCommanderRegexOpt} settings Object whose properties contain regular expression patterns used internally by this module.
      * Undefined properties will not be changed. If this parameter is not defined, then the default pattern options will be restored.
      * @returns {IJsTypeCommanderRegex} Object whose properties contain regular expression patterns now being used internally by this module.
      */
-    function setPatternOptions(settings?: IJsTypeCommanderRegex): IJsTypeCommanderRegex;
+    function setPatternOptions(settings?: IJsTypeCommanderRegexOpt): IJsTypeCommanderRegex;
     /**
      * Sets the default character sequence that will be used when joining lines of text.
      * @param s The default character sequence to use when joining lines of text. If this parameter is not defined, then the default character sequence will be restored.
@@ -750,48 +788,91 @@ export declare module JsTypeCommander {
      * If the value is an actual array, then the object itself is returned;
      * If the object is Array-like, an array is returned with values taken from each of its indexed values.
      * Otherwise, an array with a single element containing the value is returned.
+     * @example
+     * TypeScript:
+     *     import { JsTypeCommander } from 'JsTypeCommander';
+     *     let myVar: any = 7;
+     *     let arrayObj = JsTypeCommander.toArray(myVar);
+     *     // returns: [7]
+     *     myVar = { 0: "a", 1: 7, length: 2 };
+     *     arrayObj = JsTypeCommander.toArray(myVar);
+     *     // returns: ["a", 7]
+     *     myVar = { 0: "a", 2: 7, length: 3 };
+     *     arrayObj = JsTypeCommander.toArray(myVar);
+     *     // returns: ["a", undefined, 7]
+     *     myVar = { 0: "a", 2: 7, length: 3 };
+     *     arrayObj = JsTypeCommander.toArray(myVar, true);
+     *     // returns: [{ 0: "a", 2: 7, length: 3 }]
+     *
+     * JavaScript:
+     *     var JsTypeCommander = require("JsTypeCommander").JsTypeCommander;
      */
     function toArray(obj?: TDefined, checkElements?: boolean): AnyNilable[];
     /**
-     * Searches the value's inherited prototype chain for a matching constructor function.
-     * @param obj Value to test.
+     * Searches the object's inherited prototype chain for a matching constructor function.
+     * @param {*} obj Object to test.
      * @param {AnyFunction} classConstructor Constructor function to look for.
-     * @returns {boolean} True if the value is determined to inherit from the specified class; otherwise false.
+     * @returns {boolean} True if the object is determined to inherit from the specified class; otherwise false.
+     * @example The following example demonstrates testing whether an object was constructed from a specific constructor.
+     * let objToTest: any = new Error("My Error");
+     * let result: boolean = JsTypeCommander.derivesFrom(objToTest, Error);
+     * // result === true
+     * result = JsTypeCommander.derivesFrom(objToTest, RangeError);
+     * // result === false (Error does not inherit from RangeError)
+     * objToTest = new RangeError();
+     * result = JsTypeCommander.derivesFrom(objToTest, Error);
+     * // result === true
+     * objToTest = { message: "My Error", name: "Error" };
+     * result = JsTypeCommander.derivesFrom(objToTest, Error);
+     * // result === false
      */
     function derivesFrom<T>(obj?: TDefined, classConstructor?: {
         new (...args: AnyNilable[]): T;
     }): obj is T;
     /**
-     * If defined, Searches the value's inherited prototype chain for a matching constructor function.
-     * @param value Value to test.
+     * If defined, Searches the object's inherited prototype chain for a matching constructor function.
+     * @param {*} obj Object to test.
      * @param {AnyFunction} classConstructor Constructor function to look for.
-     * @returns {boolean} True if the value is not defined or if it is determined to inherit from the specified class; otherwise false.
+     * @returns {boolean} True if the object is not defined or if it is determined to inherit from the specified class; otherwise false.
      */
     function derivesFromIfDef<T>(obj?: TDefined, classConstructor?: {
         new (...args: AnyNilable[]): T;
     }): obj is T | undefined;
     /**
-     * If not null, Searches the value's inherited prototype chain for a matching constructor function.
-     * @param value Value to test.
+     * If not null, Searches the object's inherited prototype chain for a matching constructor function.
+     * @param {*} obj Object to test.
      * @param {AnyFunction} classConstructor Constructor function to look for.
-     * @returns {boolean} True if the value is null or if it is determined to inherit from the specified class; otherwise false.
+     * @returns {boolean} True if the object is null or if it is determined to inherit from the specified class; otherwise false.
      */
     function derivesFromOrNull<T>(obj?: TDefined, classConstructor?: {
         new (...args: AnyNilable[]): T;
     }): obj is Nullable<T>;
     /**
-     * If defined and not null, Searches the value's inherited prototype chain for a matching constructor function.
-     * @param value Value to test.
+     * If defined and not null, Searches the object's inherited prototype chain for a matching constructor function.
+     * @param {*} obj Object to test.
      * @param {AnyFunction} classConstructor Constructor function to look for.
-     * @returns {boolean} True if the value is null, not defined or if it is determined to inherit from the specified class; otherwise false.
+     * @returns {boolean} True if the object is null, not defined or if it is determined to inherit from the specified class; otherwise false.
      */
     function derivesFromOrNil<T>(obj?: TDefined, classConstructor?: {
         new (...args: AnyNilable[]): T;
     }): obj is Nilable<T>;
     /**
      * Determines if an object has properties similar to an Error object.
-     * @param {*} obj Value to test
+     * @param {*} obj Object to test
      * @returns {boolean} True if the object has properties similar to an Error object; otherwise, false.
+     * @example The following example demonstrates testing various object to see if they are error-like.
+     * objToTest = new Error("My Error");
+     * result = JsTypeCommander.isErrorLike(objToTest);
+     * // result === true
+     * objToTest = new RangeError();
+     * result = JsTypeCommander.isErrorLike(objToTest);
+     * // result === true
+     * objToTest = { message: "My Error" };
+     * result = JsTypeCommander.isErrorLike(objToTest);
+     * // result === true
+     * objToTest = { message: "My Error", number: true };
+     * result = JsTypeCommander.isErrorLike(objToTest);
+     * // result === false (typeof(number) !== "number"))
      */
     function isErrorLike(obj?: TDefined): obj is ErrorLike;
     /**
@@ -817,14 +898,27 @@ export declare module JsTypeCommander {
      * Likewise,if the curren item is an object, then the return value must a non-null value of type "object" in order for the current value to be recursively iterated.
      * If an empty array is returned, elements will be pushed onto the end of the target array as needed, otherwise, they values at the current index will be replaced.
      * If an object with no properties is returned, property values will be added or replaced on the target according to the current property name.
-     * @example The following example effectively deep clones the source array to create an object compatible with JSON.stringify:
-     * let deepClone = JsTypeCommander.mapInto([{a: 1, b: 2}, 3, 4, ["Eins", "Svein", "Drei"]], (current?: any, key?: number|string, source?: any[]|object, target?: any[]|object) => {
-     *     if (JsTypeCommander.isArray(current))
-     *         return [];
-     *     if (JsTypeCommander.isNonArrayObject(current))
-     *         return {};
-     *     return (JsTypeCommander.isString(current) || JsTypeCommander.isNumber(current) || JsTypeCommander.isBoolean(current) || JsTypeCommander.isObjectOrNil(current)) ? current : current.toString();
-     * });
+     * @example The following examples effectively deep clone the source array to create an array of objects compatible with JSON.stringify.
+     * TypeScript:
+     *     import { JsTypeCommander } from 'JsTypeCommander';
+     *     let source: any[] = [{a: 1, b: 2}, 3, 4, ["Eins", "Svein", "Drei"]];
+     *     let deepClone = JsTypeCommander.mapInto(source, (current?: any, key?: number|string, source?: any[]|object, target?: any[]|object) => {
+     *         if (JsTypeCommander.notDefined(source) || JsTypeCommander.isArray(current))
+     *             return [];
+     *         return (JsTypeCommander.isObject(current)) ? { } : current;
+     *     });
+     *     // JSON.stringify(deepClone) == "[{\"a\":1,\"b\":2},3,4,[\"Eins\",\"Svein\",\"Drei\"]]"
+     *
+     * JavaScript:
+     *     var JsTypeCommander = require("JsTypeCommander").JsTypeCommander;
+     *     var source = [{ a: 1, b: 2 }, 3, 4, ["Eins", "Svein", "Drei"]];
+     *     function myCallback(current, key, source, target) {
+     *         if (JsTypeCommander.notDefined(source) || JsTypeCommander.isArray(current))
+     *             return [];
+     *         return (JsTypeCommander.isObject(current)) ? { } : current;
+     *     }
+     *     var deepClone = JsTypeCommander.mapInto(source, myCallback);
+     *     // JSON.stringify(deepClone) == "[{\"a\":1,\"b\":2},3,4,[\"Eins\",\"Svein\",\"Drei\"]]"
      */
     interface RecursiveMapCallbackFn {
         (current: AnyNilable, key: number | string | undefined, source: AnyNilable[] | IStringKeyedObject | undefined, target: AnyNilable[] | IStringKeyedObject | undefined): AnyNilable;
@@ -860,9 +954,53 @@ export declare module JsTypeCommander {
     /**
      * Recursively maps an object or array.
      * @param {*} obj Object to recursively map
-     * @param {{ (current: any|null|undefined, key?: number|string): any|null|undefined; }} callbackfn Call-back function for each iteration.
+     * @param {{ (current: any|null|undefined, key?: number|string): any|null|undefined; }} callbackFn Call-back function for each iteration which returns the mapped value.
      * @param options Recursive Iteration options.
      * @returns {*} Mapped object or array.
+     * @description If the mapped value returned from callbackFn a string, number, symbol, boolean value or function, then the corresponding source element will not be recursed into.
+     * This means that if the current argument for callbackFn is an array and you wish to recurse into that array, then callbackFn should return a new array. Likewise,
+     * if the current argument is an object (other than a string, number, symbol, boolean value or function) and you wish to recurse into its properties,
+     * then callbackFn should return an object that is neither a string, number, symbol, boolean value or function.
+     * @example The following examples effectively deep clone the source array to create an array of objects compatible with JSON.stringify.
+     * TypeScript:
+     *     import { JsTypeCommander } from 'JsTypeCommander';
+     *     let source: any[] = [{a: 1, b: 2}, 3, 4, ["Eins", "Svein", "Drei"]];
+     *     let deepClone = JsTypeCommander.mapInto(source, (current?: any, key?: number|string, source?: any[]|object, target?: any[]|object) => {
+     *         if (JsTypeCommander.notDefined(source) || JsTypeCommander.isArray(current))
+     *             return [];
+     *         return (JsTypeCommander.isObject(current)) ? { } : current;
+     *     });
+     *
+     *     interface IMyThis { count: number }
+     *     let myOptions: JsTypeCommander.MapIntoOptions = { thisObj: <IMyThis> { count: 0 } };
+     *     function myCallback(this: IMyThis, current?: any, key?: number|string, source?: any[]|object, target?: any[]|object) {
+     *         this.count++;
+     *         if (JsTypeCommander.notDefined(source) || JsTypeCommander.isArray(current))
+     *             return [];
+     *         return (JsTypeCommander.isObject(current)) ? { } : current;
+     *     }
+     *     deepClone = JsTypeCommander.mapInto(source, myCallback, myOptions);
+     *     // myOptions.thisObj.count === 9
+     *
+     * JavaScript:
+     *     var JsTypeCommander = require("JsTypeCommander").JsTypeCommander;
+     *     // interface RecursiveMapCallbackFn
+     *     var source = [{ a: 1, b: 2 }, 3, 4, ["Eins", "Svein", "Drei"]];
+     *     var myCallback = function(current, key, source, target) {
+     *         if (JsTypeCommander.notDefined(source) || JsTypeCommander.isArray(current))
+     *             return [];
+     *         return (JsTypeCommander.isObject(current)) ? { } : current;
+     *     };
+     *     var deepClone = JsTypeCommander.mapInto(source, myCallback);
+     *     var myOptions = { thisObj: { count: 0 } };
+     *     myCallback = function(current, key, source, target) {
+     *         this.count++;
+     *         if (JsTypeCommander.notDefined(source) || JsTypeCommander.isArray(current))
+     *             return [];
+     *         return (JsTypeCommander.isObject(current)) ? { } : current;
+     *     };
+     *     deepClone = JsTypeCommander.mapInto(source, myCallback, myOptions);
+     *     // myOptions.thisObj.count === 9
      */
-    function mapInto(obj: any, callbackfn: RecursiveMapCallbackFn, options?: MapIntoOptions): any;
+    function mapInto(obj: any, callbackFn: RecursiveMapCallbackFn, options?: MapIntoOptions): any;
 }

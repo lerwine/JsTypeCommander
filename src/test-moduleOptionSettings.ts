@@ -97,7 +97,7 @@ describe("Testing module options settings", function() {
             name: string,
             original: RegExp,
             getRegexp: { (arg: JsTypeCommander.IJsTypeCommanderRegex): RegExp|undefined; }
-            setRegexp: { (arg: JsTypeCommander.IJsTypeCommanderRegex, value: RegExp): void; }
+            setRegexp: { (arg: JsTypeCommander.IJsTypeCommanderRegexOpt, value: RegExp): void; }
         }[] = [
             { name: 'abnormalWhitespace', original: testRe, getRegexp: r => r.abnormalWhitespace, setRegexp: (r, v) => { r.abnormalWhitespace = v; } },
             { name: 'booleanText', original: testRe, getRegexp: r => r.booleanText, setRegexp: (r, v) => { r.booleanText = v; } },
@@ -120,7 +120,7 @@ describe("Testing module options settings", function() {
                 if (typeof(regexOptionResult) == "undefined")
                     this.skip();
                 else {
-                    let arg: JsTypeCommander.IJsTypeCommanderRegex = { };
+                    let arg: JsTypeCommander.IJsTypeCommanderRegexOpt = { };
                     testData.setRegexp(arg, /.*/);
                     let result: JsTypeCommander.IJsTypeCommanderRegex|undefined = JsTypeCommander.setPatternOptions(arg);
                     expect(result).to.not.a('undefined').and.to.not.a('null');

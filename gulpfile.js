@@ -61,9 +61,6 @@ gulp.task('rebuildAll', ['rebuildDist', 'rebuildTest']);
 gulp.task('runTests', function() {
     return gulp.src(['test/**/+(test.js|test-)*.js'], { read: false })
       .pipe(mocha({
-        reporter: 'spec',
-        globals: {
-          should: require('should')
-        }
+        reporter: 'spec'
       }));
   });
