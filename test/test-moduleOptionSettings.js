@@ -12,27 +12,21 @@ mocha_1.describe("Testing module options settings", function () {
         });
     });
     mocha_1.describe("Testing JsTypeCommander.setDefaultLineSeparatorSequence()", function () {
-        it('JsTypeCommander.setDefaultLineSeparatorSequence("\\r\\n") should return "\\r\\n"', function () {
+        it('JsTypeCommander.setDefaultLineSeparatorSequence("\\r\\n") should return "\\r\\n", then getDefaultLineSeparatorSequence() should return "\\r\\n"', function () {
             var result = JsTypeCommander_1.JsTypeCommander.setDefaultLineSeparatorSequence("\r\n");
             chai_1.expect(result).to.a('string');
             chai_1.expect(result).to.equal("\r\n");
+            result = JsTypeCommander_1.JsTypeCommander.getDefaultLineSeparatorSequence();
+            chai_1.expect(result).to.a('string', "validation is not a string");
+            chai_1.expect(result).to.equal("\r\n", "Validation failed");
         });
-        it('JsTypeCommander.getDefaultLineSeparatorSequence() should return "\\r\\n"', function () {
-            JsTypeCommander_1.JsTypeCommander.setDefaultLineSeparatorSequence("\r\n");
-            var result = JsTypeCommander_1.JsTypeCommander.getDefaultLineSeparatorSequence();
-            chai_1.expect(result).to.a('string');
-            chai_1.expect(result).to.equal("\r\n");
-        });
-        it('JsTypeCommander.setDefaultLineSeparatorSequence() should return "\\n"', function () {
+        it('JsTypeCommander.setDefaultLineSeparatorSequence() should return "\\n", then getDefaultLineSeparatorSequence() should return "\\n"', function () {
             var result = JsTypeCommander_1.JsTypeCommander.setDefaultLineSeparatorSequence();
             chai_1.expect(result).to.a('string');
             chai_1.expect(result).to.equal("\n");
-        });
-        it('JsTypeCommander.getDefaultLineSeparatorSequence() should return "\\n"', function () {
-            JsTypeCommander_1.JsTypeCommander.setDefaultLineSeparatorSequence();
-            var result = JsTypeCommander_1.JsTypeCommander.getDefaultLineSeparatorSequence();
-            chai_1.expect(result).to.a('string');
-            chai_1.expect(result).to.equal("\n");
+            result = JsTypeCommander_1.JsTypeCommander.getDefaultLineSeparatorSequence();
+            chai_1.expect(result).to.a('string', "validation is not a string");
+            chai_1.expect(result).to.equal("\n", "Validation failed");
         });
     });
     mocha_1.describe("Testing JsTypeCommander.getPatternOptions()", function () {

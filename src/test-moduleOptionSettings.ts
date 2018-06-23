@@ -14,27 +14,21 @@ describe("Testing module options settings", function() {
         });
     });
     describe("Testing JsTypeCommander.setDefaultLineSeparatorSequence()", function() {
-        it('JsTypeCommander.setDefaultLineSeparatorSequence("\\r\\n") should return "\\r\\n"', function() {
+        it('JsTypeCommander.setDefaultLineSeparatorSequence("\\r\\n") should return "\\r\\n", then getDefaultLineSeparatorSequence() should return "\\r\\n"', function() {
             let result: string|null|undefined = JsTypeCommander.setDefaultLineSeparatorSequence("\r\n");
             expect(result).to.a('string');
             expect(result).to.equal("\r\n");
+            result = JsTypeCommander.getDefaultLineSeparatorSequence();
+            expect(result).to.a('string', "validation is not a string");
+            expect(result).to.equal("\r\n", "Validation failed");
         });
-        it('JsTypeCommander.getDefaultLineSeparatorSequence() should return "\\r\\n"', function() {
-            JsTypeCommander.setDefaultLineSeparatorSequence("\r\n");
-            let result: string|null|undefined = JsTypeCommander.getDefaultLineSeparatorSequence();
-            expect(result).to.a('string');
-            expect(result).to.equal("\r\n");
-        });
-        it('JsTypeCommander.setDefaultLineSeparatorSequence() should return "\\n"', function() {
+        it('JsTypeCommander.setDefaultLineSeparatorSequence() should return "\\n", then getDefaultLineSeparatorSequence() should return "\\n"', function() {
             let result: string|null|undefined = JsTypeCommander.setDefaultLineSeparatorSequence();
             expect(result).to.a('string');
             expect(result).to.equal("\n");
-        });
-        it('JsTypeCommander.getDefaultLineSeparatorSequence() should return "\\n"', function() {
-            JsTypeCommander.setDefaultLineSeparatorSequence();
-            let result: string|null|undefined = JsTypeCommander.getDefaultLineSeparatorSequence();
-            expect(result).to.a('string');
-            expect(result).to.equal("\n");
+            result = JsTypeCommander.getDefaultLineSeparatorSequence();
+            expect(result).to.a('string', "validation is not a string");
+            expect(result).to.equal("\n", "Validation failed");
         });
     });
     
