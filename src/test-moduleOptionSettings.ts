@@ -20,6 +20,7 @@ describe("Testing module options settings", function() {
             expect(result).to.equal("\r\n");
         });
         it('JsTypeCommander.getDefaultLineSeparatorSequence() should return "\\r\\n"', function() {
+            JsTypeCommander.setDefaultLineSeparatorSequence("\r\n");
             let result: string|null|undefined = JsTypeCommander.getDefaultLineSeparatorSequence();
             expect(result).to.a('string');
             expect(result).to.equal("\r\n");
@@ -30,6 +31,7 @@ describe("Testing module options settings", function() {
             expect(result).to.equal("\n");
         });
         it('JsTypeCommander.getDefaultLineSeparatorSequence() should return "\\n"', function() {
+            JsTypeCommander.setDefaultLineSeparatorSequence();
             let result: string|null|undefined = JsTypeCommander.getDefaultLineSeparatorSequence();
             expect(result).to.a('string');
             expect(result).to.equal("\n");

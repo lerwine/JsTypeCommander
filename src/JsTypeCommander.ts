@@ -140,7 +140,7 @@ export module JsTypeCommander {
     export type AnyNullable = any|null;
 
     /** Represents an object which can contained arbitrarily named properties. */
-    export interface IStringKeyedObject { [key: string]: AnyNilable };
+    export interface IStringKeyedObject { [key: string]: AnyNilable }
     
     /**
      * Represents an object which contains both named properties and indexed elements.
@@ -1558,6 +1558,9 @@ export module JsTypeCommander {
      *     var JsTypeCommander = require("JsTypeCommander").JsTypeCommander;
      */
     export function toArray(obj?: TDefined, checkElements?: boolean): AnyNilable[] {
+        if (arguments.length == 0)
+            return [];
+        
         if (isArray(obj))
             return obj;
         
@@ -1568,8 +1571,6 @@ export module JsTypeCommander {
             return result;
         }
     
-        if (notDefined(obj))
-            return [];
         return [obj];
     }
     
@@ -1738,7 +1739,7 @@ export module JsTypeCommander {
         if (isNil(obj))
             return obj;
         if (isErrorLike(obj)) {
-            let result: ErrorLike = { message: obj.message, name: (typeof(obj.name) == "string") ? obj.name : "ErrorLike" };
+            let result: ErrorLike = { message: obj.message, name: (typeof(obj.name) == "string" && obj.name.trim().length > 0) ? obj.name : "ErrorLike" };
             if (typeof(obj.description) == "string") {
                 if (typeof(obj.message) != "string" || obj.message.trim().length == 0)
                     result.message = obj.description;
@@ -1753,14 +1754,25 @@ export module JsTypeCommander {
                 result.lineNumber = obj.lineNumber;
             if (typeof(obj.stack) == "string")
                 result.stack = obj.stack;
+            if (typeof(result.message) != "string" || result.message.trim().length == 0) {
+                if (typeof(result.number) == "number")
+                    result.message = "Error " + result.number;
+                else if (typeof(result.fileName) == "string" && result.fileName.trim().length > 0) {
+                    if (typeof(result.lineNumber) == "number")
+                        result.message = "Error in " + result.fileName + " at line " + result.lineNumber;
+                    else if (typeof(result.fileName) == "string")
+                        result.message = "Error in " + result.fileName;
+                } else
+                    result.message = "Error";
+            }
             return result;
         }
         if (isNumber(obj))
-            return { message: obj.toString(), number: obj, name: "ErrorLike" };
+            return { message: "Error " + obj.toString(), number: obj, name: "ErrorLike" };
         let s: string = toString(obj);
-        if (isString(s))
-            return { message: s, name: "ErrorLike" };
-        return s;
+        if (!isString(s))
+            s = obj + "";
+        return { message: (s.trim().length == 0) ? "Error" : s, name: "ErrorLike" };
     }
     
     /**

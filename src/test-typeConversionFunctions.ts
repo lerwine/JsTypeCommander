@@ -315,9 +315,169 @@ describe("Testing type conversion functions", function() {
     ];
     TL.describeFunctionTypeGroups(functionTypeGroups);
     describe("Testing function toArray(obj?: TDefined, checkElements?: boolean): AnyNilable[]", function() {
-    
+        it("JsTypeCommander.toArray() should return []", function() {
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.toArray();
+            expect(result).to.a("Array");
+            if (Array.isArray(result))
+                expect(result.length).to.equal(0, "Length mismatch");
+        });
+        it("JsTypeCommander.toArray([]) should return []", function() {
+            let source: any[] = [];
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.toArray([]);
+            expect(result).to.a("Array");
+            if (Array.isArray(result))
+                expect(result.length).to.equal(0, "Length mismatch");
+        });
+        it("JsTypeCommander.toArray([12, \"7\", true, undefined]) should return [12, \"7\", true, undefined]", function() {
+            let source: any[] = [12, "7", true, undefined];
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.toArray(source);
+            expect(result).to.a("Array");
+            if (Array.isArray(result)) {
+                expect(result.length).to.equal(4, "Length mismatch");
+                expect(result[0]).to.equal(12, "Element 0 mismatch");
+                expect(result[1]).to.equal("7", "Element 1 mismatch");
+                expect(result[2]).to.equal(true, "Element 2 mismatch");
+                expect(result[3]).to.a("undefined", "Element 3 mismatch");
+            }
+        });
+        it("JsTypeCommander.toArray(undefined) should return [undefined]", function() {
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.toArray(undefined);
+            expect(result).to.a("Array");
+            if (Array.isArray(result)) {
+                expect(result.length).to.equal(1, "Length mismatch");
+                expect(result[0]).to.a("undefined");
+            }
+        });
+        it("JsTypeCommander.toArray(null) should return [null]", function() {
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.toArray(null);
+            expect(result).to.a("Array");
+            if (Array.isArray(result)) {
+                expect(result.length).to.equal(1, "Length mismatch");
+                expect(result[0]).to.a("null");
+            }
+        });
+        it("JsTypeCommander.toArray(0) should return [0]", function() {
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.toArray(0);
+            expect(result).to.a("Array");
+            if (Array.isArray(result)) {
+                expect(result.length).to.equal(1, "Length mismatch");
+                expect(result[0]).to.a("number");
+                expect(result[0]).to.equal(0, "Element 0 mismatch");
+            }
+        });
+        it("JsTypeCommander.toArray({ 0: 12, 1: \"7\", 3: true, length: 4 }) should return [12, \"7\", undefined, true]", function() {
+            let source: JsTypeCommander.IStringKeyedObject = { 0: 12, 1: "7", 3: true, length: 4 };
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.toArray(source);
+            expect(result).to.a("Array");
+            if (Array.isArray(result)) {
+                expect(result.length).to.equal(4, "Length mismatch");
+                expect(result[0]).to.equal(12, "Element 0 mismatch");
+                expect(result[1]).to.equal("7", "Element 1 mismatch");
+                expect(result[2]).to.a("undefined", "Element 2 mismatch");
+                expect(result[3]).to.equal(true, "Element 3 mismatch");
+            }
+        });
+        it("JsTypeCommander.toArray({ 0: 12, 1: \"7\", 3: true, length: 4 }, true) should return [{ 0: 12, 1: \"7\", 3: true, length: 4 }]", function() {
+            let source: JsTypeCommander.IStringKeyedObject = { 0: 12, 1: "7", 3: true, length: 4 };
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.toArray(source, true);
+            expect(result).to.a("Array");
+            if (Array.isArray(result)) {
+                expect(result.length).to.equal(1, "Length mismatch");
+                let obj: JsTypeCommander.AnyNilable = result[0];
+                expect(JsTypeCommander.isPlainObject(obj)).to.equal(true, "Element 0 mismatch");
+                if (JsTypeCommander.isPlainObject(obj)) {
+                    expect(obj[0]).to.equal(12, "Original object not returned as first element");
+                    expect(obj[1]).to.equal("7", "Original object not returned as first element");
+                    expect(obj[2]).to.a("undefined", "Original object not returned as first element");
+                    expect(obj[3]).to.equal(true, "Original object not returned as first element");
+                }
+            }
+        });
     });
     describe("Testing function asErrorLike(obj?: TDefined): Nilable<ErrorLike>", function() {
-    
+        it("JsTypeCommander.asErrorLike() should return undefined", function() {
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.asErrorLike();
+            expect(result).to.a("undefined");
+        });
+        it("JsTypeCommander.asErrorLike(\" \") should return { message: \"Error\", name: \"ErrorLike\" }", function() {
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.asErrorLike(" ");
+            expect(result).to.a("object");
+            expect(JsTypeCommander.isPlainObject(result)).to.equal(true, "Result is not a plain object");
+            if (JsTypeCommander.isPlainObject(result)) {
+                expect(result.message).to.a("string", "message property type mismatch");
+                expect(result.message).to.equal("Error", "message property value mismatch");
+                expect(result.name).to.a("string", "name property type mismatch");
+                expect(result.name).to.equal("ErrorLike", "name property value mismatch");
+            }
+        });
+        it("JsTypeCommander.asErrorLike(\"My Error\") should return { message: \"My Error\", name: \"ErrorLike\" }", function() {
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.asErrorLike("My Error");
+            expect(result).to.a("object");
+            expect(JsTypeCommander.isPlainObject(result)).to.equal(true, "Result is not a plain object");
+            if (JsTypeCommander.isPlainObject(result)) {
+                expect(result.message).to.a("string", "message property type mismatch");
+                expect(result.message).to.equal("My Error", "message property value mismatch");
+                expect(result.name).to.a("string", "name property type mismatch");
+                expect(result.name).to.equal("ErrorLike", "name property value mismatch");
+            }
+        });
+        it("JsTypeCommander.asErrorLike(12) should return { message: \"Error 12\", number: 12, name: \"ErrorLike\" }", function() {
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.asErrorLike(12);
+            expect(result).to.a("object");
+            expect(JsTypeCommander.isPlainObject(result)).to.equal(true, "Result is not a plain object");
+            if (JsTypeCommander.isPlainObject(result)) {
+                expect(result.message).to.a("string", "message property type mismatch");
+                expect(result.message).to.equal("Error 12", "message property mismatch");
+                expect(result.number).to.a("number", "number property type mismatch");
+                expect(result.number).to.equal(12, "number property mismatch");
+                expect(result.name).to.a("string", "name property type mismatch");
+                expect(result.name).to.equal("ErrorLike", "name property mismatch");
+            }
+        });
+        it("JsTypeCommander.asErrorLike({ description: \"My Error\" }) should return { message: \"My Error\", name: \"ErrorLike\" }", function() {
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.asErrorLike({ description: "My Error" });
+            expect(result).to.a("object");
+            expect(JsTypeCommander.isPlainObject(result)).to.equal(true, "Result is not a plain object");
+            if (JsTypeCommander.isPlainObject(result)) {
+                expect(result.message).to.a("string", "message property type mismatch");
+                expect(result.message).to.equal("My Error", "message property value mismatch");
+                expect(result.name).to.a("string", "name property type mismatch");
+                expect(result.name).to.equal("ErrorLike", "name property value mismatch");
+            }
+        });
+        let testObj: RangeError = new RangeError("Out of Range");
+        it("JsTypeCommander.asErrorLike(new RangeError(\"Out of Range\")) should return { message: \"Out of Range\", name: \"RangeError\" }", function() {
+            let result: JsTypeCommander.AnyNilable = JsTypeCommander.asErrorLike(testObj);
+            expect(result).to.a("object");
+            expect(JsTypeCommander.isPlainObject(result)).to.equal(true, "Result is not a plain object");
+            if (JsTypeCommander.isPlainObject(result)) {
+                expect(result.message).to.a("string", "message property type mismatch");
+                expect(result.message).to.equal("Out of Range", "message property value mismatch");
+                expect(result.name).to.a("string", "name property type mismatch");
+                expect(result.name).to.equal("RangeError", "name property value mismatch");
+                if (typeof(testObj.stack) == "string") {
+                    expect(result.stack).to.a("string", "stack property type mismatch");
+                    expect(result.stack).to.equal(testObj.stack, "name property value mismatch");
+                } else
+                    expect(result.stack).to.a("undefined", "stack property type mismatch");
+            }
+        });
+
+        it("JsTypeCommander.asErrorLike(RangeError: thrownErr) should return { message: \"Out of Range\", name: \"RangeError\", stack: string }", function() {
+            try { throw testObj; }
+            catch (ex) {
+                let result: JsTypeCommander.AnyNilable = JsTypeCommander.asErrorLike(ex);
+                expect(result).to.a("object");
+                expect(JsTypeCommander.isPlainObject(result)).to.equal(true, "Result is not a plain object");
+                if (JsTypeCommander.isPlainObject(result)) {
+                    expect(result.message).to.a("string", "message property type mismatch");
+                    expect(result.message).to.equal("Out of Range", "message property value mismatch");
+                    expect(result.name).to.a("string", "name property type mismatch");
+                    expect(result.name).to.equal("RangeError", "name property value mismatch");
+                    expect(result.stack).to.a("string", "stack property type mismatch");
+                    expect(result.stack).to.equal(ex.stack, "name property value mismatch");
+                }
+            }
+        });
     });
 });

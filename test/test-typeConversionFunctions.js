@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+var chai_1 = require("chai");
 var mocha_1 = require("mocha");
 var JsTypeCommander_1 = require("../dist/JsTypeCommander");
 var TL = require("./testLib");
@@ -16,7 +17,171 @@ mocha_1.describe("Testing type conversion functions", function () {
     ];
     TL.describeFunctionTypeGroups(functionTypeGroups);
     mocha_1.describe("Testing function toArray(obj?: TDefined, checkElements?: boolean): AnyNilable[]", function () {
+        it("JsTypeCommander.toArray() should return []", function () {
+            var result = JsTypeCommander_1.JsTypeCommander.toArray();
+            chai_1.expect(result).to.a("Array");
+            if (Array.isArray(result))
+                chai_1.expect(result.length).to.equal(0, "Length mismatch");
+        });
+        it("JsTypeCommander.toArray([]) should return []", function () {
+            var source = [];
+            var result = JsTypeCommander_1.JsTypeCommander.toArray([]);
+            chai_1.expect(result).to.a("Array");
+            if (Array.isArray(result))
+                chai_1.expect(result.length).to.equal(0, "Length mismatch");
+        });
+        it("JsTypeCommander.toArray([12, \"7\", true, undefined]) should return [12, \"7\", true, undefined]", function () {
+            var source = [12, "7", true, undefined];
+            var result = JsTypeCommander_1.JsTypeCommander.toArray(source);
+            chai_1.expect(result).to.a("Array");
+            if (Array.isArray(result)) {
+                chai_1.expect(result.length).to.equal(4, "Length mismatch");
+                chai_1.expect(result[0]).to.equal(12, "Element 0 mismatch");
+                chai_1.expect(result[1]).to.equal("7", "Element 1 mismatch");
+                chai_1.expect(result[2]).to.equal(true, "Element 2 mismatch");
+                chai_1.expect(result[3]).to.a("undefined", "Element 3 mismatch");
+            }
+        });
+        it("JsTypeCommander.toArray(undefined) should return [undefined]", function () {
+            var result = JsTypeCommander_1.JsTypeCommander.toArray(undefined);
+            chai_1.expect(result).to.a("Array");
+            if (Array.isArray(result)) {
+                chai_1.expect(result.length).to.equal(1, "Length mismatch");
+                chai_1.expect(result[0]).to.a("undefined");
+            }
+        });
+        it("JsTypeCommander.toArray(null) should return [null]", function () {
+            var result = JsTypeCommander_1.JsTypeCommander.toArray(null);
+            chai_1.expect(result).to.a("Array");
+            if (Array.isArray(result)) {
+                chai_1.expect(result.length).to.equal(1, "Length mismatch");
+                chai_1.expect(result[0]).to.a("null");
+            }
+        });
+        it("JsTypeCommander.toArray(0) should return [0]", function () {
+            var result = JsTypeCommander_1.JsTypeCommander.toArray(0);
+            chai_1.expect(result).to.a("Array");
+            if (Array.isArray(result)) {
+                chai_1.expect(result.length).to.equal(1, "Length mismatch");
+                chai_1.expect(result[0]).to.a("number");
+                chai_1.expect(result[0]).to.equal(0, "Element 0 mismatch");
+            }
+        });
+        it("JsTypeCommander.toArray({ 0: 12, 1: \"7\", 3: true, length: 4 }) should return [12, \"7\", undefined, true]", function () {
+            var source = { 0: 12, 1: "7", 3: true, length: 4 };
+            var result = JsTypeCommander_1.JsTypeCommander.toArray(source);
+            chai_1.expect(result).to.a("Array");
+            if (Array.isArray(result)) {
+                chai_1.expect(result.length).to.equal(4, "Length mismatch");
+                chai_1.expect(result[0]).to.equal(12, "Element 0 mismatch");
+                chai_1.expect(result[1]).to.equal("7", "Element 1 mismatch");
+                chai_1.expect(result[2]).to.a("undefined", "Element 2 mismatch");
+                chai_1.expect(result[3]).to.equal(true, "Element 3 mismatch");
+            }
+        });
+        it("JsTypeCommander.toArray({ 0: 12, 1: \"7\", 3: true, length: 4 }, true) should return [{ 0: 12, 1: \"7\", 3: true, length: 4 }]", function () {
+            var source = { 0: 12, 1: "7", 3: true, length: 4 };
+            var result = JsTypeCommander_1.JsTypeCommander.toArray(source, true);
+            chai_1.expect(result).to.a("Array");
+            if (Array.isArray(result)) {
+                chai_1.expect(result.length).to.equal(1, "Length mismatch");
+                var obj = result[0];
+                chai_1.expect(JsTypeCommander_1.JsTypeCommander.isPlainObject(obj)).to.equal(true, "Element 0 mismatch");
+                if (JsTypeCommander_1.JsTypeCommander.isPlainObject(obj)) {
+                    chai_1.expect(obj[0]).to.equal(12, "Original object not returned as first element");
+                    chai_1.expect(obj[1]).to.equal("7", "Original object not returned as first element");
+                    chai_1.expect(obj[2]).to.a("undefined", "Original object not returned as first element");
+                    chai_1.expect(obj[3]).to.equal(true, "Original object not returned as first element");
+                }
+            }
+        });
     });
     mocha_1.describe("Testing function asErrorLike(obj?: TDefined): Nilable<ErrorLike>", function () {
+        it("JsTypeCommander.asErrorLike() should return undefined", function () {
+            var result = JsTypeCommander_1.JsTypeCommander.asErrorLike();
+            chai_1.expect(result).to.a("undefined");
+        });
+        it("JsTypeCommander.asErrorLike(\" \") should return { message: \"Error\", name: \"ErrorLike\" }", function () {
+            var result = JsTypeCommander_1.JsTypeCommander.asErrorLike(" ");
+            chai_1.expect(result).to.a("object");
+            chai_1.expect(JsTypeCommander_1.JsTypeCommander.isPlainObject(result)).to.equal(true, "Result is not a plain object");
+            if (JsTypeCommander_1.JsTypeCommander.isPlainObject(result)) {
+                chai_1.expect(result.message).to.a("string", "message property type mismatch");
+                chai_1.expect(result.message).to.equal("Error", "message property value mismatch");
+                chai_1.expect(result.name).to.a("string", "name property type mismatch");
+                chai_1.expect(result.name).to.equal("ErrorLike", "name property value mismatch");
+            }
+        });
+        it("JsTypeCommander.asErrorLike(\"My Error\") should return { message: \"My Error\", name: \"ErrorLike\" }", function () {
+            var result = JsTypeCommander_1.JsTypeCommander.asErrorLike("My Error");
+            chai_1.expect(result).to.a("object");
+            chai_1.expect(JsTypeCommander_1.JsTypeCommander.isPlainObject(result)).to.equal(true, "Result is not a plain object");
+            if (JsTypeCommander_1.JsTypeCommander.isPlainObject(result)) {
+                chai_1.expect(result.message).to.a("string", "message property type mismatch");
+                chai_1.expect(result.message).to.equal("My Error", "message property value mismatch");
+                chai_1.expect(result.name).to.a("string", "name property type mismatch");
+                chai_1.expect(result.name).to.equal("ErrorLike", "name property value mismatch");
+            }
+        });
+        it("JsTypeCommander.asErrorLike(12) should return { message: \"Error 12\", number: 12, name: \"ErrorLike\" }", function () {
+            var result = JsTypeCommander_1.JsTypeCommander.asErrorLike(12);
+            chai_1.expect(result).to.a("object");
+            chai_1.expect(JsTypeCommander_1.JsTypeCommander.isPlainObject(result)).to.equal(true, "Result is not a plain object");
+            if (JsTypeCommander_1.JsTypeCommander.isPlainObject(result)) {
+                chai_1.expect(result.message).to.a("string", "message property type mismatch");
+                chai_1.expect(result.message).to.equal("Error 12", "message property mismatch");
+                chai_1.expect(result.number).to.a("number", "number property type mismatch");
+                chai_1.expect(result.number).to.equal(12, "number property mismatch");
+                chai_1.expect(result.name).to.a("string", "name property type mismatch");
+                chai_1.expect(result.name).to.equal("ErrorLike", "name property mismatch");
+            }
+        });
+        it("JsTypeCommander.asErrorLike({ description: \"My Error\" }) should return { message: \"My Error\", name: \"ErrorLike\" }", function () {
+            var result = JsTypeCommander_1.JsTypeCommander.asErrorLike({ description: "My Error" });
+            chai_1.expect(result).to.a("object");
+            chai_1.expect(JsTypeCommander_1.JsTypeCommander.isPlainObject(result)).to.equal(true, "Result is not a plain object");
+            if (JsTypeCommander_1.JsTypeCommander.isPlainObject(result)) {
+                chai_1.expect(result.message).to.a("string", "message property type mismatch");
+                chai_1.expect(result.message).to.equal("My Error", "message property value mismatch");
+                chai_1.expect(result.name).to.a("string", "name property type mismatch");
+                chai_1.expect(result.name).to.equal("ErrorLike", "name property value mismatch");
+            }
+        });
+        var testObj = new RangeError("Out of Range");
+        it("JsTypeCommander.asErrorLike(new RangeError(\"Out of Range\")) should return { message: \"Out of Range\", name: \"RangeError\" }", function () {
+            var result = JsTypeCommander_1.JsTypeCommander.asErrorLike(testObj);
+            chai_1.expect(result).to.a("object");
+            chai_1.expect(JsTypeCommander_1.JsTypeCommander.isPlainObject(result)).to.equal(true, "Result is not a plain object");
+            if (JsTypeCommander_1.JsTypeCommander.isPlainObject(result)) {
+                chai_1.expect(result.message).to.a("string", "message property type mismatch");
+                chai_1.expect(result.message).to.equal("Out of Range", "message property value mismatch");
+                chai_1.expect(result.name).to.a("string", "name property type mismatch");
+                chai_1.expect(result.name).to.equal("RangeError", "name property value mismatch");
+                if (typeof (testObj.stack) == "string") {
+                    chai_1.expect(result.stack).to.a("string", "stack property type mismatch");
+                    chai_1.expect(result.stack).to.equal(testObj.stack, "name property value mismatch");
+                }
+                else
+                    chai_1.expect(result.stack).to.a("undefined", "stack property type mismatch");
+            }
+        });
+        it("JsTypeCommander.asErrorLike(RangeError: thrownErr) should return { message: \"Out of Range\", name: \"RangeError\", stack: string }", function () {
+            try {
+                throw testObj;
+            }
+            catch (ex) {
+                var result = JsTypeCommander_1.JsTypeCommander.asErrorLike(ex);
+                chai_1.expect(result).to.a("object");
+                chai_1.expect(JsTypeCommander_1.JsTypeCommander.isPlainObject(result)).to.equal(true, "Result is not a plain object");
+                if (JsTypeCommander_1.JsTypeCommander.isPlainObject(result)) {
+                    chai_1.expect(result.message).to.a("string", "message property type mismatch");
+                    chai_1.expect(result.message).to.equal("Out of Range", "message property value mismatch");
+                    chai_1.expect(result.name).to.a("string", "name property type mismatch");
+                    chai_1.expect(result.name).to.equal("RangeError", "name property value mismatch");
+                    chai_1.expect(result.stack).to.a("string", "stack property type mismatch");
+                    chai_1.expect(result.stack).to.equal(ex.stack, "name property value mismatch");
+                }
+            }
+        });
     });
 });

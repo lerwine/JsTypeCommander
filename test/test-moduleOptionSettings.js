@@ -18,6 +18,7 @@ mocha_1.describe("Testing module options settings", function () {
             chai_1.expect(result).to.equal("\r\n");
         });
         it('JsTypeCommander.getDefaultLineSeparatorSequence() should return "\\r\\n"', function () {
+            JsTypeCommander_1.JsTypeCommander.setDefaultLineSeparatorSequence("\r\n");
             var result = JsTypeCommander_1.JsTypeCommander.getDefaultLineSeparatorSequence();
             chai_1.expect(result).to.a('string');
             chai_1.expect(result).to.equal("\r\n");
@@ -28,6 +29,7 @@ mocha_1.describe("Testing module options settings", function () {
             chai_1.expect(result).to.equal("\n");
         });
         it('JsTypeCommander.getDefaultLineSeparatorSequence() should return "\\n"', function () {
+            JsTypeCommander_1.JsTypeCommander.setDefaultLineSeparatorSequence();
             var result = JsTypeCommander_1.JsTypeCommander.getDefaultLineSeparatorSequence();
             chai_1.expect(result).to.a('string');
             chai_1.expect(result).to.equal("\n");

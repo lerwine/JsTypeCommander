@@ -26,7 +26,6 @@ var JsTypeCommander;
             abnormalWhitespace: patternDefaults.regex.abnormalWhitespace
         }
     };
-    ;
     /**
      * Gets the default character sequence that will be used when joining lines of text.
      * @returns {string} The default character sequence that will be used when joining lines of text.
@@ -1290,6 +1289,8 @@ var JsTypeCommander;
      *     var JsTypeCommander = require("JsTypeCommander").JsTypeCommander;
      */
     function toArray(obj, checkElements) {
+        if (arguments.length == 0)
+            return [];
         if (isArray(obj))
             return obj;
         if (isArrayLike(obj, checkElements)) {
@@ -1298,8 +1299,6 @@ var JsTypeCommander;
                 result.push(obj[i]);
             return result;
         }
-        if (notDefined(obj))
-            return [];
         return [obj];
     }
     JsTypeCommander.toArray = toArray;
@@ -1467,7 +1466,7 @@ var JsTypeCommander;
         if (isNil(obj))
             return obj;
         if (isErrorLike(obj)) {
-            var result = { message: obj.message, name: (typeof (obj.name) == "string") ? obj.name : "ErrorLike" };
+            var result = { message: obj.message, name: (typeof (obj.name) == "string" && obj.name.trim().length > 0) ? obj.name : "ErrorLike" };
             if (typeof (obj.description) == "string") {
                 if (typeof (obj.message) != "string" || obj.message.trim().length == 0)
                     result.message = obj.description;
@@ -1482,14 +1481,26 @@ var JsTypeCommander;
                 result.lineNumber = obj.lineNumber;
             if (typeof (obj.stack) == "string")
                 result.stack = obj.stack;
+            if (typeof (result.message) != "string" || result.message.trim().length == 0) {
+                if (typeof (result.number) == "number")
+                    result.message = "Error " + result.number;
+                else if (typeof (result.fileName) == "string" && result.fileName.trim().length > 0) {
+                    if (typeof (result.lineNumber) == "number")
+                        result.message = "Error in " + result.fileName + " at line " + result.lineNumber;
+                    else if (typeof (result.fileName) == "string")
+                        result.message = "Error in " + result.fileName;
+                }
+                else
+                    result.message = "Error";
+            }
             return result;
         }
         if (isNumber(obj))
-            return { message: obj.toString(), number: obj, name: "ErrorLike" };
+            return { message: "Error " + obj.toString(), number: obj, name: "ErrorLike" };
         var s = toString(obj);
-        if (isString(s))
-            return { message: s, name: "ErrorLike" };
-        return s;
+        if (!isString(s))
+            s = obj + "";
+        return { message: (s.trim().length == 0) ? "Error" : s, name: "ErrorLike" };
     }
     JsTypeCommander.asErrorLike = asErrorLike;
     var limitingIterator = /** @class */ (function () {
