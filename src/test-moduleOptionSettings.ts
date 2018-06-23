@@ -8,6 +8,7 @@ import { truncate } from 'fs';
 describe("Testing module options settings", function() {
     describe("Testing JsTypeCommander.getDefaultLineSeparatorSequence()", function() {
         it('JsTypeCommander.getDefaultLineSeparatorSequence() should return "\\n"', function() {
+            JsTypeCommander.setDefaultLineSeparatorSequence();
             let result: string|null|undefined = JsTypeCommander.getDefaultLineSeparatorSequence();
             expect(result).to.a('string');
             expect(result).to.equal("\n");

@@ -195,6 +195,7 @@ mocha_1.describe("Testing string manipulation functions", function () {
             f.tests.forEach(function (t) {
                 var expected = JSON.stringify(t.expected);
                 it(f.fName + "(" + t.args.map(function (a) { return (typeof (a) == "undefined") ? "undefined" : JSON.stringify(a); }).join(", ") + ") should return " + expected, function () {
+                    JsTypeCommander_1.JsTypeCommander.setDefaultLineSeparatorSequence();
                     var result = f.callback.apply(undefined, t.args);
                     chai_1.expect(JSON.stringify(result)).to.equal(expected);
                 });

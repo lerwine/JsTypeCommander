@@ -207,6 +207,7 @@ describe("Testing string manipulation functions", function() {
             f.tests.forEach(t => {
                 let expected: string = JSON.stringify(t.expected);
                 it(f.fName + "(" + t.args.map(a => (typeof(a) == "undefined") ? "undefined" : JSON.stringify(a)).join(", ") + ") should return " + expected, function() {
+                    JsTypeCommander.setDefaultLineSeparatorSequence();
                     let result: any = f.callback.apply(undefined, t.args);
                     expect(JSON.stringify(result)).to.equal(expected);
                 });

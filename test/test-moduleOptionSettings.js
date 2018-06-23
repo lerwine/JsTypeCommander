@@ -6,6 +6,7 @@ var JsTypeCommander_1 = require("../dist/JsTypeCommander");
 mocha_1.describe("Testing module options settings", function () {
     mocha_1.describe("Testing JsTypeCommander.getDefaultLineSeparatorSequence()", function () {
         it('JsTypeCommander.getDefaultLineSeparatorSequence() should return "\\n"', function () {
+            JsTypeCommander_1.JsTypeCommander.setDefaultLineSeparatorSequence();
             var result = JsTypeCommander_1.JsTypeCommander.getDefaultLineSeparatorSequence();
             chai_1.expect(result).to.a('string');
             chai_1.expect(result).to.equal("\n");
